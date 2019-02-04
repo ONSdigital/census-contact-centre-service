@@ -1,10 +1,9 @@
-package uk.gov.ons.ctp.response.contactcentersvc;
+package uk.gov.ons.ctp.integration.contactcenter;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/** The 'main' entry point for the ContactCenterSvc SpringBoot Application. */
+/** The 'main' entry point for the RHSvc SpringBoot Application. */
 @SpringBootApplication
 public class ContactCenterSvcApplication {
-
 
 }
