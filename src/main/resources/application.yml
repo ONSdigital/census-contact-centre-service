@@ -51,12 +51,6 @@ spring:
       enabled: never
   application:
     name: ONS ContactCentreService
-    #  datasource:
-    # url: jdbc:postgresql://localhost:6432/postgres
-    # username: postgres
-    # password: postgres
-    # driverClassName: org.postgresql.Driver
-    # continue-on-error: true
     tomcat:
       initial-size: 5
       max-active: 10
@@ -66,33 +60,10 @@ spring:
     baseUrl: http://localhost:9411
     enabled: false
 
-    #data-grid:
-    #address: localhost:7379
-    #list-time-to-live-seconds: 60
-    #list-time-to-wait-seconds: 60
-    #report-lock-time-to-live-seconds: 300
-
 redelivery-policy:
   maxRedeliveries: 10
   initialRedeliveryDelay: 1000
   redeliveryDelay: 1000
-
-rabbitmq:
-  username: guest
-  password: guest
-  host: localhost
-  port: 6672
-  virtualhost: /
-
-messaging:
-  backoffInitial: 5000
-  backoffMultiplier: 3
-  backoffMax: 45000
-  consumingThreads: 1
-  pubMaxAttempts: 3
-  conMaxAttempts: 3
-  prefetchCount: 10
-  txSize: 1
 
 report-settings:
   cron-expression: "0 * * * * *"

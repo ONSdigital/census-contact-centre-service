@@ -16,13 +16,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
 // @CoverageIgnore
-// @EnableTransactionManagement
 // @IntegrationComponentScan
 // @ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
-// @EnableJpaRepositories(basePackages = {"uk.gov.ons.ctp.integration"})
 // @EntityScan("uk.gov.ons.ctp.integration")
-// @EnableAsync
-// @ImportResource("springintegration/main.xml")
 @SpringBootApplication
 public class ContactCentreSvcApplication {
 

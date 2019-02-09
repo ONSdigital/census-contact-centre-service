@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class SmokeTest {
 
-  @Autowired private ContactCentreDataEndpoint controller;
+  @Autowired private AddressEndpoint controller;
 
   @Test
   public void contexLoads() throws Exception {

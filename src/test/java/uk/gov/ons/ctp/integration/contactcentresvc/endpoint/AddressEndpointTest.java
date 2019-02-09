@@ -22,8 +22,8 @@ import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 /** Contact Centre Data Endpoint Unit tests */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public final class ContactCentreDataEndpointUnitTest {
-  @InjectMocks private ContactCentreDataEndpoint contactCentreDataEndpoint;
+public final class AddressEndpointTest {
+  @InjectMocks private AddressEndpoint contactCentreDataEndpoint;
 
   private MockMvc mockMvc;
 

@@ -15,13 +15,6 @@ logging:
   profile: CLOUD
   useJson: true
 
-liquibase:
-  user: ${cloud.services.postgresql.connection.username}
-  password: ${cloud.services.postgresql.connection.password}
-  default-schema: contactcentresvc
-  url: ${cloud.services.postgresql.connection.jdbcurl}
-  changeLog: classpath:/database/changelog-master.yml
-
 security:
   basic:
     enabled: true
@@ -45,49 +38,11 @@ server:
 spring:
   application:
     name: ONS ContactCentreDataService
-  datasource:
-    driverClassName: org.postgresql.Driver
-    tomcat:
-      initial-size: 5
-      max-active: 10
-      max-idle: 5
-      min-idle: 3
-    continue-on-error: true
-    schema: classpath:/schema-cloud.sql
-    user: ${cloud.services.postgresql.connection.username}
-    password: ${cloud.services.postgresql.connection.password}
-    default-schema: contactcentresvc
-    url: ${cloud.services.postgresql.connection.jdbcurl}
-
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQL94Dialect
-    show-sql: false
-    properties:
-      hibernate:
-        ddl-auto: update
-        default_schema: contactcentresvc
 
 redelivery-policy:
   maxRedeliveries: 10
   initialRedeliveryDelay: 1000
   redeliveryDelay: 1000
-
-rabbitmq:
-  username: ${cloud.services.rabbitmq.connection.username}
-  password: ${cloud.services.rabbitmq.connection.password}
-  host: ${cloud.services.rabbitmq.connection.host}
-  port: ${cloud.services.rabbitmq.connection.port}
-  virtualhost: ${cloud.services.rabbitmq.connection.virtualhost}
-
-messaging:
-  backoffInitial: 5000
-  backoffMultiplier: 3
-  backoffMax: 45000
-  consumingThreads: 1
-  pubMaxAttempts: 3
-  conMaxAttempts: 3
-  prefetchCount: 10
-  txSize: 1
 
 report-settings:
   cron-expression: "0 * * * * *"

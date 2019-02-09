@@ -10,26 +10,26 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.ContactCentreDataServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
 @RestController
 @RequestMapping(value = "/contactcentre", produces = "application/json")
-public final class ContactCentreDataEndpoint implements CTPEndpoint {
-  private static final Logger log = LoggerFactory.getLogger(ContactCentreDataEndpoint.class);
+public final class AddressEndpoint implements CTPEndpoint {
+  private static final Logger log = LoggerFactory.getLogger(AddressEndpoint.class);
 
   public static final String CATEGORY_ACCESS_CODE_AUTHENTICATION_ATTEMPT_NOT_FOUND =
       "Category ACCESS_CODE_AUTHENTICATION_ATTEMPT does not exist";
 
-  private ContactCentreDataServiceImpl contactCentreDataService;
+  private AddressServiceImpl addressService;
   private MapperFacade mapperFacade;
 
   /** Contructor for ContactCentreDataEndpoint */
   @Autowired
-  public ContactCentreDataEndpoint(
-      final ContactCentreDataServiceImpl contactCentreDataService,
+  public AddressEndpoint(
+      final AddressServiceImpl addressservice,
       final @Qualifier("RHSvcBeanMapper") MapperFacade mapperFacade) {
-    this.contactCentreDataService = contactCentreDataService;
+    this.addressService = addressservice;
     this.mapperFacade = mapperFacade;
   }
 
