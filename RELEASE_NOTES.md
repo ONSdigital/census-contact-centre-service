@@ -1,12 +1,11 @@
-Contact Center Service
+Contact Centre Data Service
 ============
-Version 1.0.0
+Version 0.0.0
 
 Changes
 -------
-Setting up the skeleton project for Contact Center Service
+Setting up initial version of the Contact Centre Service
 
 Known Issues
 ------------
 None.
-

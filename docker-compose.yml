@@ -1,0 +1,13 @@
+version: '2.1'
+services:
+  rabbitmq:
+    container_name: rabbitmq-contactcentresvc-it
+    image: rabbitmq:3.6.10-management
+    ports:
+    - "34369:4369"
+    - "55672:25672"
+    - "35671:5671"
+    - "35672:5672"
+    - "46671:15671"
+    - "46672:15672"
+
