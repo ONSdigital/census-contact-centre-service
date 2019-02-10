@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /** The bean mapper that maps to/from DTOs and JPA entity types. */
 @Component
-public class RHSvcBeanMapper extends ConfigurableMapper {
+public class CCSvcBeanMapper extends ConfigurableMapper {
 
   /**
    * Setup the mapper for all of our beans. Only fields having non identical names need mapping if

@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /**
- * A ContactCentreDataService implementation which encapsulates all business logic operating on the
- * contact centre Details entity model.
+ * A ContactCentreDataService implementation which encapsulates all business logic for getting
+ * Addresses
  */
 @Service
 public class AddressServiceImpl implements AddressService {

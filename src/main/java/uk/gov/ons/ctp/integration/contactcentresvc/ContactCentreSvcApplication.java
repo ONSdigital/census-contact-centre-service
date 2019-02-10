@@ -15,8 +15,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
-// @CoverageIgnore
-// @IntegrationComponentScan
 // @ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
 // @EntityScan("uk.gov.ons.ctp.integration")
 @SpringBootApplication
