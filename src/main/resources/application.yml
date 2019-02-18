@@ -65,6 +65,23 @@ redelivery-policy:
   initialRedeliveryDelay: 1000
   redeliveryDelay: 1000
 
+rabbitmq:
+  username: guest
+  password: guest
+  host: localhost
+  port: 35672
+  virtualhost: /
+
+messaging:
+  backoffInitial: 5000
+  backoffMultiplier: 3
+  backoffMax: 45000
+  consumingThreads: 1
+  pubMaxAttempts: 3
+  conMaxAttempts: 3
+  prefetchCount: 1
+  txSize: 1
+
 report-settings:
   cron-expression: "0 * * * * *"
 
