@@ -40,7 +40,7 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/fulfilments", method = RequestMethod.GET)
   public ResponseEntity<FulfilmentsDTO> getFulfilments() {
     FulfilmentsDTO fulfilments = new FulfilmentsDTO();
-    FulfilmentDTO fulfilment = new FulfilmentDTO("ABC", "English Postal Fulfilment", "Post");
+    FulfilmentDTO fulfilment = new FulfilmentDTO("ABCDEFG", "English Postal Fulfilment", "Post");
     fulfilments.setCodes(new FulfilmentDTO[] {fulfilment});
 
     return ResponseEntity.ok(fulfilments);
