@@ -8,10 +8,13 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 // import org.redisson.api.RedissonClient;
 // import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
+
+import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
@@ -26,6 +29,13 @@ public class ContactCentreSvcApplication {
   @Autowired
   public ContactCentreSvcApplication(final AppConfig appConfig) {
     this.appConfig = appConfig;
+  }
+
+  @Bean
+  @Qualifier("addressIndexClient")
+  public RestClient addressIndexClient() {
+	  RestClient restHelper = new RestClient(appConfig.getAddressIndexSettings().getRestClientConfig());
+      return restHelper;
   }
 
   /**

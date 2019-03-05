@@ -14,5 +14,6 @@ public class AppConfig {
   private SwaggerSettings swaggerSettings;
   private ReportSettings reportSettings;
   // private Rabbitmq rabbitmq;
+  private AddressIndexSettings addressIndexSettings;
   private Logging logging;
 }
