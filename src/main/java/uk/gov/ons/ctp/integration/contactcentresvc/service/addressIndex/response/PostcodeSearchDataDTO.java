@@ -8,9 +8,13 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties({ "apiVersion" })
-public class PostcodeQueryDTO {
-	String dataVersion;
-    PostcodeSearchResponse response;
-    Status status;
-    ArrayList<String> errors;
+public class PostcodeSearchDataDTO {
+	
+	private String dataVersion;
+	
+	private PostcodeSearchResponseDTO response;
+	
+	private ResponseStatusData status;
+	
+	private ArrayList<String> errors;
 }

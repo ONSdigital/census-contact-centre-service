@@ -8,12 +8,15 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PostcodeSearchResponse {
-	String postcode;
+public class PostcodeSearchResponseDTO {
 	
-	ArrayList<Address> addresses;
+	private String postcode;
 	
-	int limit;
-	int offset;
-	int total;
+	private ArrayList<AddressIndexAddressDTO> addresses;
+	
+	private int limit;
+	
+	private int offset;
+	
+	private int total;
 }

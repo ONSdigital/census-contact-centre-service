@@ -4,7 +4,6 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,9 +14,9 @@ import com.godaddy.logging.LoggerFactory;
 import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.request.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.response.PostcodeQueryResponseDTO;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
 @RestController

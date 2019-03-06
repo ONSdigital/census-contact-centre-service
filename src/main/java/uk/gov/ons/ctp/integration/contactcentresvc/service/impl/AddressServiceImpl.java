@@ -16,12 +16,11 @@ import com.godaddy.logging.LoggerFactory;
 
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.Address;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.PostcodeQueryDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.request.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.response.AddressSummaryDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.response.PostcodeQueryResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.PostcodeSearchDataDTO;
 
 /**
  * A ContactCentreDataService implementation which encapsulates all business logic for getting
@@ -39,49 +38,46 @@ public class AddressServiceImpl implements AddressService {
   private RestClient addressIndexClient;
 
 	@Override
-	public PostcodeQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
+	public PostcodeQueryResponseDTO postcodeQuery(uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO postcodeQueryRequest) {
 		String postcode = postcodeQueryRequest.getPostcode();
 		int offset = postcodeQueryRequest.getOffset();
 		int limit = postcodeQueryRequest.getLimit();
 		
-		// Delegate postcode query to Address Index
+		// Postcode query is delegated to Address Index. Build the query params
 		log.debug("about to get to the AddressIndex service with {}", postcode, offset, limit);
 	      MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 	      queryParams.add("offset", Integer.toString(offset));
 	      queryParams.add("limit", Integer.toString(limit));
 	      
+	      // Ask Address Index to do postcode search
 	      String path = appConfig.getAddressIndexSettings().getPostcodeLookupPath();
-	      PostcodeQueryDTO response = addressIndexClient.getResource(path, PostcodeQueryDTO.class, null, queryParams, postcode);
-	      log.debug("Address Service found " + response.getResponse().getAddresses().size() + " addresses");
-
-	      StringBuilder results = new StringBuilder();
-		  results.append("For: " + postcode + "\n");
-		  for (Address a : response.getResponse().getAddresses()) {
-			  results.append(a.getWelshFormattedAddressNag() + "\n");
-		  }
+	      PostcodeSearchDataDTO addressIndexResponse = addressIndexClient.getResource(path, PostcodeSearchDataDTO.class, null, queryParams, postcode);
+	      log.debug("PostcodeQuery. Address Index service "
+	      		+ "response status: " + addressIndexResponse.getStatus().getCode() 
+	      		+ " Found " + addressIndexResponse.getResponse().getAddresses().size() + " addresses");
 		  
-		  // Summarise key information from AddressIndex response
-		  ArrayList<AddressSummaryDTO> addresses = new ArrayList<>();
-		  for (Address address : response.getResponse().getAddresses()) {
-			  String formattedAddress = address.getFormattedAddress();
-			  String addressPaf = address.getFormattedAddressPaf();
-			  String addressNag = address.getFormattedAddressNag();
-			  String welshAddressPaf = address.getWelshFormattedAddressPaf();
-			  String welshAddressNag = address.getWelshFormattedAddressNag();
+		  // Summarise the returned addresses
+		  ArrayList<AddressDTO> summarisedAddresses = new ArrayList<>();
+		  for (AddressIndexAddressDTO fullAddress : addressIndexResponse.getResponse().getAddresses()) {
+			  String formattedAddress = fullAddress.getFormattedAddress();
+			  String addressPaf = fullAddress.getFormattedAddressPaf();
+			  String addressNag = fullAddress.getFormattedAddressNag();
+			  String welshAddressPaf = fullAddress.getWelshFormattedAddressPaf();
+			  String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
 
-			  AddressSummaryDTO addressSummary = new AddressSummaryDTO();
-			  addressSummary.setUprn(address.getUprn());
+			  AddressDTO addressSummary = new AddressDTO();
+			  addressSummary.setUprn(fullAddress.getUprn());
 			  addressSummary.setFormattedAddress(selectFirstUsableAddress(addressPaf, addressNag, formattedAddress));
 			  addressSummary.setWelshFormattedAddress(selectFirstUsableAddress(welshAddressPaf, welshAddressNag, formattedAddress));
 			  
-			  addresses.add(addressSummary);
+			  summarisedAddresses.add(addressSummary);
 		  }
 
 		  // Complete construction of response objects
 		  PostcodeQueryResponseDTO queryResponse = new PostcodeQueryResponseDTO();
-		  queryResponse.setDataVersion(response.getDataVersion());
-		  queryResponse.setAddresses(addresses);
-		  queryResponse.setTotal(response.getResponse().getTotal());
+		  queryResponse.setDataVersion(addressIndexResponse.getDataVersion());
+		  queryResponse.setAddresses(summarisedAddresses);
+		  queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
 		  
 		return queryResponse;
 	}

@@ -3,7 +3,9 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.respons
 import lombok.Data;
 
 @Data
-public class Status {
-	int code;
-	String message;
+public class ResponseStatusData {
+	
+	private int code;
+	
+	private String message;
 }
