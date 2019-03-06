@@ -13,7 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
-
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
@@ -34,8 +33,9 @@ public class ContactCentreSvcApplication {
   @Bean
   @Qualifier("addressIndexClient")
   public RestClient addressIndexClient() {
-	  RestClient restHelper = new RestClient(appConfig.getAddressIndexSettings().getRestClientConfig());
-      return restHelper;
+    RestClient restHelper =
+        new RestClient(appConfig.getAddressIndexSettings().getRestClientConfig());
+    return restHelper;
   }
 
   /**

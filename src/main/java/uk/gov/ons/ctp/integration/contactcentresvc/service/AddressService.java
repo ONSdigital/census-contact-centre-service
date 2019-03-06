@@ -4,5 +4,5 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryR
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryResponseDTO;
 
 public interface AddressService {
-	public PostcodeQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest);
+  public PostcodeQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest);
 }

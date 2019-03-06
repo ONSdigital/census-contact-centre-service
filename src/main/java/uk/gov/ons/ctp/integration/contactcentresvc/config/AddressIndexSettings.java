@@ -5,6 +5,6 @@ import uk.gov.ons.ctp.common.rest.RestClientConfig;
 
 @Data
 public class AddressIndexSettings {
-    String postcodeLookupPath;
-    RestClientConfig restClientConfig;
+  String postcodeLookupPath;
+  RestClientConfig restClientConfig;
 }

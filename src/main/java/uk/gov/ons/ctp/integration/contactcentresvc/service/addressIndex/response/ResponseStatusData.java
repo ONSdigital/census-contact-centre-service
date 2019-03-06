@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class ResponseStatusData {
-	
-	private int code;
-	
-	private String message;
+
+  private int code;
+
+  private String message;
 }
