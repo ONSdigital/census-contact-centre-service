@@ -73,7 +73,6 @@ public class AddressServiceImpl implements AddressService {
 			  addressSummary.setUprn(address.getUprn());
 			  addressSummary.setFormattedAddress(selectFirstUsableAddress(addressPaf, addressNag, formattedAddress));
 			  addressSummary.setWelshFormattedAddress(selectFirstUsableAddress(welshAddressPaf, welshAddressNag, formattedAddress));
-			  addressSummary.setHousehould(address.getClassificationCode().startsWith("R"));
 			  
 			  addresses.add(addressSummary);
 		  }

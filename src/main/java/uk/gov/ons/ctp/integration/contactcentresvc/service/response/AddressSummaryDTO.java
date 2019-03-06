@@ -15,6 +15,4 @@ public class AddressSummaryDTO {
 	
 	@JsonProperty("welsh-formatted-address")
 	String welshFormattedAddress;
-    
-	boolean househould;
 }
