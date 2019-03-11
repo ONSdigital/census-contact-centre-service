@@ -1,21 +1,19 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
-
 import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
@@ -29,11 +27,23 @@ public final class AddressEndpoint implements CTPEndpoint {
 
   /** Constructor for ContactCentreDataEndpoint */
   @Autowired
-  public AddressEndpoint(
-      final AddressServiceImpl addressservice,
+  public AddressEndpoint(final AddressServiceImpl addressservice,
       final @Qualifier("CCSvcBeanMapper") MapperFacade mapperFacade) {
     this.addressService = addressservice;
     this.mapperFacade = mapperFacade;
+  }
+
+  /**
+   * This GET endpoint returns the addresses for an address search. Depending on the success of the
+   * search it will return 0, 1 or more addresses.
+   * 
+   * @return an object listing the addresses matching the address search string.
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/addresses", method = RequestMethod.GET)
+  public AddressQueryResponseDTO getAddressesBySearchQuery(
+      @Valid AddressQueryRequestDTO addressQueryRequest) {
+    return addressService.addressQuery(addressQueryRequest);
   }
 
   /**
@@ -43,8 +53,8 @@ public final class AddressEndpoint implements CTPEndpoint {
    * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/addresses/postcode", method = RequestMethod.GET)
-  public PostcodeQueryResponseDTO getAddressesByPostcode(
-		  @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
+  public AddressQueryResponseDTO getAddressesByPostcode(
+      @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
     return addressService.postcodeQuery(postcodeQueryRequest);
   }
 

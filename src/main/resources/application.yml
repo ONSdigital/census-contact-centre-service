@@ -83,6 +83,7 @@ messaging:
   txSize: 1
 
 address-index-settings:
+  address-query-path: /addresses
   postcode-lookup-path: /addresses/postcode/{postcode}
   rest-client-config:
     scheme: http

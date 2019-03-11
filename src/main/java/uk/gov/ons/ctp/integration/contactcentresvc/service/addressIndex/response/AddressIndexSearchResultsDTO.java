@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties({"apiVersion"})
-public class PostcodeSearchDataDTO {
+public class AddressIndexSearchResultsDTO {
 
   private String dataVersion;
 
