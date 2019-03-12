@@ -1,8 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.message.ContactCentreEventPublisher;
