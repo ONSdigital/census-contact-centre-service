@@ -137,7 +137,11 @@
     <dependency>
         <groupId>uk.gov.ons.ctp.integration</groupId>
         <artifactId>contactcentreserviceapi</artifactId>
+<<<<<<< Updated upstream
         <version>0.0.19</version>
+=======
+        <version>0.0.20-SNAPSHOT</version>
+>>>>>>> Stashed changes
     </dependency>
     <!-- ONS END -->
 
