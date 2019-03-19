@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,15 +25,12 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.AddressIndexSearchResultsDTO;
 
 public class AddressServiceImplTest {
-  @Mock 
-  AppConfig appConfig = new AppConfig();
-  
-  @Mock
-  RestClient restClient;
+  @Mock AppConfig appConfig = new AppConfig();
 
-  @InjectMocks
-  AddressService addressService = new AddressServiceImpl();
-  
+  @Mock RestClient restClient;
+
+  @InjectMocks AddressService addressService = new AddressServiceImpl();
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -47,10 +45,11 @@ public class AddressServiceImplTest {
   @Test
   public void testAddressQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults = FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+    AddressIndexSearchResultsDTO addressIndexResults =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
     Mockito.when(restClient.getResource(eq("/addresses"), any(), any(), any(), any()))
         .thenReturn(addressIndexResults);
-    
+
     // Run the request and verify results
     AddressQueryRequestDTO request = new AddressQueryRequestDTO("Michael", 0, 100);
     AddressQueryResponseDTO results = addressService.addressQuery(request);
@@ -60,10 +59,12 @@ public class AddressServiceImplTest {
   @Test
   public void testPostcodeQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults = FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(restClient.getResource(eq("/addresses/postcode"), any(), any(), any(), eq("EX2 8DD")))
+    AddressIndexSearchResultsDTO addressIndexResults =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+    Mockito.when(
+            restClient.getResource(eq("/addresses/postcode"), any(), any(), any(), eq("EX2 8DD")))
         .thenReturn(addressIndexResults);
-    
+
     // Run the request and verify results
     PostcodeQueryRequestDTO request = new PostcodeQueryRequestDTO("EX2 8DD", 0, 100);
     AddressQueryResponseDTO results = addressService.postcodeQuery(request);
@@ -71,21 +72,18 @@ public class AddressServiceImplTest {
   }
 
   /**
-   * Postcode and address queries return the same results, so this method validates the data in both cases. 
-   * 
-   * To identify the source of an address these use these constants as a unit or house number suffix:
-   *   f = formatted
-   *   n = Nag
-   *   p = Paf
-   *   wn = Welsh Nag
-   *   wp = Welsh Paf 
+   * Postcode and address queries return the same results, so this method validates the data in both
+   * cases.
+   *
+   * <p>To identify the source of an address these use these constants as a unit or house number
+   * suffix: f = formatted n = Nag p = Paf wn = Welsh Nag wp = Welsh Paf
    */
   private void verifyAddresses(AddressQueryResponseDTO results) {
     assertEquals("39", results.getDataVersion());
-    assertEquals(23, results.getTotal());  // Total as returned by Address Index
-    
+    assertEquals(23, results.getTotal()); // Total as returned by Address Index
+
     ArrayList<AddressDTO> addresses = results.getAddresses();
-    assertEquals(4,  addresses.size());
+    assertEquals(4, addresses.size());
 
     // Firstly confirm that Paf addresses take precedence over the others
     assertThat(addresses.get(0).getFormattedAddress(), startsWith("Unit 11p,"));
@@ -102,7 +100,7 @@ public class AddressServiceImplTest {
     assertThat(addresses.get(2).getWelshFormattedAddress(), startsWith("Unit 19f,"));
     assertEquals("100041045024", addresses.get(2).getUprn());
 
-    // Pathological case in which none of the addresses are set 
+    // Pathological case in which none of the addresses are set
     assertEquals("", addresses.get(3).getFormattedAddress());
     assertEquals("", addresses.get(3).getWelshFormattedAddress());
     assertEquals("100041133344", addresses.get(3).getUprn());

@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
@@ -29,13 +29,11 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response
 public class AddressServiceImpl implements AddressService {
   private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
 
-  @Autowired
-  private AppConfig appConfig;
+  @Autowired private AppConfig appConfig;
 
   @Inject
   @Qualifier("addressIndexClient")
   private RestClient addressIndexClient;
-
 
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
@@ -52,11 +50,16 @@ public class AddressServiceImpl implements AddressService {
 
     // Ask Address Index to do an address search
     String path = appConfig.getAddressIndexSettings().getAddressQueryPath();
-    AddressIndexSearchResultsDTO addressIndexResponse = addressIndexClient.getResource(path,
-        AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
-    log.info("AddressQuery. Address Index service " + "response status: "
-        + addressIndexResponse.getStatus().getCode() + " Found "
-        + addressIndexResponse.getResponse().getAddresses().size() + " addresses");
+    AddressIndexSearchResultsDTO addressIndexResponse =
+        addressIndexClient.getResource(
+            path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
+    log.info(
+        "AddressQuery. Address Index service "
+            + "response status: "
+            + addressIndexResponse.getStatus().getCode()
+            + " Found "
+            + addressIndexResponse.getResponse().getAddresses().size()
+            + " addresses");
 
     // Summarise the returned addresses
     return convertAdressIndexResultsToSummarisedAdresses(addressIndexResponse);
@@ -76,11 +79,16 @@ public class AddressServiceImpl implements AddressService {
 
     // Ask Address Index to do postcode search
     String path = appConfig.getAddressIndexSettings().getPostcodeLookupPath();
-    AddressIndexSearchResultsDTO addressIndexResponse = addressIndexClient.getResource(path,
-        AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.info("PostcodeQuery. Address Index service " + "response status: "
-        + addressIndexResponse.getStatus().getCode() + " Found "
-        + addressIndexResponse.getResponse().getAddresses().size() + " addresses");
+    AddressIndexSearchResultsDTO addressIndexResponse =
+        addressIndexClient.getResource(
+            path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
+    log.info(
+        "PostcodeQuery. Address Index service "
+            + "response status: "
+            + addressIndexResponse.getStatus().getCode()
+            + " Found "
+            + addressIndexResponse.getResponse().getAddresses().size()
+            + " addresses");
 
     // Summarise the returned addresses
     return convertAdressIndexResultsToSummarisedAdresses(addressIndexResponse);
@@ -98,8 +106,8 @@ public class AddressServiceImpl implements AddressService {
 
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
-      addressSummary
-          .setFormattedAddress(selectFirstUsableAddress(addressPaf, addressNag, formattedAddress));
+      addressSummary.setFormattedAddress(
+          selectFirstUsableAddress(addressPaf, addressNag, formattedAddress));
       addressSummary.setWelshFormattedAddress(
           selectFirstUsableAddress(welshAddressPaf, welshAddressNag, formattedAddress));
 
@@ -117,10 +125,10 @@ public class AddressServiceImpl implements AddressService {
 
   /**
    * This method takes multiple addresses and returns the first usable one.
-   * 
+   *
    * @param candidateAddresses, contains 1 or more addresses.
    * @return the first non-null and non-empty address, or an empty string if none of the supplied
-   *         addresses are suitable.ß
+   *     addresses are suitable.ß
    */
   private String selectFirstUsableAddress(String... candidateAddresses) {
     String preferredAddress = "";

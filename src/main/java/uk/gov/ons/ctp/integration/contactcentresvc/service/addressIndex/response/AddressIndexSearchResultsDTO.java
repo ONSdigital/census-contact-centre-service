@@ -1,7 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response;
 
-import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
 import lombok.Data;
 
 @Data
