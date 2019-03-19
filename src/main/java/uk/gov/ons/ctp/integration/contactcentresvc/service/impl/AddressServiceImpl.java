@@ -17,8 +17,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.AddressIndexAddressDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexSearchResultsDTO;
 
 /**
  * A ContactCentreDataService implementation which encapsulates all business logic for getting

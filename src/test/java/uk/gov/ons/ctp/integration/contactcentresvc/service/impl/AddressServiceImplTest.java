@@ -22,7 +22,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressIndex.response.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexSearchResultsDTO;
 
 public class AddressServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
