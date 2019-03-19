@@ -1,5 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +19,6 @@ import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
 
 /** The REST endpoint controller for ContactCentreSvc Fulfilments endpoints */
@@ -40,10 +44,9 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
    * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/fulfilments", method = RequestMethod.GET)
-  public ResponseEntity<FulfilmentsDTO> getFulfilments() {
-    FulfilmentsDTO fulfilments = new FulfilmentsDTO();
-    FulfilmentDTO fulfilment = new FulfilmentDTO("ABC", "English Postal Fulfilment", "Post");
-    fulfilments.setCodes(new FulfilmentDTO[] {fulfilment});
+  public ResponseEntity<List<FulfilmentDTO>> getFulfilments() {
+    List<FulfilmentDTO> fulfilments = new ArrayList<FulfilmentDTO>();
+    fulfilments.add(new FulfilmentDTO("ABC", "English Postal Fulfilment", "Post"));
 
     return ResponseEntity.ok(fulfilments);
   }

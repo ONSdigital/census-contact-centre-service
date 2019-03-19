@@ -17,12 +17,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Primary;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.web.client.RestTemplate;
+import uk.gov.ons.ctp.common.error.RestExceptionHandler;
+import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
-// @ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
-// @EntityScan("uk.gov.ons.ctp.integration")
 @SpringBootApplication
+@IntegrationComponentScan("uk.gov.ons.ctp.integration")
+@ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
+@ImportResource("springintegration/main.xml")
 public class ContactCentreSvcApplication {
 
   private AppConfig appConfig;
@@ -63,6 +74,14 @@ public class ContactCentreSvcApplication {
     SpringApplication.run(ContactCentreSvcApplication.class, args);
   }
 
+  @EnableWebSecurity
+  public static class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+      http.csrf().disable();
+    }
+  }
+
   /**
    * The restTemplate bean injected in REST client classes
    *
@@ -71,5 +90,26 @@ public class ContactCentreSvcApplication {
   @Bean
   public RestTemplate restTemplate() {
     return new RestTemplate();
+  }
+
+  /**
+   * Custom Object Mapper
+   *
+   * @return a customer object mapper
+   */
+  @Bean
+  @Primary
+  public CustomObjectMapper customObjectMapper() {
+    return new CustomObjectMapper();
+  }
+
+  /**
+   * Bean used to map exceptions for endpoints
+   *
+   * @return the service client
+   */
+  @Bean
+  public RestExceptionHandler restExceptionHandler() {
+    return new RestExceptionHandler();
   }
 }
