@@ -52,8 +52,7 @@ public final class AddressEndpointTest {
     mockMvc
         .perform(get("/contactcentre/addresses"))
         .andExpect(content().string(containsString("field 'input'")))
-        .andExpect(
-            content().string(containsString("[input]]; default message [must not be null]")));
+        .andExpect(content().string(containsString("must not be blank")));
   }
 
   @Test
@@ -61,7 +60,7 @@ public final class AddressEndpointTest {
     mockMvc
         .perform(get("/contactcentre/addresses?input="))
         .andExpect(content().string(containsString("field 'input'")))
-        .andExpect(content().string(containsString("must match")));
+        .andExpect(content().string(containsString("must not be blank")));
   }
 
   @Test
