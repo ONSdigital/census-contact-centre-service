@@ -1,13 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import java.util.HashMap;
-// import com.godaddy.logging.LoggingConfigs;
-// import java.time.Clock;
-// import javax.annotation.PostConstruct;
-// import net.sourceforge.cobertura.CoverageIgnore;
-// import org.redisson.Redisson;
-// import org.redisson.api.RedissonClient;
-// import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;

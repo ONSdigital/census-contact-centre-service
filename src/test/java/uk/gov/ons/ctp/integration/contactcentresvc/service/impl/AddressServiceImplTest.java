@@ -4,8 +4,6 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,32 +12,24 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import uk.gov.ons.ctp.common.FixtureHelper;
-import uk.gov.ons.ctp.common.rest.RestClient;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.AddressIndexSettings;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.AddressServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
 
 public class AddressServiceImplTest {
-  @Mock AppConfig appConfig = new AppConfig();
 
-  @Mock RestClient restClient;
+  @Mock AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
-
+  
+  
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
-
-    // Mock the address index settings
-    AddressIndexSettings addressIndexSettings = new AddressIndexSettings();
-    addressIndexSettings.setAddressQueryPath("/addresses");
-    addressIndexSettings.setPostcodeLookupPath("/addresses/postcode");
-    Mockito.when(appConfig.getAddressIndexSettings()).thenReturn(addressIndexSettings);
   }
 
   @Test
@@ -47,7 +37,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(restClient.getResource(eq("/addresses"), any(), any(), any(), any()))
+    Mockito.when(addressClientService.addressQuery(any()))
         .thenReturn(addressIndexResults);
 
     // Run the request and verify results
@@ -61,8 +51,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(
-            restClient.getResource(eq("/addresses/postcode"), any(), any(), any(), eq("EX2 8DD")))
+    Mockito.when(addressClientService.postcodeQuery(any()))
         .thenReturn(addressIndexResults);
 
     // Run the request and verify results

@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response;
+package uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;

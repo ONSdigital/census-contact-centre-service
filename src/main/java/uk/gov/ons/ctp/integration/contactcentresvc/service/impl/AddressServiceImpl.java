@@ -1,24 +1,17 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
-import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
-import uk.gov.ons.ctp.common.rest.RestClient;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.AddressServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexAddressDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
 
 /**
  * A ContactCentreDataService implementation which encapsulates all business logic for getting
@@ -27,74 +20,28 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.response
 @Service
 @Validated()
 public class AddressServiceImpl implements AddressService {
-  private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
 
-  @Autowired private AppConfig appConfig;
-
-  @Inject
-  @Qualifier("addressIndexClient")
-  private RestClient addressIndexClient;
+  @Autowired private AddressServiceClientServiceImpl addressServiceClient;
 
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
-    String input = addressQueryRequest.getInput();
-    int offset = addressQueryRequest.getOffset();
-    int limit = addressQueryRequest.getLimit();
-
-    // Postcode query is delegated to Address Index. Build the query params for the request
-    log.debug("about to get to the AddressIndex service with query {}", input, offset, limit);
-    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-    queryParams.add("input", input);
-    queryParams.add("offset", Integer.toString(offset));
-    queryParams.add("limit", Integer.toString(limit));
-
-    // Ask Address Index to do an address search
-    String path = appConfig.getAddressIndexSettings().getAddressQueryPath();
-    AddressIndexSearchResultsDTO addressIndexResponse =
-        addressIndexClient.getResource(
-            path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
-    log.info(
-        "AddressQuery. Address Index service "
-            + "response status: "
-            + addressIndexResponse.getStatus().getCode()
-            + " Found "
-            + addressIndexResponse.getResponse().getAddresses().size()
-            + " addresses");
+    // Delegate the query to Address Index
+    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.addressQuery(addressQueryRequest);
 
     // Summarise the returned addresses
-    return convertAdressIndexResultsToSummarisedAdresses(addressIndexResponse);
+    return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
   }
 
   @Override
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
-    String postcode = postcodeQueryRequest.getPostcode();
-    int offset = postcodeQueryRequest.getOffset();
-    int limit = postcodeQueryRequest.getLimit();
-
-    // Postcode query is delegated to Address Index. Build the query params
-    log.debug("about to get to the AddressIndex service with postcode {}", postcode, offset, limit);
-    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-    queryParams.add("offset", Integer.toString(offset));
-    queryParams.add("limit", Integer.toString(limit));
-
-    // Ask Address Index to do postcode search
-    String path = appConfig.getAddressIndexSettings().getPostcodeLookupPath();
-    AddressIndexSearchResultsDTO addressIndexResponse =
-        addressIndexClient.getResource(
-            path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.info(
-        "PostcodeQuery. Address Index service "
-            + "response status: "
-            + addressIndexResponse.getStatus().getCode()
-            + " Found "
-            + addressIndexResponse.getResponse().getAddresses().size()
-            + " addresses");
+    // Delegate the query to Address Index
+    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.postcodeQuery(postcodeQueryRequest);
 
     // Summarise the returned addresses
-    return convertAdressIndexResultsToSummarisedAdresses(addressIndexResponse);
+    return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
   }
 
-  private AddressQueryResponseDTO convertAdressIndexResultsToSummarisedAdresses(
+  private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
       AddressIndexSearchResultsDTO addressIndexResponse) {
     ArrayList<AddressDTO> summarisedAddresses = new ArrayList<>();
     for (AddressIndexAddressDTO fullAddress : addressIndexResponse.getResponse().getAddresses()) {
@@ -128,7 +75,7 @@ public class AddressServiceImpl implements AddressService {
    *
    * @param candidateAddresses, contains 1 or more addresses.
    * @return the first non-null and non-empty address, or an empty string if none of the supplied
-   *     addresses are suitable.ß
+   *     addresses are suitable.
    */
   private String selectFirstUsableAddress(String... candidateAddresses) {
     String preferredAddress = "";
