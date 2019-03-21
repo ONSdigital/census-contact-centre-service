@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -31,7 +31,7 @@ public class AddressServiceClientServiceImpl {
     String input = addressQueryRequest.getInput();
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();
-    
+
     // Postcode query is delegated to Address Index. Build the query params for the request
     log.debug("about to get to the AddressIndex service with query {}", input, offset, limit);
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -79,8 +79,7 @@ public class AddressServiceClientServiceImpl {
             + " Found "
             + addressIndexResponse.getResponse().getAddresses().size()
             + " addresses");
-    
+
     return addressIndexResponse;
   }
-
 }

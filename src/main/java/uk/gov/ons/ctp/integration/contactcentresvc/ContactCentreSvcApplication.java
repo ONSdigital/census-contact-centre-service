@@ -33,7 +33,7 @@ public class ContactCentreSvcApplication {
   // Table to convert from AddressIndex response status values to values that can be returned to the
   // invoker of this service
   private static final HashMap<HttpStatus, HttpStatus> httpErrorMapping;
-  
+
   static {
     httpErrorMapping = new HashMap<HttpStatus, HttpStatus>();
     httpErrorMapping.put(HttpStatus.BAD_REQUEST, HttpStatus.INTERNAL_SERVER_ERROR);

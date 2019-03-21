@@ -46,7 +46,6 @@ public final class AddressEndpointTest {
     actions.andExpect(status().isOk());
   }
 
-
   @Test
   public void rejectAddressQueryMissingInput() throws Exception {
     mockMvc
@@ -106,6 +105,70 @@ public final class AddressEndpointTest {
   public void rejectAddressQueryWithNonNumericLimit() throws Exception {
     mockMvc
         .perform(get("/contactcentre/addresses?input=Harbour").param("limit", "x"))
+        .andExpect(content().string(containsString("on field 'limit': rejected value")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryMissingPostcode() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode"))
+        .andExpect(content().string(containsString("field 'postcode'")))
+        .andExpect(content().string(containsString("must not be blank")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithEmptyPostcode() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode="))
+        .andExpect(content().string(containsString("field 'postcode'")))
+        .andExpect(content().string(containsString("must not be blank")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithOffsetBelowMin() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("offset", "-1"))
+        .andExpect(content().string(containsString("on field 'offset': rejected value")))
+        .andExpect(content().string(containsString("must be greater than or equal to 0")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithOffsetAboveMax() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("offset", "251"))
+        .andExpect(content().string(containsString("on field 'offset': rejected value")))
+        .andExpect(content().string(containsString("must be less than or equal to 250")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithNonNumericOffset() throws Exception {
+    mockMvc
+        .perform(
+            get("/contactcentre/addresses/postcode?postcode=EX24LU")
+                .param("offset", "non-numeric-value"))
+        .andExpect(content().string(containsString("on field 'offset': rejected value")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithLimitBelowMin() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "-1"))
+        .andExpect(content().string(containsString("on field 'limit': rejected value")))
+        .andExpect(content().string(containsString("must be greater than or equal to 0")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithLimitAboveMax() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "101"))
+        .andExpect(content().string(containsString("on field 'limit': rejected value")))
+        .andExpect(content().string(containsString("must be less than or equal to 100")));
+  }
+
+  @Test
+  public void rejectPostcodeQueryWithNonNumericLimit() throws Exception {
+    mockMvc
+        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "x"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")));
   }
 }

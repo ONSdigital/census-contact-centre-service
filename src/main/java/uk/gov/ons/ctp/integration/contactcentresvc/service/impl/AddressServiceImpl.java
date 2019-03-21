@@ -26,7 +26,8 @@ public class AddressServiceImpl implements AddressService {
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
     // Delegate the query to Address Index
-    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.addressQuery(addressQueryRequest);
+    AddressIndexSearchResultsDTO addressIndexResponse =
+        addressServiceClient.addressQuery(addressQueryRequest);
 
     // Summarise the returned addresses
     return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
@@ -35,7 +36,8 @@ public class AddressServiceImpl implements AddressService {
   @Override
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
     // Delegate the query to Address Index
-    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.postcodeQuery(postcodeQueryRequest);
+    AddressIndexSearchResultsDTO addressIndexResponse =
+        addressServiceClient.postcodeQuery(postcodeQueryRequest);
 
     // Summarise the returned addresses
     return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);

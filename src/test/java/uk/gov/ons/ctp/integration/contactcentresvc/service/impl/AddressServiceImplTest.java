@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+
 import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,11 +23,11 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.Ad
 
 public class AddressServiceImplTest {
 
-  @Mock AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
+  @Mock
+  AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
-  
-  
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -37,8 +38,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.addressQuery(any()))
-        .thenReturn(addressIndexResults);
+    Mockito.when(addressClientService.addressQuery(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     AddressQueryRequestDTO request = new AddressQueryRequestDTO("Michael", 0, 100);
@@ -51,8 +51,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.postcodeQuery(any()))
-        .thenReturn(addressIndexResults);
+    Mockito.when(addressClientService.postcodeQuery(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     PostcodeQueryRequestDTO request = new PostcodeQueryRequestDTO("EX2 8DD", 0, 100);

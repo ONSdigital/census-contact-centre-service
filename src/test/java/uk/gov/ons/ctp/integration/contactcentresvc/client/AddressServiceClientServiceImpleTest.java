@@ -3,7 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.client;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -23,18 +23,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.Ad
 
 public class AddressServiceClientServiceImpleTest {
   @Mock AppConfig appConfig = new AppConfig();
-  
+
   @Mock RestClient restClient;
-   
-  @InjectMocks AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
-  
-  @Captor
-  ArgumentCaptor<String> c;
-  
-  @Captor
-  ArgumentCaptor<MultiValueMap<String,String>> queryParamsCaptor;
-  
-  
+
+  @InjectMocks
+  AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
+
+  @Captor ArgumentCaptor<String> c;
+
+  @Captor ArgumentCaptor<MultiValueMap<String, String>> queryParamsCaptor;
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -51,7 +49,9 @@ public class AddressServiceClientServiceImpleTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(restClient.getResource(eq("/addresses"), eq(AddressIndexSearchResultsDTO.class), any(), any(), any()))
+    Mockito.when(
+            restClient.getResource(
+                eq("/addresses"), eq(AddressIndexSearchResultsDTO.class), any(), any(), any()))
         .thenReturn(addressIndexResults);
 
     // Run the request and sanity check the results
@@ -59,10 +59,10 @@ public class AddressServiceClientServiceImpleTest {
     AddressIndexSearchResultsDTO results = addressClientService.addressQuery(request);
     assertEquals("39", results.getDataVersion());
     assertEquals(4, results.getResponse().getAddresses().size());
-    
+
     // Verify that the query parameters being passed to AddressIndex are as expected
     Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
-    MultiValueMap<String,String> queryParams = queryParamsCaptor.getValue();
+    MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
     assertEquals("[Michael]", queryParams.get("input").toString());
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
@@ -74,7 +74,13 @@ public class AddressServiceClientServiceImpleTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(restClient.getResource(eq("/addresses/postcode"), eq(AddressIndexSearchResultsDTO.class), any(), any(), eq("EX2 8DD")))
+    Mockito.when(
+            restClient.getResource(
+                eq("/addresses/postcode"),
+                eq(AddressIndexSearchResultsDTO.class),
+                any(),
+                any(),
+                eq("EX2 8DD")))
         .thenReturn(addressIndexResults);
 
     // Run the request and sanity check the results
@@ -82,10 +88,10 @@ public class AddressServiceClientServiceImpleTest {
     AddressIndexSearchResultsDTO results = addressClientService.postcodeQuery(request);
     assertEquals("39", results.getDataVersion());
     assertEquals(4, results.getResponse().getAddresses().size());
-    
+
     // Verify that the query parameters being passed to AddressIndex are as expected
     Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
-    MultiValueMap<String,String> queryParams = queryParamsCaptor.getValue();
+    MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
     assertEquals(2, queryParams.keySet().size());
