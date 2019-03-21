@@ -36,12 +36,17 @@ public class ContactCentreSvcApplication {
 
   static {
     httpErrorMapping = new HashMap<HttpStatus, HttpStatus>();
+    httpErrorMapping.put(HttpStatus.OK, HttpStatus.OK);
     httpErrorMapping.put(HttpStatus.BAD_REQUEST, HttpStatus.INTERNAL_SERVER_ERROR);
     httpErrorMapping.put(HttpStatus.UNAUTHORIZED, HttpStatus.INTERNAL_SERVER_ERROR);
+    httpErrorMapping.put(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND);
     httpErrorMapping.put(HttpStatus.SERVICE_UNAVAILABLE, HttpStatus.INTERNAL_SERVER_ERROR);
     httpErrorMapping.put(HttpStatus.GATEWAY_TIMEOUT, HttpStatus.INTERNAL_SERVER_ERROR);
     httpErrorMapping.put(HttpStatus.REQUEST_TIMEOUT, HttpStatus.INTERNAL_SERVER_ERROR);
   }
+
+  // This is the http status to be used for error mapping if a status is not in the mapping table
+  HttpStatus defaultHttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
   /** Constructor for ContactCentreSvcApplication */
   @Autowired
@@ -53,7 +58,7 @@ public class ContactCentreSvcApplication {
   @Qualifier("addressIndexClient")
   public RestClient addressIndexClient() {
     RestClientConfig clientConfig = appConfig.getAddressIndexSettings().getRestClientConfig();
-    RestClient restHelper = new RestClient(clientConfig, httpErrorMapping);
+    RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
     return restHelper;
   }
 
