@@ -159,7 +159,7 @@ public final class AddressEndpointIT {
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readValue(json, JsonNode.class);
 
-    int dataVersion = Integer.parseInt(jsonNode.get("data-version").asText());
+    int dataVersion = Integer.parseInt(jsonNode.get("dataVersion").asText());
     assertTrue("Wrong dataVersion: " + dataVersion, dataVersion >= 39);
 
     JsonNode addresses = jsonNode.get("addresses");
@@ -170,10 +170,10 @@ public final class AddressEndpointIT {
       JsonNode uprn = addressNode.get("uprn");
       assertFalse(uprn.textValue(), uprn.textValue().equals("0"));
 
-      String formattedAddress = addressNode.get("formatted-address").asText();
+      String formattedAddress = addressNode.get("formattedAddress").asText();
       assertFalse(formattedAddress, formattedAddress.isEmpty());
 
-      String welshAddress = addressNode.get("welsh-formatted-address").asText();
+      String welshAddress = addressNode.get("welshFormattedAddress").asText();
       assertFalse(welshAddress, welshAddress.isEmpty());
 
       assertEquals(3, addressNode.size());
