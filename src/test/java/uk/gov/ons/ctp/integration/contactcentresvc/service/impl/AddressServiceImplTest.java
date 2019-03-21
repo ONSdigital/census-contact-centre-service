@@ -41,7 +41,7 @@ public class AddressServiceImplTest {
     Mockito.when(addressClientService.addressQuery(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    AddressQueryRequestDTO request = new AddressQueryRequestDTO("Michael", 0, 100);
+    AddressQueryRequestDTO request =  AddressQueryRequestDTO.create("Michael", 0, 100);
     AddressQueryResponseDTO results = addressService.addressQuery(request);
     verifyAddresses(results);
   }
@@ -54,7 +54,7 @@ public class AddressServiceImplTest {
     Mockito.when(addressClientService.postcodeQuery(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    PostcodeQueryRequestDTO request = new PostcodeQueryRequestDTO("EX2 8DD", 0, 100);
+    PostcodeQueryRequestDTO request = PostcodeQueryRequestDTO.create("EX2 8DD", 0, 100);
     AddressQueryResponseDTO results = addressService.postcodeQuery(request);
     verifyAddresses(results);
   }
