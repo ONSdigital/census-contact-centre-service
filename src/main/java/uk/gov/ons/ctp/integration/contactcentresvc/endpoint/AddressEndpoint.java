@@ -35,8 +35,8 @@ public final class AddressEndpoint implements CTPEndpoint {
   }
 
   /**
-   * This GET endpoint returns the addresses for an address search. Depending on the success of the
-   * search it will return 0, 1 or more addresses.
+   * This GET endpoint returns the addresses for an address search. If no matches are found then it
+   * returns with 0 addresses, otherwise it returns with 1 or more addresses.
    *
    * @return an object listing the addresses matching the address search string.
    * @throws CTPException something went wrong

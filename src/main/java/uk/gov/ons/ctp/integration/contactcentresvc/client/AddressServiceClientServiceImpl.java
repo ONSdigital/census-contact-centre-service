@@ -14,12 +14,12 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
 
+/** This class is responsible for communications with the Addresse Index service. */
 @Service
 @Validated()
 public class AddressServiceClientServiceImpl {
-  private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(AddressServiceClientServiceImpl.class);
 
   @Autowired private AppConfig appConfig;
 
@@ -45,10 +45,9 @@ public class AddressServiceClientServiceImpl {
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
     log.info(
-        "AddressQuery. Address Index service "
-            + "response status: "
+        "AddressQuery. Response status: "
             + addressIndexResponse.getStatus().getCode()
-            + " Found "
+            + " Found: "
             + addressIndexResponse.getResponse().getAddresses().size()
             + " addresses");
 
@@ -73,10 +72,9 @@ public class AddressServiceClientServiceImpl {
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
     log.info(
-        "PostcodeQuery. Address Index service "
-            + "response status: "
+        "PostcodeQuery. Response status: "
             + addressIndexResponse.getStatus().getCode()
-            + " Found "
+            + " Found: "
             + addressIndexResponse.getResponse().getAddresses().size()
             + " addresses");
 

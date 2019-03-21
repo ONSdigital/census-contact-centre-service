@@ -27,8 +27,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 
 /**
- * This class holds integration tests submit a request to Contact Centre service, which in turn will
- * delegating the query to the Address Index service.
+ * This class holds integration tests that submit requests to the Contact Centre service, which in
+ * turn will delegating the query to the Address Index service.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -57,7 +57,7 @@ public final class AddressEndpointIT {
             .andReturn();
     String jsonResponse = result.getResponse().getContentAsString();
 
-    verifyJsonInAddressQueryResponseFormat(jsonResponse);
+    verifyJsonInAddressQueryResponseFormat(jsonResponse, 1, 100);
   }
 
   /**
@@ -69,6 +69,19 @@ public final class AddressEndpointIT {
   public void validateAddressQueryPagination() throws Exception {
     String baseUrl = "/contactcentre/addresses?input=Street";
     doPaginationTest(baseUrl);
+  }
+
+  /** This test runs an address query which should get 0 results. */
+  @Test
+  public void validateAddressQueryEmptyResponse() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(get("/contactcentre/addresses?input=euooeuuoeueoueou"))
+            .andExpect(status().isOk())
+            .andReturn();
+    String jsonResponse = result.getResponse().getContentAsString();
+
+    verifyJsonInAddressQueryResponseFormat(jsonResponse, 0, 0);
   }
 
   /**
@@ -84,7 +97,7 @@ public final class AddressEndpointIT {
             .andReturn();
     String jsonResponse = result.getResponse().getContentAsString();
 
-    verifyJsonInAddressQueryResponseFormat(jsonResponse);
+    verifyJsonInAddressQueryResponseFormat(jsonResponse, 1, 100);
   }
 
   /**
@@ -96,6 +109,19 @@ public final class AddressEndpointIT {
   public void validatePostcodeQueryPagination() throws Exception {
     String baseUrl = "/contactcentre/addresses/postcode?postcode=EX2 4LU";
     doPaginationTest(baseUrl);
+  }
+
+  /** This test submits a postcode query which should get 0 results.ß */
+  @Test
+  public void validatePostcodeQueryEmptyResponse() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(get("/contactcentre/addresses/postcode?postcode=ZE1 9XX"))
+            .andExpect(status().isOk())
+            .andReturn();
+    String jsonResponse = result.getResponse().getContentAsString();
+
+    verifyJsonInAddressQueryResponseFormat(jsonResponse, 0, 0);
   }
 
   private void doPaginationTest(String baseUrl) throws Exception {
@@ -128,7 +154,7 @@ public final class AddressEndpointIT {
 
   // This method validates that the supplied json string is in the address query response (as
   // shown in the swagger)
-  private void verifyJsonInAddressQueryResponseFormat(String json)
+  private void verifyJsonInAddressQueryResponseFormat(String json, int minExpected, int maxExpected)
       throws IOException, JsonParseException, JsonMappingException {
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readValue(json, JsonNode.class);
@@ -152,10 +178,13 @@ public final class AddressEndpointIT {
 
       assertEquals(3, addressNode.size());
     }
-    assertTrue("Didn't find any addresses", addresses.size() > 0);
+    assertTrue(
+        "Not enough addresses found. Actual: " + addresses.size(), addresses.size() >= minExpected);
+    assertTrue(
+        "Too many addresses found. Actual: " + addresses.size(), addresses.size() <= maxExpected);
 
     int totalNode = jsonNode.get("total").intValue();
-    assertTrue("Query returned only a few addresses:" + totalNode, totalNode > 10);
+    assertTrue("Query returned only a few addresses:" + totalNode, totalNode >= minExpected);
     assertTrue(
         "Total too small. Have " + addresses.size() + " addresess but total is " + totalNode,
         addresses.size() <= totalNode);
