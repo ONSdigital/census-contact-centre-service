@@ -11,7 +11,6 @@ import org.springframework.retry.annotation.EnableRetry;
 @ConfigurationProperties
 @Data
 public class AppConfig {
-  private SwaggerSettings swaggerSettings;
   private ReportSettings reportSettings;
   // private Rabbitmq rabbitmq;
   private AddressIndexSettings addressIndexSettings;

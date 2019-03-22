@@ -15,14 +15,6 @@ logging:
   profile: DEV
   useJson: false
 
-  #security:
-  # basic:
-  #   enabled: false
-  #   realm: sdc
-  # user:
-  #   name: admin
-  #   password: secret
-
 management:
   security:
     roles: SUPERUSER
