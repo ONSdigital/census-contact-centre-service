@@ -1,19 +1,15 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
-// import com.godaddy.logging.LoggingConfigs;
-// import java.time.Clock;
-// import javax.annotation.PostConstruct;
-// import net.sourceforge.cobertura.CoverageIgnore;
-// import org.redisson.Redisson;
-// import org.redisson.api.RedissonClient;
-// import org.redisson.config.Config;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +17,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.common.rest.RestClient;
+import uk.gov.ons.ctp.common.rest.RestClientConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
@@ -32,14 +30,40 @@ public class ContactCentreSvcApplication {
 
   private AppConfig appConfig;
 
+  // Table to convert from AddressIndex response status values to values that can be returned to the
+  // invoker of this service
+  private static final HashMap<HttpStatus, HttpStatus> httpErrorMapping;
+
+  static {
+    httpErrorMapping = new HashMap<HttpStatus, HttpStatus>();
+    httpErrorMapping.put(HttpStatus.OK, HttpStatus.OK);
+    httpErrorMapping.put(HttpStatus.BAD_REQUEST, HttpStatus.INTERNAL_SERVER_ERROR);
+    httpErrorMapping.put(HttpStatus.UNAUTHORIZED, HttpStatus.INTERNAL_SERVER_ERROR);
+    httpErrorMapping.put(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND);
+    httpErrorMapping.put(HttpStatus.SERVICE_UNAVAILABLE, HttpStatus.INTERNAL_SERVER_ERROR);
+    httpErrorMapping.put(HttpStatus.GATEWAY_TIMEOUT, HttpStatus.INTERNAL_SERVER_ERROR);
+    httpErrorMapping.put(HttpStatus.REQUEST_TIMEOUT, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  // This is the http status to be used for error mapping if a status is not in the mapping table
+  HttpStatus defaultHttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
   /** Constructor for ContactCentreSvcApplication */
   @Autowired
   public ContactCentreSvcApplication(final AppConfig appConfig) {
     this.appConfig = appConfig;
   }
 
+  @Bean
+  @Qualifier("addressIndexClient")
+  public RestClient addressIndexClient() {
+    RestClientConfig clientConfig = appConfig.getAddressIndexSettings().getRestClientConfig();
+    RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
+    return restHelper;
+  }
+
   /**
-   * The main entry point for this applicaion.
+   * The main entry point for this application.
    *
    * @param args runtime command line args
    */

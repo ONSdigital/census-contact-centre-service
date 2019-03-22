@@ -74,6 +74,14 @@ messaging:
   prefetchCount: 1
   txSize: 1
 
+address-index-settings:
+  address-query-path: /addresses
+  postcode-lookup-path: /addresses/postcode/{postcode}
+  rest-client-config:
+    scheme: http
+    host: addressindex-api-dev.apps.devtest.onsclofo.uk
+    port: 80
+
 report-settings:
   cron-expression: "0 * * * * *"
 

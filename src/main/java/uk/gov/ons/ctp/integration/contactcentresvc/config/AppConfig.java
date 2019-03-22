@@ -13,5 +13,6 @@ import org.springframework.retry.annotation.EnableRetry;
 public class AppConfig {
   private ReportSettings reportSettings;
   // private Rabbitmq rabbitmq;
+  private AddressIndexSettings addressIndexSettings;
   private Logging logging;
 }
