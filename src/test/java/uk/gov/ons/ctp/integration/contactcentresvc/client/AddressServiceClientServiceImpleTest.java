@@ -56,7 +56,7 @@ public class AddressServiceClientServiceImpleTest {
 
     // Run the request and sanity check the results. We can't thoroughly check the data as it
     // is not coming from a fixed test data set
-    AddressQueryRequestDTO request =  AddressQueryRequestDTO.create("Michael", 0, 100);
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
     AddressIndexSearchResultsDTO results = addressClientService.addressQuery(request);
     assertEquals("39", results.getDataVersion());
     assertEquals(4, results.getResponse().getAddresses().size());

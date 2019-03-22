@@ -41,7 +41,7 @@ public class AddressServiceImplTest {
     Mockito.when(addressClientService.addressQuery(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    AddressQueryRequestDTO request =  AddressQueryRequestDTO.create("Michael", 0, 100);
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
     AddressQueryResponseDTO results = addressService.addressQuery(request);
     verifyAddresses(results);
   }

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
-import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -25,12 +24,18 @@ public final class AddressEndpoint implements CTPEndpoint {
   private AddressServiceImpl addressService;
   private MapperFacade mapperFacade;
 
-  /** Constructor for ContactCentreDataEndpoint */
+  /**
+   * Constructor for ContactCentreDataEndpoint
+   *
+   * @param addressService is the object that this endpoint can call for address and postcode
+   *     searches.
+   * @param mapperFacade is a MapperFacade object.
+   */
   @Autowired
   public AddressEndpoint(
-      final AddressServiceImpl addressservice,
+      final AddressServiceImpl addressService,
       final @Qualifier("CCSvcBeanMapper") MapperFacade mapperFacade) {
-    this.addressService = addressservice;
+    this.addressService = addressService;
     this.mapperFacade = mapperFacade;
   }
 
@@ -38,8 +43,8 @@ public final class AddressEndpoint implements CTPEndpoint {
    * This GET endpoint returns the addresses for an address search. If no matches are found then it
    * returns with 0 addresses, otherwise it returns with 1 or more addresses.
    *
+   * @param addressQueryRequest is a DTO specify details on the address to search for.
    * @return an object listing the addresses matching the address search string.
-   * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/addresses", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesBySearchQuery(
@@ -50,8 +55,8 @@ public final class AddressEndpoint implements CTPEndpoint {
   /**
    * This GET endpoint returns the addresses for the specified postcode.
    *
+   * @param postcodeQueryRequest is a DTO specify details on the postcode to search for.
    * @return an object listing the addresses for the postcode.
-   * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/addresses/postcode", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesByPostcode(
@@ -63,7 +68,6 @@ public final class AddressEndpoint implements CTPEndpoint {
    * the GET endpoint to get contact centre Details
    *
    * @return the contact centre details found
-   * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/data", method = RequestMethod.GET)
   public String getContactCentreData() {
