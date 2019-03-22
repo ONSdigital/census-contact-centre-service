@@ -111,7 +111,7 @@ public final class AddressEndpointIT {
     doPaginationTest(baseUrl);
   }
 
-  /** This test submits a postcode query which should get 0 results.ß */
+  /** This test submits a postcode query which should get 0 results */
   @Test
   public void validatePostcodeQueryEmptyResponse() throws Exception {
     MvcResult result =
