@@ -47,17 +47,17 @@ public class AddressServiceClientServiceImpleTest {
   @Test
   public void testAddressQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
+    AddressIndexSearchResultsDTO resultsFromAddressIndex =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
                 eq("/addresses"), eq(AddressIndexSearchResultsDTO.class), any(), any(), any()))
-        .thenReturn(addressIndexResults);
+        .thenReturn(resultsFromAddressIndex);
 
     // Run the request and sanity check the results. We can't thoroughly check the data as it
     // is not coming from a fixed test data set
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
-    AddressIndexSearchResultsDTO results = addressClientService.addressQuery(request);
+    AddressIndexSearchResultsDTO results = addressClientService.searchByAddress(request);
     assertEquals("39", results.getDataVersion());
     assertEquals(4, results.getResponse().getAddresses().size());
 
@@ -73,7 +73,7 @@ public class AddressServiceClientServiceImpleTest {
   @Test
   public void testPostcodeQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
+    AddressIndexSearchResultsDTO resultsFromAddressIndex =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
@@ -82,11 +82,11 @@ public class AddressServiceClientServiceImpleTest {
                 any(),
                 any(),
                 eq("EX2 8DD")))
-        .thenReturn(addressIndexResults);
+        .thenReturn(resultsFromAddressIndex);
 
     // Run the request and sanity check the results
     PostcodeQueryRequestDTO request = PostcodeQueryRequestDTO.create("EX2 8DD", 0, 100);
-    AddressIndexSearchResultsDTO results = addressClientService.postcodeQuery(request);
+    AddressIndexSearchResultsDTO results = addressClientService.searchByPostcode(request);
     assertEquals("39", results.getDataVersion());
     assertEquals(4, results.getResponse().getAddresses().size());
 

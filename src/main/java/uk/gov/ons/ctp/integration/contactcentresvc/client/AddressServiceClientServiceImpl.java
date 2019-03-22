@@ -15,9 +15,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
 
-/** This class is responsible for communications with the Addresse Index service. */
+/** This class is responsible for communications with the Address Index service. */
 @Service
-@Validated()
+@Validated
 public class AddressServiceClientServiceImpl {
   private static final Logger log = LoggerFactory.getLogger(AddressServiceClientServiceImpl.class);
 
@@ -27,13 +27,14 @@ public class AddressServiceClientServiceImpl {
   @Qualifier("addressIndexClient")
   private RestClient addressIndexClient;
 
-  public AddressIndexSearchResultsDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
+  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) {
+    log.debug("Delegating address search to AddressIndex service");
+
     String input = addressQueryRequest.getInput();
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();
 
-    // Postcode query is delegated to Address Index. Build the query params for the request
-    log.debug("about to get to the AddressIndex service with query {}", input, offset, limit);
+    // Address query is delegated to Address Index. Build the query params for the request
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("input", input);
     queryParams.add("offset", Integer.toString(offset));
@@ -44,7 +45,7 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
-    log.info(
+    log.debug(
         "AddressQuery. Response status: "
             + addressIndexResponse.getStatus().getCode()
             + " Found: "
@@ -54,14 +55,15 @@ public class AddressServiceClientServiceImpl {
     return addressIndexResponse;
   }
 
-  public AddressIndexSearchResultsDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
+  public AddressIndexSearchResultsDTO searchByPostcode(
+      PostcodeQueryRequestDTO postcodeQueryRequest) {
+    log.debug("Delegating postcode search to the AddressIndex service");
 
     String postcode = postcodeQueryRequest.getPostcode();
     int offset = postcodeQueryRequest.getOffset();
     int limit = postcodeQueryRequest.getLimit();
 
     // Postcode query is delegated to Address Index. Build the query params
-    log.debug("about to get to the AddressIndex service with postcode {}", postcode, offset, limit);
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
@@ -71,7 +73,7 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.info(
+    log.debug(
         "PostcodeQuery. Response status: "
             + addressIndexResponse.getStatus().getCode()
             + " Found: "

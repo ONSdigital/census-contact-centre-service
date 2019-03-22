@@ -38,7 +38,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.addressQuery(any())).thenReturn(addressIndexResults);
+    Mockito.when(addressClientService.searchByAddress(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
@@ -51,7 +51,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.postcodeQuery(any())).thenReturn(addressIndexResults);
+    Mockito.when(addressClientService.searchByPostcode(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     PostcodeQueryRequestDTO request = PostcodeQueryRequestDTO.create("EX2 8DD", 0, 100);

@@ -1,9 +1,12 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import uk.gov.ons.ctp.common.util.StringUtils;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.AddressServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -20,27 +23,40 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.Ad
 @Service
 @Validated()
 public class AddressServiceImpl implements AddressService {
+  private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
 
   @Autowired private AddressServiceClientServiceImpl addressServiceClient;
 
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
+    log.debug("Running search by address. {}", addressQueryRequest);
+
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
-        addressServiceClient.addressQuery(addressQueryRequest);
+        addressServiceClient.searchByAddress(addressQueryRequest);
 
     // Summarise the returned addresses
-    return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
+    AddressQueryResponseDTO results =
+        convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
+
+    log.debug("Postcode search is returning {} addresses", results.getAddresses().size());
+    return results;
   }
 
   @Override
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
+    log.debug("Running search by postcode. {}", postcodeQueryRequest);
+
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
-        addressServiceClient.postcodeQuery(postcodeQueryRequest);
+        addressServiceClient.searchByPostcode(postcodeQueryRequest);
 
     // Summarise the returned addresses
-    return convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
+    AddressQueryResponseDTO results =
+        convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
+
+    log.debug("Postcode search is returning {} addresses", results.getAddresses().size());
+    return results;
   }
 
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
@@ -56,9 +72,10 @@ public class AddressServiceImpl implements AddressService {
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
       addressSummary.setFormattedAddress(
-          selectFirstUsableAddress(addressPaf, addressNag, formattedAddress));
+          StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
       addressSummary.setWelshFormattedAddress(
-          selectFirstUsableAddress(welshAddressPaf, welshAddressNag, formattedAddress));
+          StringUtils.selectFirstNonBlankString(
+              welshAddressPaf, welshAddressNag, formattedAddress));
 
       summarisedAddresses.add(addressSummary);
     }
@@ -70,26 +87,5 @@ public class AddressServiceImpl implements AddressService {
     queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
 
     return queryResponse;
-  }
-
-  /**
-   * This method takes multiple addresses and returns the first usable one.
-   *
-   * @param candidateAddresses, contains 1 or more addresses.
-   * @return the first non-null and non-empty address, or an empty string if none of the supplied
-   *     addresses are suitable.
-   */
-  private String selectFirstUsableAddress(String... candidateAddresses) {
-    String preferredAddress = "";
-
-    // Use the first non empty address
-    for (String candidateAddress : candidateAddresses) {
-      if (candidateAddress != null && !candidateAddress.trim().isEmpty()) {
-        preferredAddress = candidateAddress.trim();
-        break;
-      }
-    }
-
-    return preferredAddress;
   }
 }
