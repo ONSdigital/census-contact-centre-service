@@ -8,6 +8,6 @@ export TAG=`if [ "$TRAVIS_PULL_REQUEST_BRANCH" == "" ]; then echo "latest"; else
 
 echo "Building with tag [$TAG]"
 
-docker build -t eu.gcr.io/census-ci/census-contact-centre-service:$TAG .
+docker build -t eu.gcr.io/census-int-ci/census-contact-centre-service:$TAG .
 
-docker push eu.gcr.io/census-ci/census-contact-centre-service:$TAG
+docker push eu.gcr.io/census-int-ci/census-contact-centre-service:$TAG
