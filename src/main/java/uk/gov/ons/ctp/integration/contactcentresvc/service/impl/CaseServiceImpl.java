@@ -6,5 +6,4 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 @Service
 @Validated()
-public class CaseServiceImpl implements CaseService {
-}
+public class CaseServiceImpl implements CaseService {}

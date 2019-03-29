@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +19,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
@@ -35,7 +36,7 @@ public final class CaseEndpointAppointmentTest {
   private static final String DATE_TIME = "dateTime";
 
   private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
-  
+
   @Mock private CaseService caseService;
 
   @InjectMocks private CaseEndpoint caseEndpoint;
@@ -201,12 +202,10 @@ public final class CaseEndpointAppointmentTest {
   }
 
   private void assertOk(ObjectNode json) throws Exception {
-    ResponseDTO responseDTO = ResponseDTO.builder()
-        .id(uuid.toString())
-        .dateTime(RESPONSE_DATE_TIME)
-        .build();
+    ResponseDTO responseDTO =
+        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
     Mockito.when(caseService.makeAppointment(any(), any())).thenReturn(responseDTO);
-    
+
     ResultActions actions =
         mockMvc.perform(postJson("/cases/" + uuid + "/appointment", json.toString()));
     actions.andExpect(status().isOk());

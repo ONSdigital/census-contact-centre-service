@@ -41,7 +41,8 @@ public interface CaseService {
         + "\"}\n";
   }
 
-  public default ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
+  public default ResponseDTO fulfilmentRequestByPost(
+      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
@@ -51,44 +52,10 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO fulfilmentRequestBySMS(UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse = ResponseDTO.builder()
-        .id(caseId.toString())
-        .dateTime(LocalDateTime.now().toString())
-        .build();
-    
-    return fakeResponse;
-  }
-
-  public default ResponseDTO fulfilmentUnresolvedRequestByPost(PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse = ResponseDTO.builder()
-        .id(createSemiRandomFakeUUID().toString())
-        .dateTime(LocalDateTime.now().toString())
-        .build();
-    
-    return fakeResponse;
-  }
-
-  public default ResponseDTO fulfilmentUnresolvedRequestBySMS(SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse = ResponseDTO.builder()
-        .id(createSemiRandomFakeUUID().toString())
-        .dateTime(LocalDateTime.now().toString())
-        .build();
-    
-    return fakeResponse;
-  }
-
-  public default ResponseDTO makeAppointment(UUID caseId, AppointmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse = ResponseDTO.builder()
-        .id(caseId.toString())
-        .dateTime(LocalDateTime.now().toString())
-        .build();
-    
-    return fakeResponse;
-  }
-
-  public default ResponseDTO reportRefusal(String caseId, @Valid RefusalRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse = ResponseDTO.builder()
+  public default ResponseDTO fulfilmentRequestBySMS(
+      UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
+    ResponseDTO fakeResponse =
+        ResponseDTO.builder()
             .id(caseId.toString())
             .dateTime(LocalDateTime.now().toString())
             .build();
@@ -96,7 +63,48 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  
+  public default ResponseDTO fulfilmentUnresolvedRequestByPost(
+      PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) {
+    ResponseDTO fakeResponse =
+        ResponseDTO.builder()
+            .id(createSemiRandomFakeUUID().toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
+
+    return fakeResponse;
+  }
+
+  public default ResponseDTO fulfilmentUnresolvedRequestBySMS(
+      SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) {
+    ResponseDTO fakeResponse =
+        ResponseDTO.builder()
+            .id(createSemiRandomFakeUUID().toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
+
+    return fakeResponse;
+  }
+
+  public default ResponseDTO makeAppointment(UUID caseId, AppointmentRequestDTO requestBodyDTO) {
+    ResponseDTO fakeResponse =
+        ResponseDTO.builder()
+            .id(caseId.toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
+
+    return fakeResponse;
+  }
+
+  public default ResponseDTO reportRefusal(String caseId, @Valid RefusalRequestDTO requestBodyDTO) {
+    ResponseDTO fakeResponse =
+        ResponseDTO.builder()
+            .id(caseId.toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
+
+    return fakeResponse;
+  }
+
   private CaseDTO createFakeCaseDTO(String createdForMarker) {
     CaseResponseDTO caseResponseDTO1 =
         CaseResponseDTO.builder()
@@ -150,7 +158,7 @@ public interface CaseService {
 
     return fakeCaseDTO;
   }
-  
+
   private UUID createSemiRandomFakeUUID() {
     String randomUUID = UUID.randomUUID().toString();
     String firstPart = randomUUID.substring(0, 9);

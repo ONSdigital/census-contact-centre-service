@@ -58,12 +58,10 @@ public final class CaseEndpointFulfilmentSMSTest {
 
   @Test
   public void postFulfilmentByCaseById_GoodId() throws Exception {
-    ResponseDTO responseDTO = ResponseDTO.builder()
-        .id(uuid.toString())
-        .dateTime(RESPONSE_DATE_TIME)
-        .build();
+    ResponseDTO responseDTO =
+        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
     Mockito.when(caseService.fulfilmentRequestBySMS(any(), any())).thenReturn(responseDTO);
-    
+
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     ResultActions actions =
         mockMvc.perform(postJson("/cases/" + uuid + "/fulfilment/sms", json.toString()));

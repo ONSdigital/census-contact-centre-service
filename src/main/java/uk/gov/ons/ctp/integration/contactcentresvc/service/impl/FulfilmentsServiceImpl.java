@@ -6,6 +6,4 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 
 @Service
 @Validated()
-public class FulfilmentsServiceImpl implements FulfilmentsService {
-
-}
+public class FulfilmentsServiceImpl implements FulfilmentsService {}

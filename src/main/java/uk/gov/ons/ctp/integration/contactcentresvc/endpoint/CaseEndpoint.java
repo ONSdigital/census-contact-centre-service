@@ -1,7 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.UUID;
 import javax.validation.Valid;
+import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
-import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -278,9 +278,9 @@ public class CaseEndpoint implements CTPEndpoint {
     // TODO Region validation
 
     log.with("case-id", caseId).debug("Entering makeAppointment");
-    
-    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);    
-    
+
+    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);
+
     return ResponseEntity.ok(response);
   }
 }

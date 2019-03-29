@@ -6,8 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
-import java.util.UUID;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -42,7 +43,7 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
   private static final String DATE_TIME = "dateTime";
 
   private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
-  
+
   @Mock private EventServiceImpl eventSvc;
   @Mock private CaseService caseService;
 
@@ -260,10 +261,8 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
 
   private void assertOk(String field, String value) throws Exception {
     UUID uuid = UUID.randomUUID();
-    ResponseDTO responseDTO = ResponseDTO.builder()
-        .id(uuid.toString())
-        .dateTime(RESPONSE_DATE_TIME)
-        .build();
+    ResponseDTO responseDTO =
+        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
     Mockito.when(caseService.fulfilmentUnresolvedRequestByPost(any())).thenReturn(responseDTO);
 
     ObjectNode json = FixtureHelper.loadClassObjectNode();

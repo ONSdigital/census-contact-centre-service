@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -30,8 +31,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDT
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
-/** Contact Centre Data Endpoint Unit tests. 
- * This class tests the get case endpoints, covering gets based on uuid, ref and uprn.
+/**
+ * Contact Centre Data Endpoint Unit tests. This class tests the get case endpoints, covering gets
+ * based on uuid, ref and uprn.
  */
 public final class CaseEndpointGetCaseTest {
 
@@ -54,12 +56,11 @@ public final class CaseEndpointGetCaseTest {
   private static final String EVENT_CATEGORY = "update";
   private static final String EVENT_DESCRIPTION = "Event for testcase";
   private static final String EVENT_DATE_TIME = "2017-02-11T16:32:11.863";
-  
-  
+
   @InjectMocks private CaseEndpoint caseEndpoint;
 
   @Mock CaseService caseService;
-  
+
   private MockMvc mockMvc;
 
   private UUID uuid = UUID.randomUUID();
@@ -104,7 +105,7 @@ public final class CaseEndpointGetCaseTest {
 
     ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "?caseEvents=1"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfResultsActions(actions);
   }
 
@@ -114,7 +115,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(status().isBadRequest());
   }
 
-  
   @Test
   public void getCaseByRef_GoodRef() throws Exception {
     CaseDTO testCaseDTO = createResponseCaseDTO();
@@ -122,7 +122,7 @@ public final class CaseEndpointGetCaseTest {
 
     ResultActions actions = mockMvc.perform(getJson("/cases/ref/123456"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfResultsActions(actions);
   }
 
@@ -132,7 +132,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(status().isBadRequest());
   }
 
-
   @Test
   public void getCaseByUprn_GoodUPRN() throws Exception {
     CaseDTO testCaseDTO = createResponseCaseDTO();
@@ -141,7 +140,7 @@ public final class CaseEndpointGetCaseTest {
 
     ResultActions actions = mockMvc.perform(getJson("/cases/uprn/123456789012"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfResultsActions(actions);
   }
 
@@ -165,7 +164,7 @@ public final class CaseEndpointGetCaseTest {
 
     ResultActions actions = mockMvc.perform(getJson("/cases/uprn/123456789012?caseEvents=1"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfResultsActions(actions);
   }
 
@@ -174,42 +173,40 @@ public final class CaseEndpointGetCaseTest {
     ResultActions actions = mockMvc.perform(getJson("/cases/uprn/12345678901234?caseEvents=maybe"));
     actions.andExpect(status().isBadRequest());
   }
-  
-  
+
   private CaseDTO createResponseCaseDTO() {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     CaseResponseDTO caseResponseDTO1 =
-      CaseResponseDTO.builder()
-          .dateTime(RESPONSE1_DATE_TIME)
-          .inboundChannel(RESPONSE1_INBOUND_CHANNEL)
-          .build();
+        CaseResponseDTO.builder()
+            .dateTime(RESPONSE1_DATE_TIME)
+            .inboundChannel(RESPONSE1_INBOUND_CHANNEL)
+            .build();
 
-    
     CaseEventDTO caseEventDTO1 =
-      CaseEventDTO.builder()
-          .id(UUID.fromString(EVENT_UUID_STRING))
-          .description(EVENT_DESCRIPTION)
-          .category(EVENT_CATEGORY)
-          .createdDateTime(LocalDateTime.parse(EVENT_DATE_TIME, formatter))
-          .build();
+        CaseEventDTO.builder()
+            .id(UUID.fromString(EVENT_UUID_STRING))
+            .description(EVENT_DESCRIPTION)
+            .category(EVENT_CATEGORY)
+            .createdDateTime(LocalDateTime.parse(EVENT_DATE_TIME, formatter))
+            .build();
 
     CaseDTO fakeCaseDTO =
-      CaseDTO.builder()
-          .id(UUID.fromString(CASE_UUID_STRING))
-          .caseRef(CASE_REF)
-          .caseType(CASE_TYPE)
-          .createdDateTime(LocalDateTime.parse(CASE_CREATED_DATE_TIME, formatter))
-          .addressLine1(ADDRESS_LINE_1)
-          .addressLine2(ADDRESS_LINE_2)
-          .addressLine3(ADDRESS_LINE_3)
-          .addressLine4(ADDRESS_LINE_4)
-          .town(TOWN)
-          .region(REGION)
-          .postcode(POSTCODE)
-          .responses(Lists.newArrayList(caseResponseDTO1))
-          .caseEvents(Arrays.asList(caseEventDTO1))
-          .build();
+        CaseDTO.builder()
+            .id(UUID.fromString(CASE_UUID_STRING))
+            .caseRef(CASE_REF)
+            .caseType(CASE_TYPE)
+            .createdDateTime(LocalDateTime.parse(CASE_CREATED_DATE_TIME, formatter))
+            .addressLine1(ADDRESS_LINE_1)
+            .addressLine2(ADDRESS_LINE_2)
+            .addressLine3(ADDRESS_LINE_3)
+            .addressLine4(ADDRESS_LINE_4)
+            .town(TOWN)
+            .region(REGION)
+            .postcode(POSTCODE)
+            .responses(Lists.newArrayList(caseResponseDTO1))
+            .caseEvents(Arrays.asList(caseEventDTO1))
+            .build();
 
     return fakeCaseDTO;
   }
@@ -226,10 +223,10 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.town", is(TOWN)));
     actions.andExpect(jsonPath("$.region", is(REGION)));
     actions.andExpect(jsonPath("$.postcode", is(POSTCODE)));
-    
+
     actions.andExpect(jsonPath("$.responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$.responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
-    
+
     actions.andExpect(jsonPath("$.caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));

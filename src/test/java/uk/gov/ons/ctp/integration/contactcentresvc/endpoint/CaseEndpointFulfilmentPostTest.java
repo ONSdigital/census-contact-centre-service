@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +19,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
@@ -33,7 +34,7 @@ public final class CaseEndpointFulfilmentPostTest {
   @Mock private EventServiceImpl eventSvc;
 
   @Mock private CaseService caseService;
-  
+
   @InjectMocks private CaseEndpoint caseEndpoint;
 
   private MockMvc mockMvc;
@@ -58,12 +59,10 @@ public final class CaseEndpointFulfilmentPostTest {
 
   @Test
   public void postFulfilmentByCaseById_GoodId() throws Exception {
-    ResponseDTO responseDTO = ResponseDTO.builder()
-        .id(uuid.toString())
-        .dateTime(RESPONSE_DATE_TIME)
-        .build();
+    ResponseDTO responseDTO =
+        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
     Mockito.when(caseService.fulfilmentRequestByPost(any(), any())).thenReturn(responseDTO);
-    
+
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     ResultActions actions =
         mockMvc.perform(postJson("/cases/" + uuid + "/fulfilment/post", json.toString()));

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
@@ -40,7 +41,7 @@ public final class FulfilmentsEndpointTest {
   private static final String DESCRIPTION_2 = "Another fulfilment";
 
   @Mock private EventServiceImpl eventSvc;
-  
+
   @Mock private FulfilmentsService fulfilmentService;
 
   @InjectMocks private FulfilmentsEndpoint fulfilmentsEndpoint;
@@ -70,7 +71,7 @@ public final class FulfilmentsEndpointTest {
 
     ResultActions actions = mockMvc.perform(getJson("/fulfilments"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfFulfilmentDTO(actions);
   }
 
@@ -82,7 +83,7 @@ public final class FulfilmentsEndpointTest {
     ResultActions actions =
         mockMvc.perform(getJson("/fulfilments").param(CASE_TYPE, "HI").param(REGION, "E"));
     actions.andExpect(status().isOk());
-    
+
     verifyStructureOfFulfilmentDTO(actions);
   }
 
@@ -98,21 +99,22 @@ public final class FulfilmentsEndpointTest {
     actions.andExpect(status().isBadRequest());
   }
 
-  
   private List<FulfilmentDTO> createResponseFulfilmentDTO() {
-    FulfilmentDTO fulfilmentsDTO1 = FulfilmentDTO.builder()
-        .productCode(PRODUCT_CODE_1)
-        .language(LANGUAGE_1)
-        .description(DESCRIPTION_1)
-        .method(Method.EMAIL)
-        .build();
+    FulfilmentDTO fulfilmentsDTO1 =
+        FulfilmentDTO.builder()
+            .productCode(PRODUCT_CODE_1)
+            .language(LANGUAGE_1)
+            .description(DESCRIPTION_1)
+            .method(Method.EMAIL)
+            .build();
 
-    FulfilmentDTO fulfilmentsDTO2 = FulfilmentDTO.builder()
-        .productCode(PRODUCT_CODE_2)
-        .language(LANGUAGE_2)
-        .description(DESCRIPTION_2)
-        .method(Method.POST)
-        .build();
+    FulfilmentDTO fulfilmentsDTO2 =
+        FulfilmentDTO.builder()
+            .productCode(PRODUCT_CODE_2)
+            .language(LANGUAGE_2)
+            .description(DESCRIPTION_2)
+            .method(Method.POST)
+            .build();
 
     List<FulfilmentDTO> fulfilments = Arrays.asList(fulfilmentsDTO1, fulfilmentsDTO2);
     return fulfilments;
