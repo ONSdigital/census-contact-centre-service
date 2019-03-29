@@ -71,12 +71,9 @@ public class AddressServiceImpl implements AddressService {
 
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
-      addressSummary.setFormattedAddress(
-          StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
-      addressSummary.setWelshFormattedAddress(
-          StringUtils.selectFirstNonBlankString(
-              welshAddressPaf, welshAddressNag, formattedAddress));
-
+      addressSummary.setFormattedAddress(StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
+      addressSummary.setWelshFormattedAddress(StringUtils.selectFirstNonBlankString(welshAddressPaf, welshAddressNag, formattedAddress));
+      
       summarisedAddresses.add(addressSummary);
     }
 
@@ -84,7 +81,7 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO queryResponse = new AddressQueryResponseDTO();
     queryResponse.setDataVersion(addressIndexResponse.getDataVersion());
     queryResponse.setAddresses(summarisedAddresses);
-    queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
+    queryResponse.setTotal(summarisedAddresses.size());
 
     return queryResponse;
   }

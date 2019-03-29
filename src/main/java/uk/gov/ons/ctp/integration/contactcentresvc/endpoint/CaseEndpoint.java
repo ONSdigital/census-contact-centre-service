@@ -1,11 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import javax.validation.Valid;
-import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -163,13 +162,9 @@ public class CaseEndpoint implements CTPEndpoint {
       throws CTPException {
     log.with("case-id", caseId).debug("Entering makeFulfilmentRequestByPost");
 
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+    ResponseDTO response = caseService.fulfilmentRequestByPost(caseId, requestBodyDTO);
 
-    return ResponseEntity.ok(fakeResponse);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -188,13 +183,9 @@ public class CaseEndpoint implements CTPEndpoint {
       throws CTPException {
     log.with("case-id", caseId).debug("Entering fulfilmentRequestBySMS");
 
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+    ResponseDTO response = caseService.fulfilmentRequestBySMS(caseId, requestBodyDTO);
 
-    return ResponseEntity.ok(fakeResponse);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -210,13 +201,9 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
     log.debug("Entering fulfilmentUnresolvedRequestByPost");
 
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+    ResponseDTO response = caseService.fulfilmentUnresolvedRequestByPost(requestBodyDTO);
 
-    return ResponseEntity.ok(fakeResponse);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -232,13 +219,9 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
     log.debug("Entering fulfilmentUnresolvedRequestBySMS");
 
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+    ResponseDTO response = caseService.fulfilmentUnresolvedRequestBySMS(requestBodyDTO);
 
-    return ResponseEntity.ok(fakeResponse);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -250,15 +233,15 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{case-id}/appointment", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<UUID> makeAppointment(
+  public ResponseEntity<ResponseDTO> makeAppointment(
       @PathVariable(value = "case-id") final UUID caseId,
       @Valid @RequestBody AppointmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with("case-id", caseId).debug("Entering makeAppointment");
 
-    UUID fakeUUIDResult = createSemiRandomFakeUUID();
+    ResponseDTO response = caseService.makeAppointment(caseId, requestBodyDTO);
 
-    return ResponseEntity.ok(fakeUUIDResult);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -296,21 +279,8 @@ public class CaseEndpoint implements CTPEndpoint {
 
     log.with("case-id", caseId).debug("Entering makeAppointment");
     
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
-
-    return ResponseEntity.ok(fakeResponse);
-  }
-
-  private UUID createSemiRandomFakeUUID() {
-    String randomUUID = UUID.randomUUID().toString();
-    String firstPart = randomUUID.substring(0, 9);
-    String lastPart = randomUUID.substring(23);
-    String semiRandomUUID = firstPart + "aaaa-bbbb-cccc" + lastPart;
-
-    return UUID.fromString(semiRandomUUID);
+    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);    
+    
+    return ResponseEntity.ok(response);
   }
 }
