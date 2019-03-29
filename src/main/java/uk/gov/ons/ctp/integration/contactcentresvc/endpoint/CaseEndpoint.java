@@ -32,6 +32,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSUnresolvedFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.editor.UniquePropertyReferenceNumberEditor;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.EventService;
 
 /** The REST controller for ContactCentreSvc find cases end points */
@@ -42,11 +43,14 @@ public class CaseEndpoint implements CTPEndpoint {
 
   @Autowired private EventService eventSvcImpl;
 
+  private CaseService caseService;
+
   private MapperFacade mapperFacade;
 
   /** Constructor for ContactCentreDataEndpoint */
   @Autowired
-  public CaseEndpoint(final MapperFacade mapperFacade) {
+  public CaseEndpoint(final CaseService caseService, final MapperFacade mapperFacade) {
+    this.caseService = caseService;
     this.mapperFacade = mapperFacade;
   }
 
@@ -72,7 +76,9 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("caseEvents", requestParamsDTO.getCaseEvents())
         .debug("Entering getCaseById");
 
-    return ResponseEntity.ok(null);
+    CaseDTO result = caseService.getCaseById(caseId, requestParamsDTO);
+
+    return ResponseEntity.ok(result);
   }
 
   /**
@@ -92,7 +98,9 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("caseEvents", requestParamsDTO.getCaseEvents())
         .debug("Entering getCaseByUPRN");
 
-    return ResponseEntity.ok(null);
+    CaseDTO result = caseService.getCaseByUPRN(uprn, requestParamsDTO);
+
+    return ResponseEntity.ok(result);
   }
 
   /**
@@ -111,7 +119,9 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("caseEvents", requestParamsDTO.getCaseEvents())
         .debug("Entering getCaseByCaseReference");
 
-    return ResponseEntity.ok(null);
+    CaseDTO result = caseService.getCaseByCaseReference(ref, requestParamsDTO);
+
+    return ResponseEntity.ok(result);
   }
 
   /**
@@ -130,7 +140,10 @@ public class CaseEndpoint implements CTPEndpoint {
     log.with("case-id", caseId)
         .with("agent-id", requestParamsDTO.getAgentId())
         .info("Entering getLaunchURLForCaseId");
-    return ResponseEntity.ok(null);
+
+    String launchURL = caseService.getLaunchURLForCaseId(caseId, requestParamsDTO);
+
+    return ResponseEntity.ok(launchURL);
   }
 
   /**
@@ -148,7 +161,10 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with("case-id", caseId).debug("Entering makeFulfilmentRequestByPost");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.fulfilmentRequestByPost(caseId, requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -166,7 +182,10 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with("case-id", caseId).debug("Entering fulfilmentRequestBySMS");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.fulfilmentRequestBySMS(caseId, requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -181,7 +200,10 @@ public class CaseEndpoint implements CTPEndpoint {
   public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestByPost(
       @Valid @RequestBody PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
     log.debug("Entering fulfilmentUnresolvedRequestByPost");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.fulfilmentUnresolvedRequestByPost(requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -196,7 +218,10 @@ public class CaseEndpoint implements CTPEndpoint {
   public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestBySMS(
       @Valid @RequestBody SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
     log.debug("Entering fulfilmentUnresolvedRequestBySMS");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.fulfilmentUnresolvedRequestBySMS(requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -208,12 +233,15 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{case-id}/appointment", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<UUID> makeAppointment(
+  public ResponseEntity<ResponseDTO> makeAppointment(
       @PathVariable(value = "case-id") final UUID caseId,
       @Valid @RequestBody AppointmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with("case-id", caseId).debug("Entering makeAppointment");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.makeAppointment(caseId, requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -250,6 +278,9 @@ public class CaseEndpoint implements CTPEndpoint {
     // TODO Region validation
 
     log.with("case-id", caseId).debug("Entering makeAppointment");
-    return ResponseEntity.ok(null);
+
+    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);
+
+    return ResponseEntity.ok(response);
   }
 }

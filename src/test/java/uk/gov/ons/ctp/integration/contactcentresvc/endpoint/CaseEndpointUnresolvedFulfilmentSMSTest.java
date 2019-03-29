@@ -1,14 +1,19 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +22,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
 
 /** Contact Centre Data Endpoint Unit tests */
@@ -33,7 +40,10 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
   private static final String PRODUCT_CODE = "productCode";
   private static final String DATE_TIME = "dateTime";
 
+  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
+
   @Mock private EventServiceImpl eventSvc;
+  @Mock private CaseService caseService;
 
   @InjectMocks private CaseEndpoint caseEndpoint;
 
@@ -272,9 +282,16 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
   }
 
   private void assertOk(ObjectNode json) throws Exception {
+    UUID uuid = UUID.randomUUID();
+    ResponseDTO responseDTO =
+        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
+    Mockito.when(caseService.fulfilmentUnresolvedRequestBySMS(any())).thenReturn(responseDTO);
+
     ResultActions actions =
         mockMvc.perform(postJson("/cases/unresolved/fulfilment/sms", json.toString()));
     actions.andExpect(status().isOk());
+    actions.andExpect(jsonPath("$.id", is(uuid.toString())));
+    actions.andExpect(jsonPath("$.dateTime", is(RESPONSE_DATE_TIME)));
   }
 
   private void assertBadRequest(ObjectNode json) throws Exception {

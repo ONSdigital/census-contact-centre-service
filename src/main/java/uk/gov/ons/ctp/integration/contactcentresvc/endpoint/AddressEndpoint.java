@@ -13,7 +13,7 @@ import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
 @RestController
@@ -21,7 +21,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.AddressServiceIm
 public final class AddressEndpoint implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(AddressEndpoint.class);
 
-  private AddressServiceImpl addressService;
+  private AddressService addressService;
   private MapperFacade mapperFacade;
 
   /**
@@ -33,7 +33,7 @@ public final class AddressEndpoint implements CTPEndpoint {
    */
   @Autowired
   public AddressEndpoint(
-      final AddressServiceImpl addressService,
+      final AddressService addressService,
       final @Qualifier("CCSvcBeanMapper") MapperFacade mapperFacade) {
     this.addressService = addressService;
     this.mapperFacade = mapperFacade;

@@ -79,7 +79,7 @@ address-index-settings:
   postcode-lookup-path: /addresses/postcode/{postcode}
   rest-client-config:
     scheme: http
-    host: addressindex-api-dev.apps.devtest.onsclofo.uk
+    host: addressindex-api-beta.apps.devtest.onsclofo.uk
     port: 80
 
 report-settings:

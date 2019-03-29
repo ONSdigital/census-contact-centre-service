@@ -68,7 +68,7 @@ public class AddressServiceImplTest {
    */
   private void verifyAddresses(AddressQueryResponseDTO results) {
     assertEquals("39", results.getDataVersion());
-    assertEquals(23, results.getTotal()); // Total as returned by Address Index
+    assertEquals(4, results.getTotal()); // Total as returned by Address Index
 
     ArrayList<AddressDTO> addresses = results.getAddresses();
     assertEquals(4, addresses.size());
