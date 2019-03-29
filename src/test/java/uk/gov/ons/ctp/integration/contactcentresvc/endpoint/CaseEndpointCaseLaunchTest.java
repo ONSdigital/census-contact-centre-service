@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,14 +53,17 @@ public class CaseEndpointCaseLaunchTest {
 
   @Test
   public void getCaseById_GoodId() throws Exception {
-    String responseUrl = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
-    Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(responseUrl);
+    String fakeResponse = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
+    Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
     ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345"));
     actions.andExpect(status().isOk());
     actions.andDo(MockMvcResultHandlers.print());
     
-    actions.andExpect(jsonPath("$.url", is("pmb")));
+    // Check that the url is as expected. Note that MockMvc (or some component in the chain) escapes all double quotes
+    String responseUrl = actions.andReturn().getResponse().getContentAsString();
+    String expectedUrl = "\"{\\\"url\\\": \\\"https://www.google.co.uk/search?q=FAKE\\\"}\"";
+    assertEquals(expectedUrl, responseUrl);
   }
 
   @Test

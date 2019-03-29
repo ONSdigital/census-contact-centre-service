@@ -216,7 +216,7 @@ public final class CaseEndpointGetCaseTest {
 
   private void verifyStructureOfResultsActions(ResultActions actions) throws Exception {
     actions.andExpect(jsonPath("$.id", is(CASE_UUID_STRING)));
-    actions.andExpect(jsonPath("$.case-ref", is(CASE_REF))); // PMB should be 'caseRef'
+    actions.andExpect(jsonPath("$.caseRef", is(CASE_REF)));
     actions.andExpect(jsonPath("$.caseType", is(CASE_TYPE)));
     actions.andExpect(jsonPath("$.createdDateTime", is(CASE_CREATED_DATE_TIME)));
     actions.andExpect(jsonPath("$.addressLine1", is(ADDRESS_LINE_1)));
