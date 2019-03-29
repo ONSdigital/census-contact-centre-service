@@ -50,10 +50,10 @@ public final class CaseEndpointGetCaseTest {
   private static final String POSTCODE = "EX2 9HY";
 
   private static final String RESPONSE1_DATE_TIME = "2016-11-09T11:44:44.797";
-  private static final String RESPONSE1_INBOUND_CHANNEL = "text for inbound channel";
+  private static final String RESPONSE1_INBOUND_CHANNEL = "ONLINE";
 
   private static final String EVENT_UUID_STRING = "1d014993-d3f2-40f9-b00a-5e6c9729ee89";
-  private static final String EVENT_CATEGORY = "update";
+  private static final String EVENT_CATEGORY = "REFUSAL";
   private static final String EVENT_DESCRIPTION = "Event for testcase";
   private static final String EVENT_DATE_TIME = "2017-02-11T16:32:11.863";
 

@@ -21,16 +21,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePr
 public interface CaseService {
 
   public default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Id");
+    return createFakeCaseDTO("Digby");
   }
 
   public default CaseDTO getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("UPRN");
+    return createFakeCaseDTO("Monkerton");
   }
 
   public default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("CaseReference");
+    return createFakeCaseDTO("Stoke Hill");
   }
 
   public default String getLaunchURLForCaseId(
@@ -105,16 +105,16 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  private CaseDTO createFakeCaseDTO(String createdForMarker) {
+  private CaseDTO createFakeCaseDTO(String addressLine4) {
     CaseResponseDTO caseResponseDTO1 =
         CaseResponseDTO.builder()
             .dateTime("2016-11-09T11:44:44.797")
-            .inboundChannel("FAKE channel response")
+            .inboundChannel("ONLINE")
             .build();
     CaseResponseDTO caseResponseDTO2 =
         CaseResponseDTO.builder()
             .dateTime("2018-05-15T08:08:08.888")
-            .inboundChannel("Another FAKE channel response")
+            .inboundChannel("POST")
             .build();
 
     CaseEventDTO caseEventDTO1 =
@@ -142,13 +142,13 @@ public interface CaseService {
     CaseDTO fakeCaseDTO =
         CaseDTO.builder()
             .id(createSemiRandomFakeUUID())
-            .caseRef("123-fake-456")
-            .caseType("caseType1")
+            .caseRef("123456789")
+            .caseType("HI")
             .createdDateTime(LocalDateTime.now())
             .addressLine1("The Novelty Rock Emporium")
             .addressLine2("Rock House")
             .addressLine3("Cowick Lane")
-            .addressLine4(createdForMarker)
+            .addressLine4(addressLine4)
             .town("Exeter")
             .region("E")
             .postcode("EX2 9HY")
