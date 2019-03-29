@@ -31,7 +31,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl
 public final class CaseEndpointRefusalTest {
 
   private static final String CASE_ID = "caseId";
-  private static final String REFUSAL_CODE = "refusalCode";
   private static final String TITLE = "title";
   private static final String NOTES = "notes";
   private static final String TEL_NO = "telNo";
@@ -117,21 +116,6 @@ public final class CaseEndpointRefusalTest {
   @Test
   public void refusalTelNoTooLong() throws Exception {
     assertBadRequest(TEL_NO, "07968583119119119119119");
-  }
-
-  @Test
-  public void refusalRefusalCodeNull() throws Exception {
-    assertBadRequest(REFUSAL_CODE, (String) null);
-  }
-
-  @Test
-  public void refusalRefusalCodeBlank() throws Exception {
-    assertBadRequest(REFUSAL_CODE, "");
-  }
-
-  @Test
-  public void refusalRefusalCodeTooLong() throws Exception {
-    assertBadRequest(REFUSAL_CODE, "Mary had a little lamb it's fleece as white as snow");
   }
 
   @Test
