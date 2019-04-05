@@ -15,12 +15,15 @@ logging:
   profile: DEV
   useJson: false
 
+
 management:
   health:
     rabbit:
       enabled: false
   endpoints:
     enabled-by-default: true
+    web:
+      base-path: /
   info:
     env:
       enabled: true 
