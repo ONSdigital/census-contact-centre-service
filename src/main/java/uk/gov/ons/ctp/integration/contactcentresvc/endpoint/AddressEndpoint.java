@@ -17,7 +17,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
 @RestController
-@RequestMapping(value = "/contactcentre", produces = "application/json")
+@RequestMapping(value = "/", produces = "application/json")
 public final class AddressEndpoint implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(AddressEndpoint.class);
 

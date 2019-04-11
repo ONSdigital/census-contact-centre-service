@@ -64,19 +64,19 @@ public final class AddressEndpointTest {
 
   @Test
   public void getContactCentreDataFromEndpoint() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/contactcentre/data"));
+    ResultActions actions = mockMvc.perform(getJson("/data"));
     actions.andExpect(status().isOk());
   }
 
   @Test
   public void validateAddressQueryResponseJson() throws Exception {
-    assertOk("/contactcentre/addresses?input=Park");
+    assertOk("/addresses?input=Park");
   }
 
   @Test
   public void rejectAddressQueryMissingInput() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses"))
+        .perform(get("/addresses"))
         .andExpect(content().string(containsString("field 'input'")))
         .andExpect(content().string(containsString("must not be blank")));
   }
@@ -84,7 +84,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithEmptyInput() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input="))
+        .perform(get("/addresses?input="))
         .andExpect(content().string(containsString("field 'input'")))
         .andExpect(content().string(containsString("must not be blank")));
   }
@@ -92,7 +92,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithOffsetBelowMin() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("offset", "-1"))
+        .perform(get("/addresses?input=Harbour").param("offset", "-1"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
         .andExpect(content().string(containsString("must be greater than or equal to 0")));
   }
@@ -100,7 +100,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithOffsetAboveMax() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("offset", "251"))
+        .perform(get("/addresses?input=Harbour").param("offset", "251"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
         .andExpect(content().string(containsString("must be less than or equal to 250")));
   }
@@ -108,14 +108,14 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithNonNumericOffset() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("offset", "non-numeric-value"))
+        .perform(get("/addresses?input=Harbour").param("offset", "non-numeric-value"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")));
   }
 
   @Test
   public void rejectAddressQueryWithLimitBelowMin() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("limit", "-1"))
+        .perform(get("/addresses?input=Harbour").param("limit", "-1"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")))
         .andExpect(content().string(containsString("must be greater than or equal to 0")));
   }
@@ -123,7 +123,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithLimitAboveMax() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("limit", "101"))
+        .perform(get("/addresses?input=Harbour").param("limit", "101"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")))
         .andExpect(content().string(containsString("must be less than or equal to 100")));
   }
@@ -131,19 +131,19 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithNonNumericLimit() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses?input=Harbour").param("limit", "x"))
+        .perform(get("/addresses?input=Harbour").param("limit", "x"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")));
   }
 
   @Test
   public void validatePostcodeQueryResponseJson() throws Exception {
-    assertOk("/contactcentre/addresses/postcode?postcode=EX2 8EB");
+    assertOk("/addresses/postcode?postcode=EX2 8EB");
   }
 
   @Test
   public void rejectPostcodeQueryMissingPostcode() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode"))
+        .perform(get("/addresses/postcode"))
         .andExpect(content().string(containsString("field 'postcode'")))
         .andExpect(content().string(containsString("must not be blank")));
   }
@@ -151,7 +151,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithEmptyPostcode() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode="))
+        .perform(get("/addresses/postcode?postcode="))
         .andExpect(content().string(containsString("field 'postcode'")))
         .andExpect(content().string(containsString("must not be blank")));
   }
@@ -159,7 +159,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithOffsetBelowMin() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("offset", "-1"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("offset", "-1"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
         .andExpect(content().string(containsString("must be greater than or equal to 0")));
   }
@@ -167,7 +167,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithOffsetAboveMax() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("offset", "251"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("offset", "251"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
         .andExpect(content().string(containsString("must be less than or equal to 250")));
   }
@@ -175,16 +175,14 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithNonNumericOffset() throws Exception {
     mockMvc
-        .perform(
-            get("/contactcentre/addresses/postcode?postcode=EX24LU")
-                .param("offset", "non-numeric-value"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("offset", "non-numeric-value"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")));
   }
 
   @Test
   public void rejectPostcodeQueryWithLimitBelowMin() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "-1"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("limit", "-1"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")))
         .andExpect(content().string(containsString("must be greater than or equal to 0")));
   }
@@ -192,7 +190,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithLimitAboveMax() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "101"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("limit", "101"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")))
         .andExpect(content().string(containsString("must be less than or equal to 100")));
   }
@@ -200,7 +198,7 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithNonNumericLimit() throws Exception {
     mockMvc
-        .perform(get("/contactcentre/addresses/postcode?postcode=EX24LU").param("limit", "x"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("limit", "x"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")));
   }
 
@@ -222,7 +220,7 @@ public final class AddressEndpointTest {
 
     Mockito.when(addressService.addressQuery(any())).thenReturn(addresses);
 
-    ResultActions actions = mockMvc.perform(get("/contactcentre/addresses?input=Park"));
+    ResultActions actions = mockMvc.perform(get("/addresses?input=Park"));
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.dataVersion", is(DATA_VERSION)));
     actions.andExpect(jsonPath("$.addresses[0].uprn", is(UPRN1)));
