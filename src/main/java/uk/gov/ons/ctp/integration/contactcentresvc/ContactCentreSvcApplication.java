@@ -69,45 +69,6 @@ public class ContactCentreSvcApplication {
     SpringApplication.run(ContactCentreSvcApplication.class, args);
   }
 
-  //  @EnableWebSecurity
-  //  public static class SecurityConfig extends WebSecurityConfigurerAdapter {
-  //
-  //    @Value("${spring.security.user.name}")
-  //    String username;
-  //
-  //    @Value("${spring.security.user.password}")
-  //    String password;
-  //
-  //    @Override
-  //    protected void configure(HttpSecurity http) throws Exception {
-  //      http
-  //        .authorizeRequests().antMatchers("/info").permitAll()
-  //        .anyRequest().authenticated().and()
-  //        .csrf().disable().httpBasic();
-  //    }
-  //
-  //    @Override
-  //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-  //        auth.inMemoryAuthentication()
-  //            .passwordEncoder(passwordEncoder())
-  //            .withUser("user").password(ENCODED_PASSWORD).roles("USER");
-  //    }
-  ////    @Bean
-  ////    public UserDetailsService userDetailsService() {
-  ////        @SuppressWarnings("deprecation")
-  ////        User.UserBuilder users = User.withDefaultPasswordEncoder();
-  ////        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-  ////        manager.createUser(users.username(username).password(password).roles("USER").build());
-  ////        return manager;
-  ////
-  ////    }
-  //  }
-  //
-  //  @Bean
-  //  public PasswordEncoder passwordEncoder() {
-  //      return new BCryptPasswordEncoder();
-  //  }
-
   /**
    * The restTemplate bean injected in REST client classes
    *
