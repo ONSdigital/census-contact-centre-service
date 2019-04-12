@@ -1,14 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
@@ -33,17 +30,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .httpBasic();
   }
 
+  // USE OF THE PASSWORD ENCRYPTION COMMENTED OUT WHILE I TRY AND WORK OUT WHY IT IS NOT WORKING
+  // WHEN
+  // CONFIGURED THROUGH SECRETS IN GCP
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth.inMemoryAuthentication()
-        .passwordEncoder(passwordEncoder())
+        //        .passwordEncoder(passwordEncoder())
         .withUser(username)
-        .password(password)
+        .password("{noop}" + password)
         .roles("USER");
   }
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+  //  @Bean
+  //  public PasswordEncoder passwordEncoder() {
+  //    return new BCryptPasswordEncoder();
+  //  }
 }
