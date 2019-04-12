@@ -6,13 +6,16 @@ import javax.validation.Valid;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressUpdateRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
@@ -64,6 +67,12 @@ public final class AddressEndpoint implements CTPEndpoint {
     return addressService.postcodeQuery(postcodeQueryRequest);
   }
 
+  @RequestMapping(value = "/addresses/{uprn}", method = RequestMethod.POST)
+  public ResponseDTO getAddressesByPostcode(
+      String uprn, @Valid @RequestBody AddressUpdateRequestDTO addressUpdateRequestDTO) {
+    return addressService.addressChange(addressUpdateRequestDTO);
+  }
+
   /**
    * the GET endpoint to get contact centre Details
    *
@@ -74,5 +83,17 @@ public final class AddressEndpoint implements CTPEndpoint {
     String helloTeam = "Hello Census Integration Contact Centre!";
 
     return helloTeam;
+  }
+
+  /**
+   * the GET endpoint to get contact centre Details
+   *
+   * @return the contact centre details found
+   */
+  @RequestMapping(value = "/version", method = RequestMethod.GET)
+  public String getVersion() {
+    // TODO: Create responseDTO to hold the version number
+    String fakeVersionResponse = "{" + "  \"dataVersion\": \"0.0.0\"" + "}";
+    return fakeVersionResponse;
   }
 }
