@@ -1,13 +1,13 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 
 @Configuration
 @EnableWebSecurity
