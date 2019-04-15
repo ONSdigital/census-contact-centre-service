@@ -139,6 +139,12 @@
       <artifactId>contactcentreserviceapi</artifactId>
       <version>0.0.26</version>
     </dependency>
+    
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>product-reference</artifactId>
+      <version>0.0.0-SNAPSHOT</version>
+    </dependency>
     <!-- ONS END -->
 
     <!-- third party libraries -->
