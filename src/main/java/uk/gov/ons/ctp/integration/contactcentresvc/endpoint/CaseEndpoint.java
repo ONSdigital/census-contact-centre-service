@@ -33,7 +33,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSUnresolvedF
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.editor.UniquePropertyReferenceNumberEditor;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.EventService;
 
 /** The REST controller for ContactCentreSvc find cases end points */
 @RestController
@@ -41,10 +40,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.EventService;
 public class CaseEndpoint implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(CaseEndpoint.class);
 
-  @Autowired private EventService eventSvcImpl;
-
   private CaseService caseService;
 
+  @SuppressWarnings("unused")
   private MapperFacade mapperFacade;
 
   /** Constructor for ContactCentreDataEndpoint */
@@ -68,9 +66,9 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return the case
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{caseId}", method = RequestMethod.GET)
   public ResponseEntity<CaseDTO> getCaseById(
-      @PathVariable("case-id") final UUID caseId, @Valid CaseRequestDTO requestParamsDTO)
+      @PathVariable("caseId") final UUID caseId, @Valid CaseRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("case_id", caseId)
         .with("caseEvents", requestParamsDTO.getCaseEvents())
@@ -132,13 +130,13 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return the URL to launch the questionnaire for the case
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}/launch", method = RequestMethod.GET)
+  @RequestMapping(value = "/{caseId}/launch", method = RequestMethod.GET)
   public ResponseEntity<String> getLaunchURLForCaseId(
-      @PathVariable(value = "case-id") final UUID caseId, @Valid LaunchRequestDTO requestParamsDTO)
+      @PathVariable(value = "caseId") final UUID caseId, @Valid LaunchRequestDTO requestParamsDTO)
       throws CTPException {
     // INFO because we need to log agent-id
-    log.with("case-id", caseId)
-        .with("agent-id", requestParamsDTO.getAgentId())
+    log.with("caseId", caseId)
+        .with("agentId", requestParamsDTO.getAgentId())
         .info("Entering getLaunchURLForCaseId");
 
     String launchURL = caseService.getLaunchURLForCaseId(caseId, requestParamsDTO);
@@ -154,13 +152,13 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return response entity
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}/fulfilment/post", method = RequestMethod.POST)
+  @RequestMapping(value = "/{caseId}/fulfilment/post", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> fulfilmentRequestByPost(
-      @PathVariable(value = "case-id") final UUID caseId,
+      @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("case-id", caseId).debug("Entering makeFulfilmentRequestByPost");
+    log.with("caseId", caseId).debug("Entering makeFulfilmentRequestByPost");
 
     ResponseDTO response = caseService.fulfilmentRequestByPost(caseId, requestBodyDTO);
 
@@ -175,13 +173,13 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return response entity
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}/fulfilment/sms", method = RequestMethod.POST)
+  @RequestMapping(value = "/{caseId}/fulfilment/sms", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> fulfilmentRequestBySMS(
-      @PathVariable(value = "case-id") final UUID caseId,
+      @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("case-id", caseId).debug("Entering fulfilmentRequestBySMS");
+    log.with("caseId", caseId).debug("Entering fulfilmentRequestBySMS");
 
     ResponseDTO response = caseService.fulfilmentRequestBySMS(caseId, requestBodyDTO);
 
@@ -231,13 +229,13 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return response entity
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}/appointment", method = RequestMethod.POST)
+  @RequestMapping(value = "/{caseId}/appointment", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> makeAppointment(
-      @PathVariable(value = "case-id") final UUID caseId,
+      @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody AppointmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("case-id", caseId).debug("Entering makeAppointment");
+    log.with("caseId", caseId).debug("Entering makeAppointment");
 
     ResponseDTO response = caseService.makeAppointment(caseId, requestBodyDTO);
 
@@ -251,10 +249,10 @@ public class CaseEndpoint implements CTPEndpoint {
    * @return response entity
    * @throws CTPException something went wrong
    */
-  @RequestMapping(value = "/{case-id}/refusal", method = RequestMethod.POST)
+  @RequestMapping(value = "/{caseId}/refusal", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> reportRefusal(
-      @PathVariable(value = "case-id") final String caseId,
+      @PathVariable(value = "caseId") final String caseId,
       @Valid @RequestBody RefusalRequestDTO requestBodyDTO)
       throws CTPException {
 
@@ -263,6 +261,7 @@ public class CaseEndpoint implements CTPEndpoint {
         && !caseId.equals(requestBodyDTO.getCaseId())) {
       throw new CTPException(Fault.BAD_REQUEST, "caseId in path and body must be identical");
     }
+    @SuppressWarnings("unused")
     UUID caseIdUUID = null;
     if (StringUtils.isBlank(caseId)) {
       throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID or \"UNKNOWN\"");
@@ -277,7 +276,7 @@ public class CaseEndpoint implements CTPEndpoint {
 
     // TODO Region validation
 
-    log.with("case-id", caseId).debug("Entering makeAppointment");
+    log.with("caseId", caseId).debug("Entering makeAppointment");
 
     ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);
 

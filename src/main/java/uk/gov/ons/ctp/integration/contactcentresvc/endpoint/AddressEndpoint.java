@@ -16,6 +16,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressUpdateRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.VersionResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
@@ -91,9 +92,8 @@ public final class AddressEndpoint implements CTPEndpoint {
    * @return the contact centre details found
    */
   @RequestMapping(value = "/version", method = RequestMethod.GET)
-  public String getVersion() {
-    // TODO: Create responseDTO to hold the version number
-    String fakeVersionResponse = "{" + "  \"dataVersion\": \"0.0.0\"" + "}";
-    return fakeVersionResponse;
+  public VersionResponseDTO getVersion() {
+    VersionResponseDTO fakeVersion = VersionResponseDTO.builder().dataVersion("0.0.0").build();
+    return fakeVersion;
   }
 }
