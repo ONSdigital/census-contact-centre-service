@@ -46,7 +46,7 @@ spring:
   security:
     user:
       name: serco_cks
-      password: $2a$10$MABDXY5W8Q1s9MPVYh6Pbud/8pM2Ws8DI9YRvrgWFlfbED7P5FOs2
+      password: temporary
   output:
     ansi:
       enabled: never

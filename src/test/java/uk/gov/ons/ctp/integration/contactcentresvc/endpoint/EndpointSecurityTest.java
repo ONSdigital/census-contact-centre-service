@@ -27,7 +27,7 @@ public class EndpointSecurityTest {
 
   @Before
   public void setUp() throws MalformedURLException {
-    restTemplate = new TestRestTemplate("serco_cks", "t1nyr3b3l");
+    restTemplate = new TestRestTemplate("serco_cks", "temporary");
     base = new URL("http://localhost:" + port);
   }
 
@@ -66,7 +66,7 @@ public class EndpointSecurityTest {
   @Test
   public void whenUserWithCorrectCredentialsRequestCaseThenSuccess() throws Exception {
 
-    restTemplate = new TestRestTemplate("serco_cks", "t1nyr3b3l");
+    restTemplate = new TestRestTemplate("serco_cks", "temporary");
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/cases/uprn/123", String.class);
 
