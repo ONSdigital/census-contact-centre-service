@@ -12,5 +12,10 @@ public interface AddressService {
 
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest);
 
-  public ResponseDTO addressChange(AddressUpdateRequestDTO addressUpdateRequestDTO);
+  public default ResponseDTO addressChange(AddressUpdateRequestDTO addressUpdateRequestDTO) {
+    ResponseDTO fakeResponse = new ResponseDTO();
+    fakeResponse.setId("8437625585067");
+    fakeResponse.setDateTime("2019-04-01T01:01:01.011");
+    return fakeResponse;
+  }
 }
