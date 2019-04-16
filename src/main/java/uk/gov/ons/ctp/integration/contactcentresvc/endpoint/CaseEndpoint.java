@@ -278,7 +278,7 @@ public class CaseEndpoint implements CTPEndpoint {
 
     log.with("caseId", caseId).debug("Entering makeAppointment");
 
-    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);
+    ResponseDTO response = caseService.reportRefusal(caseIdUUID, requestBodyDTO);
 
     return ResponseEntity.ok(response);
   }
