@@ -29,9 +29,9 @@ This will create the JAR file in the Target directory. You can then right-click 
 
 ## End Point
 
-When running successfully the words "Hello Census Integration!" should be found at the following endpoint:
+When running successfully version information can be obtained from the info endpoint
     
-* localhost:8171/data
+* localhost:8171/info
     
 ## Docker image build
 

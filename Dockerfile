@@ -6,7 +6,7 @@ RUN apt-get -yq clean
 RUN groupadd -g 983 concensvc && \
     useradd -r -u 983 -g concensvc concensvc
 USER concensvc
-COPY target/$JAR_FILE /optsvc.jar
+COPY target/$JAR_FILE /opt/contactcentresvc.jar
 
-ENTRYPOINT [ "java", "-jar", "/optsvc.jar" ]
+ENTRYPOINT [ "java", "-jar", "/opt/contactcentresvc.jar" ]
 
