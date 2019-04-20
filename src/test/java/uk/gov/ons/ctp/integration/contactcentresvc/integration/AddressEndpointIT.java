@@ -51,10 +51,7 @@ public final class AddressEndpointIT {
   @Test
   public void validateAddressQueryResponse() throws Exception {
     MvcResult result =
-        mockMvc
-            .perform(get("/contactcentre/addresses?input=Street"))
-            .andExpect(status().isOk())
-            .andReturn();
+        mockMvc.perform(get("/addresses?input=Street")).andExpect(status().isOk()).andReturn();
     String jsonResponse = result.getResponse().getContentAsString();
 
     verifyJsonInAddressQueryResponseFormat(jsonResponse, 1, 100);
@@ -67,7 +64,7 @@ public final class AddressEndpointIT {
    */
   @Test
   public void validateAddressQueryPagination() throws Exception {
-    String baseUrl = "/contactcentre/addresses?input=Street";
+    String baseUrl = "/addresses?input=Street";
     doPaginationTest(baseUrl);
   }
 
@@ -76,7 +73,7 @@ public final class AddressEndpointIT {
   public void validateAddressQueryEmptyResponse() throws Exception {
     MvcResult result =
         mockMvc
-            .perform(get("/contactcentre/addresses?input=euooeuuoeueoueou"))
+            .perform(get("/addresses?input=euooeuuoeueoueou"))
             .andExpect(status().isOk())
             .andReturn();
     String jsonResponse = result.getResponse().getContentAsString();
@@ -92,7 +89,7 @@ public final class AddressEndpointIT {
   public void validatePostcodeQueryResponse() throws Exception {
     MvcResult result =
         mockMvc
-            .perform(get("/contactcentre/addresses/postcode?postcode=EX2 4LU"))
+            .perform(get("/addresses/postcode?postcode=EX2 4LU"))
             .andExpect(status().isOk())
             .andReturn();
     String jsonResponse = result.getResponse().getContentAsString();
@@ -107,7 +104,7 @@ public final class AddressEndpointIT {
    */
   @Test
   public void validatePostcodeQueryPagination() throws Exception {
-    String baseUrl = "/contactcentre/addresses/postcode?postcode=EX2 4LU";
+    String baseUrl = "/addresses/postcode?postcode=EX2 4LU";
     doPaginationTest(baseUrl);
   }
 
@@ -116,7 +113,7 @@ public final class AddressEndpointIT {
   public void validatePostcodeQueryEmptyResponse() throws Exception {
     MvcResult result =
         mockMvc
-            .perform(get("/contactcentre/addresses/postcode?postcode=ZE1 9XX"))
+            .perform(get("/addresses/postcode?postcode=ZE1 9XX"))
             .andExpect(status().isOk())
             .andReturn();
     String jsonResponse = result.getResponse().getContentAsString();

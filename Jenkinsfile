@@ -50,7 +50,7 @@ pipeline {
                 CF_USER = credentials('CF_USER')
             }
             steps {
-                sh "find . -type f -name '*contactcentresvc*.jar' -not -name '*docker-info*' -exec mv {} target/contactcentresvc.jar \\;"
+                sh "find . -type f -name '*contactcentresvc*.jar' -not -name '*docker-info*' -exec mv {} targetsvc.jar \\;"
                 sh "sed -i -- 's/SPACE/dev/g' *template.yml"
                 sh "sed -i -- 's/INSTANCES/1/g' *template.yml"
                 sh "sed -i -- 's/DATABASE/rm-pg-db/g' *template.yml"
@@ -107,7 +107,7 @@ pipeline {
                 CF_USER = credentials('CF_USER')
             }
             steps {
-                sh "find . -type f -name '*contactcentresvc*.jar' -not -name '*docker-info*' -exec mv {} target/contactcentresvc.jar \\;"
+                sh "find . -type f -name '*contactcentresvc*.jar' -not -name '*docker-info*' -exec mv {} targetsvc.jar \\;"
                 sh "sed -i -- 's/SPACE/ci/g' *template.yml"
                 sh "sed -i -- 's/INSTANCES/1/g' *template.yml"
                 sh "sed -i -- 's/DATABASE/rm-pg-db/g' *template.yml"
@@ -189,8 +189,8 @@ pipeline {
                 sh 'git reset --hard'
                 sh 'rm -r target && mkdir target'
                 sh 'wget https://gist.githubusercontent.com/benjefferies/106d53e3178e1627bcad4784f6fe7fe1/raw/832c07c0f3e31933e634a9e0a2398d2845943090/artifactory-get.sh'
-                sh 'sh artifactory-get.sh -r http://artifactory-sdc.onsdigital.uk/artifactory/libs-release-local/ -g uk.gov.ons.ctp.product -a contactcentresvc > target/contactcentresvc.jar'
-                sh 'chmod 777 target/contactcentresvc.jar'
+                sh 'sh artifactory-get.sh -r http://artifactory-sdc.onsdigital.uk/artifactory/libs-release-local/ -g uk.gov.ons.ctp.product -a contactcentresvc > targetsvc.jar'
+                sh 'chmod 777 targetsvc.jar'
                 sh "sed -i -- 's/SPACE/test/g' *template.yml"
                 sh "sed -i -- 's/INSTANCES/1/g' *template.yml"
                 sh "sed -i -- 's/DATABASE/rm-pg-db/g' *template.yml"
@@ -205,7 +205,7 @@ pipeline {
                 sh "cf login -a https://${env.CLOUDFOUNDRY_API} --skip-ssl-validation -u ${CF_USER_USR} -p ${CF_USER_PSW} -o rmras -s test"
                 sh 'cf push -f manifest-template.yml'
                 sh 'rm artifactory-get.sh'
-                sh 'rm target/contactcentresvc.jar'
+                sh 'rm targetsvc.jar'
             }
         }
     }

@@ -21,23 +21,23 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO.Method;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
 
 /** Contact Centre Data Endpoint Unit tests */
 public final class FulfilmentsEndpointTest {
 
-  private static final String CASE_TYPE = "caseType";
-  private static final String REGION = "region";
+  private static final String PARAM_CASE_TYPE = "caseType";
+  private static final String PARAM_REGION = "region";
 
-  private static final String PRODUCT_CODE_1 = "P1";
-  private static final String LANGUAGE_1 = "English";
+  private static final String FULFILMENT_CODE_1 = "P1";
+  private static final String LANGUAGE_1 = "eng";
   private static final String DESCRIPTION_1 = "First fulfilment";
 
-  private static final String PRODUCT_CODE_2 = "P2";
-  private static final String LANGUAGE_2 = "Welsh";
+  private static final String FULFILMENT_CODE_2 = "P2";
+  private static final String LANGUAGE_2 = "wel";
   private static final String DESCRIPTION_2 = "Another fulfilment";
 
   @Mock private EventServiceImpl eventSvc;
@@ -67,7 +67,7 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestNoParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
 
     ResultActions actions = mockMvc.perform(getJson("/fulfilments"));
     actions.andExpect(status().isOk());
@@ -78,10 +78,11 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestAllParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
 
     ResultActions actions =
-        mockMvc.perform(getJson("/fulfilments").param(CASE_TYPE, "HI").param(REGION, "E"));
+        mockMvc.perform(
+            getJson("/fulfilments").param(PARAM_CASE_TYPE, "HI").param(PARAM_REGION, "E"));
     actions.andExpect(status().isOk());
 
     verifyStructureOfFulfilmentDTO(actions);
@@ -89,31 +90,31 @@ public final class FulfilmentsEndpointTest {
 
   @Test
   public void fulfilmentsGoodRequestBadCaseType() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/fulfilments").param(CASE_TYPE, "HIDEHI"));
+    ResultActions actions = mockMvc.perform(getJson("/fulfilments").param(PARAM_CASE_TYPE, "XX"));
     actions.andExpect(status().isBadRequest());
   }
 
   @Test
   public void fulfilmentsGoodRequestBadRegion() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/fulfilments").param(REGION, "FR"));
+    ResultActions actions = mockMvc.perform(getJson("/fulfilments").param(PARAM_REGION, "FR"));
     actions.andExpect(status().isBadRequest());
   }
 
   private List<FulfilmentDTO> createResponseFulfilmentDTO() {
     FulfilmentDTO fulfilmentsDTO1 =
         FulfilmentDTO.builder()
-            .productCode(PRODUCT_CODE_1)
+            .fulfilmentCode(FULFILMENT_CODE_1)
             .language(LANGUAGE_1)
             .description(DESCRIPTION_1)
-            .method(Method.EMAIL)
+            .deliveryChannel(DeliveryChannel.EMAIL)
             .build();
 
     FulfilmentDTO fulfilmentsDTO2 =
         FulfilmentDTO.builder()
-            .productCode(PRODUCT_CODE_2)
+            .fulfilmentCode(FULFILMENT_CODE_2)
             .language(LANGUAGE_2)
             .description(DESCRIPTION_2)
-            .method(Method.POST)
+            .deliveryChannel(DeliveryChannel.POST)
             .build();
 
     List<FulfilmentDTO> fulfilments = Arrays.asList(fulfilmentsDTO1, fulfilmentsDTO2);
@@ -121,14 +122,14 @@ public final class FulfilmentsEndpointTest {
   }
 
   private void verifyStructureOfFulfilmentDTO(ResultActions actions) throws Exception {
-    actions.andExpect(jsonPath("$.[0].productCode", is(PRODUCT_CODE_1)));
+    actions.andExpect(jsonPath("$.[0].fulfilmentCode", is(FULFILMENT_CODE_1)));
     actions.andExpect(jsonPath("$.[0].language", is(LANGUAGE_1)));
     actions.andExpect(jsonPath("$.[0].description", is(DESCRIPTION_1)));
-    actions.andExpect(jsonPath("$.[0].method", is(Method.EMAIL.toString())));
+    actions.andExpect(jsonPath("$.[0].deliveryChannel", is(DeliveryChannel.EMAIL.toString())));
 
-    actions.andExpect(jsonPath("$.[1].productCode", is(PRODUCT_CODE_2)));
+    actions.andExpect(jsonPath("$.[1].fulfilmentCode", is(FULFILMENT_CODE_2)));
     actions.andExpect(jsonPath("$.[1].language", is(LANGUAGE_2)));
     actions.andExpect(jsonPath("$.[1].description", is(DESCRIPTION_2)));
-    actions.andExpect(jsonPath("$.[1].method", is(Method.POST.toString())));
+    actions.andExpect(jsonPath("$.[1].deliveryChannel", is(DeliveryChannel.POST.toString())));
   }
 }

@@ -4,7 +4,6 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.UUID;
 import javax.validation.Valid;
-import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,13 +44,10 @@ public class CaseEndpoint implements CTPEndpoint {
 
   private CaseService caseService;
 
-  private MapperFacade mapperFacade;
-
   /** Constructor for ContactCentreDataEndpoint */
   @Autowired
-  public CaseEndpoint(final CaseService caseService, final MapperFacade mapperFacade) {
+  public CaseEndpoint(final CaseService caseService) {
     this.caseService = caseService;
-    this.mapperFacade = mapperFacade;
   }
 
   @InitBinder

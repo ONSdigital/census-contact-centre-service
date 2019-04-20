@@ -31,7 +31,7 @@ This will create the JAR file in the Target directory. You can then right-click 
 
 When running successfully the words "Hello Census Integration!" should be found at the following endpoint:
     
-* localhost:8171/contactcentre/data
+* localhost:8171/data
     
 ## Docker image build
 

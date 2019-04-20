@@ -39,12 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   // CONFIGURED THROUGH SECRETS IN GCP
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    log.with("username", username).with("password", password).info("Security config");
-    auth.inMemoryAuthentication()
-        //        .passwordEncoder(passwordEncoder())
-        .withUser(username)
-        .password("{noop}" + password)
-        .roles("USER");
+    auth.inMemoryAuthentication().withUser(username).password("{noop}" + password).roles("USER");
   }
 
   //  @Bean
