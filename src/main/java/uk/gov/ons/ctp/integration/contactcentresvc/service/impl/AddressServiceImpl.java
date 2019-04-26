@@ -86,7 +86,7 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO queryResponse = new AddressQueryResponseDTO();
     queryResponse.setDataVersion(addressIndexResponse.getDataVersion());
     queryResponse.setAddresses(summarisedAddresses);
-    queryResponse.setTotal(summarisedAddresses.size());
+    queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
 
     return queryResponse;
   }
