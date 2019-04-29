@@ -4,7 +4,6 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import javax.validation.Valid;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,14 +23,10 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
 
   private FulfilmentsService fulfilmentsService;
 
-  private MapperFacade mapperFacade;
-
   /** Constructor for ContactCentre Fulfilment endpoint */
   @Autowired
-  public FulfilmentsEndpoint(
-      final FulfilmentsService fulfilmentsService, final MapperFacade mapperFacade) {
+  public FulfilmentsEndpoint(final FulfilmentsService fulfilmentsService) {
     this.fulfilmentsService = fulfilmentsService;
-    this.mapperFacade = mapperFacade;
   }
 
   /**
@@ -48,9 +43,9 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
     log.with("caseType", requestDTO.getCaseType())
         .with("region", requestDTO.getRegion())
         .debug("Entering getFulfilments");
+    List<FulfilmentDTO> fulfilments =
+        fulfilmentsService.getFulfilments(requestDTO.getCaseType(), requestDTO.getRegion());
 
-    List<FulfilmentDTO> response = fulfilmentsService.getFulfilments(requestDTO);
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(fulfilments);
   }
 }

@@ -3,9 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import javax.validation.Valid;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,7 +24,6 @@ public final class AddressEndpoint implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(AddressEndpoint.class);
 
   private AddressService addressService;
-  private MapperFacade mapperFacade;
 
   /**
    * Constructor for ContactCentreDataEndpoint
@@ -36,11 +33,8 @@ public final class AddressEndpoint implements CTPEndpoint {
    * @param mapperFacade is a MapperFacade object.
    */
   @Autowired
-  public AddressEndpoint(
-      final AddressService addressService,
-      final @Qualifier("CCSvcBeanMapper") MapperFacade mapperFacade) {
+  public AddressEndpoint(final AddressService addressService) {
     this.addressService = addressService;
-    this.mapperFacade = mapperFacade;
   }
 
   /**

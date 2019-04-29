@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
@@ -23,6 +24,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 @IntegrationComponentScan("uk.gov.ons.ctp.integration")
 @ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
 @ImportResource("springintegration/main.xml")
+@EnableCaching
 public class ContactCentreSvcApplication {
 
   private AppConfig appConfig;
