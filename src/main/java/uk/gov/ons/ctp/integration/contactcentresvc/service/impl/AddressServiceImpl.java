@@ -11,9 +11,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.AddressServiceClientSe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressUpdateRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexAddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
@@ -89,13 +87,5 @@ public class AddressServiceImpl implements AddressService {
     queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
 
     return queryResponse;
-  }
-
-  @Override
-  public ResponseDTO addressChange(AddressUpdateRequestDTO addressUpdateRequestDTO) {
-    ResponseDTO fakeResponse = new ResponseDTO();
-    fakeResponse.setId("8437625585067");
-    fakeResponse.setDateTime("2019-04-01T01:01:01.011");
-    return fakeResponse;
   }
 }

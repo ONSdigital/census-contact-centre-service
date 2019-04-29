@@ -95,7 +95,7 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO reportRefusal(String caseId, @Valid RefusalRequestDTO requestBodyDTO) {
+  public default ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
