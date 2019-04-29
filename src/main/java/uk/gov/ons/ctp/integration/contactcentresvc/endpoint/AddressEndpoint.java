@@ -75,7 +75,8 @@ public final class AddressEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/version", method = RequestMethod.GET)
   public VersionResponseDTO getVersion() {
-    VersionResponseDTO fakeVersion = VersionResponseDTO.builder().apiVersion("2.0.0").dataVersion("0.0.0").build();
+    VersionResponseDTO fakeVersion =
+        VersionResponseDTO.builder().apiVersion("2.0.0").dataVersion("0.0.0").build();
     return fakeVersion;
   }
 }

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -239,7 +240,8 @@ public final class CaseEndpointGetCaseTest {
   }
 
   private void verifyStructureOfMultiResultsActions(ResultActions actions) throws Exception {
-    // This is not ideal - obvious duplication here - want to find a neater way of making the same assertions repeatedly
+    // This is not ideal - obvious duplication here - want to find a neater way of making the same
+    // assertions repeatedly
     actions.andExpect(jsonPath("$[0].id", is(CASE_UUID_STRING)));
     actions.andExpect(jsonPath("$[0].caseRef", is(CASE_REF)));
     actions.andExpect(jsonPath("$[0].caseType", is(CASE_TYPE)));
@@ -259,7 +261,7 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
-    
+
     actions.andExpect(jsonPath("$[1].id", is(CASE_UUID_STRING)));
     actions.andExpect(jsonPath("$[1].caseRef", is(CASE_REF)));
     actions.andExpect(jsonPath("$[1].caseType", is(CASE_TYPE)));
