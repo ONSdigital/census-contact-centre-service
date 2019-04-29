@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
+import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -83,7 +84,7 @@ public class CaseEndpoint implements CTPEndpoint {
    * @throws CTPException something went wrong
    */
   @RequestMapping(value = "/uprn/{uprn}", method = RequestMethod.GET)
-  public ResponseEntity<CaseDTO> getCaseByUPRN(
+  public ResponseEntity<List<CaseDTO>> getCaseByUPRN(
       @PathVariable(value = "uprn") final UniquePropertyReferenceNumber uprn,
       @Valid CaseRequestDTO requestParamsDTO)
       throws CTPException {
@@ -91,9 +92,9 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("caseEvents", requestParamsDTO.getCaseEvents())
         .debug("Entering getCaseByUPRN");
 
-    CaseDTO result = caseService.getCaseByUPRN(uprn, requestParamsDTO);
+    List<CaseDTO> results = caseService.getCaseByUPRN(uprn, requestParamsDTO);
 
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(results);
   }
 
   /**

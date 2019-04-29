@@ -63,7 +63,7 @@ public final class AddressEndpoint implements CTPEndpoint {
   }
 
   @RequestMapping(value = "/addresses/{uprn}", method = RequestMethod.POST)
-  public ResponseDTO getAddressesByPostcode(
+  public ResponseDTO updateAddress(
       String uprn, @Valid @RequestBody AddressUpdateRequestDTO addressUpdateRequestDTO) {
     return addressService.addressChange(addressUpdateRequestDTO);
   }
@@ -73,21 +73,9 @@ public final class AddressEndpoint implements CTPEndpoint {
    *
    * @return the contact centre details found
    */
-  @RequestMapping(value = "/data", method = RequestMethod.GET)
-  public String getContactCentreData() {
-    String helloTeam = "Hello Census Integration Contact Centre!";
-
-    return helloTeam;
-  }
-
-  /**
-   * the GET endpoint to get contact centre Details
-   *
-   * @return the contact centre details found
-   */
   @RequestMapping(value = "/version", method = RequestMethod.GET)
   public VersionResponseDTO getVersion() {
-    VersionResponseDTO fakeVersion = VersionResponseDTO.builder().dataVersion("0.0.0").build();
+    VersionResponseDTO fakeVersion = VersionResponseDTO.builder().apiVersion("2.0.0").dataVersion("0.0.0").build();
     return fakeVersion;
   }
 }

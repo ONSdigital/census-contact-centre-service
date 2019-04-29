@@ -7,10 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -134,14 +135,16 @@ public final class CaseEndpointGetCaseTest {
 
   @Test
   public void getCaseByUprn_GoodUPRN() throws Exception {
-    CaseDTO testCaseDTO = createResponseCaseDTO();
+    List<CaseDTO> testCases = new ArrayList<>();
+    testCases.add(createResponseCaseDTO());
+    testCases.add(createResponseCaseDTO());
     UniquePropertyReferenceNumber expectedUprn = new UniquePropertyReferenceNumber(123456789012L);
-    Mockito.when(caseService.getCaseByUPRN(eq(expectedUprn), any())).thenReturn(testCaseDTO);
+    Mockito.when(caseService.getCaseByUPRN(eq(expectedUprn), any())).thenReturn(testCases);
 
     ResultActions actions = mockMvc.perform(getJson("/cases/uprn/123456789012"));
     actions.andExpect(status().isOk());
 
-    verifyStructureOfResultsActions(actions);
+    verifyStructureOfMultiResultsActions(actions);
   }
 
   @Test
@@ -158,14 +161,16 @@ public final class CaseEndpointGetCaseTest {
 
   @Test
   public void getCaseByUprn_CaseEventsTrue() throws Exception {
-    CaseDTO testCaseDTO = createResponseCaseDTO();
+    List<CaseDTO> testCases = new ArrayList<>();
+    testCases.add(createResponseCaseDTO());
+    testCases.add(createResponseCaseDTO());
     UniquePropertyReferenceNumber expectedUprn = new UniquePropertyReferenceNumber(123456789012L);
-    Mockito.when(caseService.getCaseByUPRN(eq(expectedUprn), any())).thenReturn(testCaseDTO);
+    Mockito.when(caseService.getCaseByUPRN(eq(expectedUprn), any())).thenReturn(testCases);
 
     ResultActions actions = mockMvc.perform(getJson("/cases/uprn/123456789012?caseEvents=1"));
     actions.andExpect(status().isOk());
 
-    verifyStructureOfResultsActions(actions);
+    verifyStructureOfMultiResultsActions(actions);
   }
 
   @Test
@@ -231,5 +236,48 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$.caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
+  }
+
+  private void verifyStructureOfMultiResultsActions(ResultActions actions) throws Exception {
+    // This is not ideal - obvious duplication here - want to find a neater way of making the same assertions repeatedly
+    actions.andExpect(jsonPath("$[0].id", is(CASE_UUID_STRING)));
+    actions.andExpect(jsonPath("$[0].caseRef", is(CASE_REF)));
+    actions.andExpect(jsonPath("$[0].caseType", is(CASE_TYPE)));
+    actions.andExpect(jsonPath("$[0].createdDateTime", is(CASE_CREATED_DATE_TIME)));
+    actions.andExpect(jsonPath("$[0].addressLine1", is(ADDRESS_LINE_1)));
+    actions.andExpect(jsonPath("$[0].addressLine2", is(ADDRESS_LINE_2)));
+    actions.andExpect(jsonPath("$[0].addressLine3", is(ADDRESS_LINE_3)));
+    actions.andExpect(jsonPath("$[0].addressLine4", is(ADDRESS_LINE_4)));
+    actions.andExpect(jsonPath("$[0].town", is(TOWN)));
+    actions.andExpect(jsonPath("$[0].region", is(REGION)));
+    actions.andExpect(jsonPath("$[0].postcode", is(POSTCODE)));
+
+    actions.andExpect(jsonPath("$[0].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
+    actions.andExpect(jsonPath("$[0].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
+
+    actions.andExpect(jsonPath("$[0].caseEvents[0].id", is(EVENT_UUID_STRING)));
+    actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
+    actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
+    actions.andExpect(jsonPath("$[0].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
+    
+    actions.andExpect(jsonPath("$[1].id", is(CASE_UUID_STRING)));
+    actions.andExpect(jsonPath("$[1].caseRef", is(CASE_REF)));
+    actions.andExpect(jsonPath("$[1].caseType", is(CASE_TYPE)));
+    actions.andExpect(jsonPath("$[1].createdDateTime", is(CASE_CREATED_DATE_TIME)));
+    actions.andExpect(jsonPath("$[1].addressLine1", is(ADDRESS_LINE_1)));
+    actions.andExpect(jsonPath("$[1].addressLine2", is(ADDRESS_LINE_2)));
+    actions.andExpect(jsonPath("$[1].addressLine3", is(ADDRESS_LINE_3)));
+    actions.andExpect(jsonPath("$[1].addressLine4", is(ADDRESS_LINE_4)));
+    actions.andExpect(jsonPath("$[1].town", is(TOWN)));
+    actions.andExpect(jsonPath("$[1].region", is(REGION)));
+    actions.andExpect(jsonPath("$[1].postcode", is(POSTCODE)));
+
+    actions.andExpect(jsonPath("$[1].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
+    actions.andExpect(jsonPath("$[1].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
+
+    actions.andExpect(jsonPath("$[1].caseEvents[0].id", is(EVENT_UUID_STRING)));
+    actions.andExpect(jsonPath("$[1].caseEvents[0].category", is(EVENT_CATEGORY)));
+    actions.andExpect(jsonPath("$[1].caseEvents[0].description", is(EVENT_DESCRIPTION)));
+    actions.andExpect(jsonPath("$[1].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
   }
 }

@@ -1,7 +1,9 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
@@ -24,9 +26,13 @@ public interface CaseService {
     return createFakeCaseDTO("Digby");
   }
 
-  public default CaseDTO getCaseByUPRN(
+  public default List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Monkerton");
+    List<CaseDTO> cases = new ArrayList<>();
+    cases.add(createFakeCaseDTO("Tinky Winky"));
+    cases.add(createFakeCaseDTO("LaLa"));
+    cases.add(createFakeCaseDTO("Po"));
+    return cases;
   }
 
   public default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
