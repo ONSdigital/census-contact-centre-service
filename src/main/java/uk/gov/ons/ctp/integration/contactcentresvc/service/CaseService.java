@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -22,11 +23,11 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePr
 
 public interface CaseService {
 
-  public default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
+  default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
     return createFakeCaseDTO("Digby");
   }
 
-  public default List<CaseDTO> getCaseByUPRN(
+  default List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
     List<CaseDTO> cases = new ArrayList<>();
     cases.add(createFakeCaseDTO("Tinky Winky"));
@@ -35,11 +36,11 @@ public interface CaseService {
     return cases;
   }
 
-  public default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
+  default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
     return createFakeCaseDTO("Stoke Hill");
   }
 
-  public default String getLaunchURLForCaseId(
+  default String getLaunchURLForCaseId(
       final UUID caseId, LaunchRequestDTO requestParamsDTO) {
     return "{\"url\": \"https://www.google.co.uk/search?q=FAKE+"
         + (caseId.hashCode() & 0xFF)
@@ -47,18 +48,21 @@ public interface CaseService {
         + "\"}\n";
   }
 
-  public default ResponseDTO fulfilmentRequestByPost(
-      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+  ResponseDTO fulfilmentRequestByPost(
+      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException;
 
-    return fakeResponse;
-  }
+//  public default ResponseDTO fulfilmentRequestByPost(
+//      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
+//    ResponseDTO fakeResponse =
+//        ResponseDTO.builder()
+//            .id(caseId.toString())
+//            .dateTime(LocalDateTime.now().toString())
+//            .build();
+//
+//    return fakeResponse;
+//  }
 
-  public default ResponseDTO fulfilmentRequestBySMS(
+  default ResponseDTO fulfilmentRequestBySMS(
       UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
@@ -69,7 +73,7 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO fulfilmentUnresolvedRequestByPost(
+  default ResponseDTO fulfilmentUnresolvedRequestByPost(
       PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
@@ -80,7 +84,7 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO fulfilmentUnresolvedRequestBySMS(
+  default ResponseDTO fulfilmentUnresolvedRequestBySMS(
       SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
@@ -91,7 +95,7 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO makeAppointment(UUID caseId, AppointmentRequestDTO requestBodyDTO) {
+  default ResponseDTO makeAppointment(UUID caseId, AppointmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
@@ -101,7 +105,7 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO) {
+  default ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
