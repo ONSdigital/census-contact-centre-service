@@ -54,7 +54,6 @@ public final class CaseEndpointGetCaseTest {
   private static final String RESPONSE1_DATE_TIME = "2016-11-09T11:44:44.797";
   private static final String RESPONSE1_INBOUND_CHANNEL = "ONLINE";
 
-  private static final String EVENT_UUID_STRING = "1d014993-d3f2-40f9-b00a-5e6c9729ee89";
   private static final String EVENT_CATEGORY = "REFUSAL";
   private static final String EVENT_DESCRIPTION = "Event for testcase";
   private static final String EVENT_DATE_TIME = "2017-02-11T16:32:11.863";
@@ -191,7 +190,6 @@ public final class CaseEndpointGetCaseTest {
 
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
-            .id(UUID.fromString(EVENT_UUID_STRING))
             .description(EVENT_DESCRIPTION)
             .category(EVENT_CATEGORY)
             .createdDateTime(LocalDateTime.parse(EVENT_DATE_TIME, formatter))
@@ -233,7 +231,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$.responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$.caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$.caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
@@ -257,7 +254,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[0].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$[0].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$[0].caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
@@ -277,7 +273,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[1].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$[1].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$[1].caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));

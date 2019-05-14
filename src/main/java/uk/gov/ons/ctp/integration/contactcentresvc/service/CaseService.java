@@ -22,9 +22,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePr
 
 public interface CaseService {
 
-  public default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Digby");
-  }
+  public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO);
 
   public default List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
@@ -125,21 +123,18 @@ public interface CaseService {
 
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Made up case event DTO")
             .category("create")
             .createdDateTime(LocalDateTime.now())
             .build();
     CaseEventDTO caseEventDTO2 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Another fake case event DTO")
             .category("update")
             .createdDateTime(LocalDateTime.now())
             .build();
     CaseEventDTO caseEventDTO3 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Yet another fake case event DTO")
             .category("update")
             .createdDateTime(LocalDateTime.now())

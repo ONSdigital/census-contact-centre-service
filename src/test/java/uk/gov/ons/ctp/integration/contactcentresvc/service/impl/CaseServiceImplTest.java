@@ -5,7 +5,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -13,20 +16,27 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import uk.gov.ons.ctp.common.FixtureHelper;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
-public class AddressServiceImplTest {
+/**
+ * This class tests the CaseServiceImpl layer. It mocks out the layer below
+ * (CaseServiceClientServiceImpl), which would deal with actually sending a HTTP request to the case
+ * service.
+ */
+public class CaseServiceImplTest {
 
-  @Mock
-  AddressServiceClientServiceImpl addressClientService = new AddressServiceClientServiceImpl();
+  @Mock CaseServiceClientServiceImpl CaseServiceClientService = new CaseServiceClientServiceImpl();
 
-  @InjectMocks AddressService addressService = new AddressServiceImpl();
+  @InjectMocks CaseService caseService = new CaseServiceImpl();
+
+  private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
 
   @Before
   public void initMocks() {
@@ -34,29 +44,39 @@ public class AddressServiceImplTest {
   }
 
   @Test
-  public void testAddressQueryProcessing() throws Exception {
+  public void testGetCaseByCaseId_withCaseDetails() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.searchByAddress(any())).thenReturn(addressIndexResults);
+    CaseDetailsDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
+    Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
+        .thenReturn(caseFromCaseService);
 
-    // Run the request and verify results
-    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
-    AddressQueryResponseDTO results = addressService.addressQuery(request);
-    verifyAddresses(results);
+    // Run the request
+    boolean caseEvents = true;
+    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseDTO results = caseService.getCaseById(uuid, requestParams);
+
+    verifyCase(results, caseEvents);
   }
 
-  @Test
-  public void testPostcodeQueryProcessing() throws Exception {
-    // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.searchByPostcode(any())).thenReturn(addressIndexResults);
+  private void verifyCase(CaseDTO results, boolean caseEvents) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DateTimeUtil.DATE_FORMAT_IN_JSON);
 
-    // Run the request and verify results
-    PostcodeQueryRequestDTO request = PostcodeQueryRequestDTO.create("EX2 8DD", 0, 100);
-    AddressQueryResponseDTO results = addressService.postcodeQuery(request);
-    verifyAddresses(results);
+    assertEquals(uuid, results.getId());
+    assertEquals("1000000000000001", results.getCaseRef());
+    assertEquals("H", results.getCaseType());
+    assertEquals(
+        "2019-05-14T16:11:41.561+01:00",
+        LocalDateTime.now().format(formatter)); // results.getCreatedDateTime().format(formatter));
+    /**
+     * private String caseType;
+     *
+     * <p>private LocalDateTime createdDateTime;
+     *
+     * <p>private List<CaseResponseDTO> responses;
+     *
+     * <p>private List<CaseEventDTO> caseEvents;
+     */
   }
 
   /**

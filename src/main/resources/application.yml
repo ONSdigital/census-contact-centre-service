@@ -62,6 +62,15 @@ address-index-settings:
     host: addressindex-api-beta.apps.devtest.onsclofo.uk
     port: 80
     
+case-service-settings:
+  case-by-id-query-path: /casespmb/{case-id}
+  rest-client-config:
+    username: serco_cks
+    password: temporary
+    scheme: http
+    host: localhost
+    port: 8171
+    
 rabbitmq:
   username: guest
   password: guest
