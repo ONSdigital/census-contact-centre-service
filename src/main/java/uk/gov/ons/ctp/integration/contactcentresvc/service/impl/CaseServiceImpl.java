@@ -15,6 +15,7 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.message.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -56,6 +57,7 @@ public class CaseServiceImpl implements CaseService {
     }
 
     // here you need to construct an Event to publish...
+    FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
 
     // and publish it
 
