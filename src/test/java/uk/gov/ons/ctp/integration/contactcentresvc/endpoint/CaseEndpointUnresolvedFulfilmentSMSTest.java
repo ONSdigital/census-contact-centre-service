@@ -256,7 +256,7 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
   @Test
   public void smsUnresolvedFulfilmentProductCodeTooLong() throws Exception {
     ObjectNode json = FixtureHelper.loadClassObjectNode();
-    json.put(PRODUCT_CODE, "EN12345");
+    json.put(PRODUCT_CODE, "EN12345678910");
     assertBadRequest(json);
   }
 

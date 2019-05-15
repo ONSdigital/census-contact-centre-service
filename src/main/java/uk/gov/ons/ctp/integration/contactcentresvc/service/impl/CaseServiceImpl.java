@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -20,13 +22,13 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @Service
 @Validated()
 public class CaseServiceImpl implements CaseService {
-  
-  
+
+  private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
+
   // when the rest client has been written
   // @Autowired private CaseServiceClientServiceImpl caseServiceClient;
-  
-  @Autowired
-  ProductReference productReference;
+
+  @Autowired ProductReference productReference;
 
   @Override
   public ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO)
@@ -42,19 +44,27 @@ public class CaseServiceImpl implements CaseService {
     // example.setRegions(Arrays.asList(Region.valueOf(caze.getRegion().substring(0,1))));
     List<Product> products = productReference.searchProducts(example);
 
+    log.info("Hello there 1");
     if (products.size() == 0) {
       // log.warn here
       throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");
     }
+    log.info("Hello there 2");
+    if (products.size() > 1) {
+      // log.warn here
+      throw new CTPException(Fault.SYSTEM_ERROR, "More then one matching product was found");
+    }
 
     // here you need to construct an Event to publish...
-    
+
     // and publish it
-    
-    ResponseDTO response = ResponseDTO.builder().id(caseId.toString())
-        .dateTime(LocalDateTime.now().toString()).build();
+
+    ResponseDTO response =
+        ResponseDTO.builder()
+            .id(caseId.toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
 
     return response;
   }
-
 }

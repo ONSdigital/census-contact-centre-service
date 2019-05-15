@@ -191,7 +191,6 @@ public final class CaseEndpointGetCaseTest {
 
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
-            .id(UUID.fromString(EVENT_UUID_STRING))
             .description(EVENT_DESCRIPTION)
             .category(EVENT_CATEGORY)
             .createdDateTime(LocalDateTime.parse(EVENT_DATE_TIME, formatter))
@@ -233,7 +232,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$.responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$.caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$.caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
@@ -257,7 +255,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[0].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$[0].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$[0].caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));
@@ -277,7 +274,6 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[1].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
     actions.andExpect(jsonPath("$[1].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
-    actions.andExpect(jsonPath("$[1].caseEvents[0].id", is(EVENT_UUID_STRING)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].description", is(EVENT_DESCRIPTION)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].createdDateTime", is(EVENT_DATE_TIME)));

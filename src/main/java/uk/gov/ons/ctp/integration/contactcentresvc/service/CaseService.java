@@ -40,30 +40,28 @@ public interface CaseService {
     return createFakeCaseDTO("Stoke Hill");
   }
 
-  default String getLaunchURLForCaseId(
-      final UUID caseId, LaunchRequestDTO requestParamsDTO) {
+  default String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO) {
     return "{\"url\": \"https://www.google.co.uk/search?q=FAKE+"
         + (caseId.hashCode() & 0xFF)
         + (requestParamsDTO.getAgentId().hashCode() & 0xFF)
         + "\"}\n";
   }
 
-  ResponseDTO fulfilmentRequestByPost(
-      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException;
+  ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException;
 
-//  public default ResponseDTO fulfilmentRequestByPost(
-//      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
-//    ResponseDTO fakeResponse =
-//        ResponseDTO.builder()
-//            .id(caseId.toString())
-//            .dateTime(LocalDateTime.now().toString())
-//            .build();
-//
-//    return fakeResponse;
-//  }
+  //  public default ResponseDTO fulfilmentRequestByPost(
+  //      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
+  //    ResponseDTO fakeResponse =
+  //        ResponseDTO.builder()
+  //            .id(caseId.toString())
+  //            .dateTime(LocalDateTime.now().toString())
+  //            .build();
+  //
+  //    return fakeResponse;
+  //  }
 
-  default ResponseDTO fulfilmentRequestBySMS(
-      UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
+  default ResponseDTO fulfilmentRequestBySMS(UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
@@ -129,21 +127,18 @@ public interface CaseService {
 
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Made up case event DTO")
             .category("create")
             .createdDateTime(LocalDateTime.now())
             .build();
     CaseEventDTO caseEventDTO2 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Another fake case event DTO")
             .category("update")
             .createdDateTime(LocalDateTime.now())
             .build();
     CaseEventDTO caseEventDTO3 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Yet another fake case event DTO")
             .category("update")
             .createdDateTime(LocalDateTime.now())
