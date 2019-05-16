@@ -4,6 +4,7 @@ import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import uk.gov.ons.ctp.common.event.model.*;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
@@ -75,6 +76,47 @@ public class CaseServiceImplTest {
     // call the unit under test
     ResponseDTO responseDTO = target.fulfilmentRequestByPost(caseIdFixture, requestBodyDTOFixture);
 
+    // here you need to construct an Event to publish...
+    //TODO: rename these fields to be called fixtures if we need to use them
+    
+    FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
+
+    FulfilmentPayload fulfilmentPayload = fulfilmentRequestedEvent.getPayload();
+
+    FulfilmentRequest fulfilmentRequest = fulfilmentPayload.getFulfilmentRequest();
+
+    fulfilmentRequest.setFulfilmentCode("XXXXXX-XXXXXX");
+    fulfilmentRequest.setCaseId("bbd55984-0dbf-4499-bfa7-0aa4228700e9");
+
+    Address address = fulfilmentRequest.getAddress();
+    address.setAddressLine1("1 main street");
+    address.setAddressLine2("upper upperingham");
+    address.setAddressLine3("");
+    address.setTownName("upton");
+    address.setPostcode("UP103UP");
+    address.setRegion("E");
+    address.setLatitude("50.863849");
+    address.setLongitude("-1.229710");
+    address.setUprn("XXXXXXXXXXXXX");
+    address.setArid("XXXXX");
+    address.setAddressType("CE");
+    address.setEstabType("XXX");
+
+    Contact contact = fulfilmentRequest.getContact();
+    contact.setTitle("Ms");
+    contact.setForename("jo");
+    contact.setSurname("smith");
+    contact.setEmail("me@example.com");
+    contact.setTelNo("+447890000000");
+
+    Header header = new Header();
+    header.setType("FULFILMENT_REQUESTED");
+    header.setSource("CONTACT_CENTRE_API");
+    header.setChannel("CC");
+    //    header.setDateTime(DateTimeUtil.getCurrentDateTimeInJsonFormat());
+    header.setTransactionId("c45de4dc-3c3b-11e9-b210-d663bd873d93");
+    fulfilmentRequestedEvent.setEvent(header);
+
 //    // fulfilmentService should call the productReference with this example Product
 ////    Product expectedExample =
 ////        Product.builder()
@@ -107,5 +149,5 @@ public class CaseServiceImplTest {
 ////            .getRegions()
 ////            .contains(Region.E));
   }
-  
+
 }
