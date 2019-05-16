@@ -14,7 +14,7 @@ import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
-/** This class is responsible for communications with the Address Index service. */
+/** This class is responsible for communications with the Case Service. */
 @Service
 @Validated
 public class CaseServiceClientServiceImpl {
