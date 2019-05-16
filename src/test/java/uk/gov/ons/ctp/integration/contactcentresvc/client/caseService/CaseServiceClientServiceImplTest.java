@@ -44,7 +44,7 @@ public class CaseServiceClientServiceImplTest {
 
     // Mock the case service settings
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
-    caseServiceSettings.setCaseByIdQueryPath("/cases");
+    caseServiceSettings.setCaseByIdQueryPath("/cases/{uuid}");
     Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
   }
 
@@ -55,7 +55,7 @@ public class CaseServiceClientServiceImplTest {
         FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/" + uuid), eq(CaseDetailsDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"), eq(CaseDetailsDTO.class), any(), any(), any()))
         .thenReturn(resultsFromCaseService);
 
     // Run the request
@@ -76,7 +76,7 @@ public class CaseServiceClientServiceImplTest {
         FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/" + uuid), eq(CaseDetailsDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"), eq(CaseDetailsDTO.class), any(), any(), any()))
         .thenReturn(resultsFromCaseService);
 
     // Run the request

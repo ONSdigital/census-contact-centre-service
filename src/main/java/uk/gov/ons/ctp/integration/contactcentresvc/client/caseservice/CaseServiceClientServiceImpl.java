@@ -35,10 +35,9 @@ public class CaseServiceClientServiceImpl {
 
     // Ask Case Service to find case details
     String path = appConfig.getCaseServiceSettings().getCaseByIdQueryPath();
-    String pathWithUUID = path + "/" + caseId;
     CaseDetailsDTO caseDetails =
         caseServiceClient.getResource(
-            pathWithUUID, CaseDetailsDTO.class, null, queryParams, caseId.toString());
+            path, CaseDetailsDTO.class, null, queryParams, caseId.toString());
 
     log.debug("getCaseById. Found details for case: " + caseId);
 

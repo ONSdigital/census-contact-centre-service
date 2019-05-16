@@ -23,21 +23,15 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 
-/** The REST endpoint controller for CaseSvc Cases */
+/**
+ * This class is a stub which has a minimal implementation of the case service endpoints. 
+ * The idea is that it produces a response which is just enough to allow CC development to proceed.
+ */
 @RestController
-@RequestMapping(value = "/casespmb", produces = "application/json")
-public final class PMBCaseServiceStubPMB implements CTPEndpoint {
+@RequestMapping(value = "/cases-rm-fake", produces = "application/json")
+public final class CaseServiceFakeStub implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(CaseEndpoint.class);
 
-  /**
-   * the GET endpoint to find a Case by UUID
-   *
-   * @param caseId to find by
-   * @param caseevents flag used to return or not CaseEvents
-   * @param iac flag used to return or not the iac
-   * @return the case found
-   * @throws CTPException something went wrong
-   */
   @RequestMapping(value = "/info", method = RequestMethod.GET)
   public ResponseEntity<String> info() throws CTPException {
 

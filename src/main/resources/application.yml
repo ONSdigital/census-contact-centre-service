@@ -63,7 +63,7 @@ address-index-settings:
     port: 80
     
 case-service-settings:
-  case-by-id-query-path: /casespmb/{case-id}
+  case-by-id-query-path: /cases-rm-fake/{case-id}
   rest-client-config:
     username: serco_cks
     password: temporary
