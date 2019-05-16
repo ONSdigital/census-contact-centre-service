@@ -1,7 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -10,6 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import ma.glasnost.orika.MapperFacade;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
@@ -25,8 +28,18 @@ import uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants;
 @Validated()
 public class CaseServiceImpl implements CaseService {
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
+  
+  private MapperFacade caseDTOMapper;
 
   @Autowired private CaseServiceClientServiceImpl caseServiceClient;
+
+  public CaseServiceImpl() {
+    MapperFactory mapperFactory = new DefaultMapperFactory
+        .Builder().build();
+
+      mapperFactory.classMap(CaseDetailsDTO.class, CaseDTO.class).byDefault().register();
+      caseDTOMapper = mapperFactory.getMapperFacade();
+  }
 
   @Override
   public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
