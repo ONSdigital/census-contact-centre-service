@@ -65,6 +65,8 @@ public class CaseServiceImpl implements CaseService {
 
     Product productFound = products.get(0);
 
+    //if productFound caseType = HI then we need to set the individualCaseId of the fulfilmentRequestedEvent to be a new UUID
+
     // here you need to construct an Event to publish...
     FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
 
