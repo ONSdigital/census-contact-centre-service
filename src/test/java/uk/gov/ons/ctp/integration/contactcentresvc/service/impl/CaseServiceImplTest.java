@@ -18,11 +18,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -46,8 +45,8 @@ public class CaseServiceImplTest {
   @Test
   public void testGetCaseByCaseId_withCaseDetails() throws Exception {
     // Build results to be returned from search
-    CaseDetailsDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -62,8 +61,8 @@ public class CaseServiceImplTest {
   @Test
   public void testGetCaseByCaseId_withNoCaseDetails() throws Exception {
     // Build results to be returned from search
-    CaseDetailsDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -78,9 +77,9 @@ public class CaseServiceImplTest {
   @Test
   public void testGetCaseByCaseId_nonHouseholdCase() throws Exception {
     // Build results to be returned from search
-    CaseDetailsDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
-    caseFromCaseService.setSampleUnitType("X"); // Not household case
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType("X"); // Not household case
     Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -98,30 +97,25 @@ public class CaseServiceImplTest {
     assertEquals(uuid, results.getId());
     assertEquals("1000000000000001", results.getCaseRef());
     assertEquals("H", results.getCaseType());
-    assertEquals("2019-05-14T16:11:41.561", formatDate(results.getCreatedDateTime()));
-
-    assertEquals(1, results.getResponses().size());
-    CaseResponseDTO response = results.getResponses().get(0);
-    assertEquals("2019-05-14T16:11:41.558+01", response.getDateTime());
-    assertEquals("ONLINE", response.getInboundChannel());
+    assertEquals("2019-05-14T16:11:41", formatDate(results.getCreatedDateTime()));
 
     if (caseEventsExpected) {
       assertEquals(2, results.getCaseEvents().size());
       CaseEventDTO event = results.getCaseEvents().get(0);
       assertEquals("Initial creation of case", event.getDescription());
       assertEquals("CASE_CREATED", event.getCategory());
-      assertEquals("2019-05-14T16:11:41.561", formatDate(event.getCreatedDateTime()));
+      assertEquals("2019-05-14T16:11:41", formatDate(event.getCreatedDateTime()));
       event = results.getCaseEvents().get(1);
       assertEquals("Create Household Visit", event.getDescription());
       assertEquals("ACTION_CREATED", event.getCategory());
-      assertEquals("2019-05-15T16:02:12.835", formatDate(event.getCreatedDateTime()));
+      assertEquals("2019-05-15T16:02:12", formatDate(event.getCreatedDateTime()));
     } else {
       assertNull(results.getCaseEvents());
     }
   }
 
   private String formatDate(LocalDateTime createdDateTime) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     return createdDateTime.format(formatter);
   }
 }

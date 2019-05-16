@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -29,7 +28,6 @@ import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -46,7 +44,6 @@ public final class CaseEndpointGetCaseTest {
   private static final String ADDRESS_LINE_1 = "Smiths Renovations";
   private static final String ADDRESS_LINE_2 = "Rock House";
   private static final String ADDRESS_LINE_3 = "Cowick Lane";
-  private static final String ADDRESS_LINE_4 = "";
   private static final String TOWN = "Exeter";
   private static final String REGION = "E";
   private static final String POSTCODE = "EX2 9HY";
@@ -182,12 +179,6 @@ public final class CaseEndpointGetCaseTest {
   private CaseDTO createResponseCaseDTO() {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-    CaseResponseDTO caseResponseDTO1 =
-        CaseResponseDTO.builder()
-            .dateTime(RESPONSE1_DATE_TIME)
-            .inboundChannel(RESPONSE1_INBOUND_CHANNEL)
-            .build();
-
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
             .description(EVENT_DESCRIPTION)
@@ -204,11 +195,9 @@ public final class CaseEndpointGetCaseTest {
             .addressLine1(ADDRESS_LINE_1)
             .addressLine2(ADDRESS_LINE_2)
             .addressLine3(ADDRESS_LINE_3)
-            .addressLine4(ADDRESS_LINE_4)
-            .town(TOWN)
+            .townName(TOWN)
             .region(REGION)
             .postcode(POSTCODE)
-            .responses(Lists.newArrayList(caseResponseDTO1))
             .caseEvents(Arrays.asList(caseEventDTO1))
             .build();
 
@@ -223,13 +212,9 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.addressLine1", is(ADDRESS_LINE_1)));
     actions.andExpect(jsonPath("$.addressLine2", is(ADDRESS_LINE_2)));
     actions.andExpect(jsonPath("$.addressLine3", is(ADDRESS_LINE_3)));
-    actions.andExpect(jsonPath("$.addressLine4", is(ADDRESS_LINE_4)));
-    actions.andExpect(jsonPath("$.town", is(TOWN)));
+    actions.andExpect(jsonPath("$.townName", is(TOWN)));
     actions.andExpect(jsonPath("$.region", is(REGION)));
     actions.andExpect(jsonPath("$.postcode", is(POSTCODE)));
-
-    actions.andExpect(jsonPath("$.responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
-    actions.andExpect(jsonPath("$.responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));
@@ -246,13 +231,9 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[0].addressLine1", is(ADDRESS_LINE_1)));
     actions.andExpect(jsonPath("$[0].addressLine2", is(ADDRESS_LINE_2)));
     actions.andExpect(jsonPath("$[0].addressLine3", is(ADDRESS_LINE_3)));
-    actions.andExpect(jsonPath("$[0].addressLine4", is(ADDRESS_LINE_4)));
-    actions.andExpect(jsonPath("$[0].town", is(TOWN)));
+    actions.andExpect(jsonPath("$[0].townName", is(TOWN)));
     actions.andExpect(jsonPath("$[0].region", is(REGION)));
     actions.andExpect(jsonPath("$[0].postcode", is(POSTCODE)));
-
-    actions.andExpect(jsonPath("$[0].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
-    actions.andExpect(jsonPath("$[0].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
     actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
@@ -265,13 +246,9 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[1].addressLine1", is(ADDRESS_LINE_1)));
     actions.andExpect(jsonPath("$[1].addressLine2", is(ADDRESS_LINE_2)));
     actions.andExpect(jsonPath("$[1].addressLine3", is(ADDRESS_LINE_3)));
-    actions.andExpect(jsonPath("$[1].addressLine4", is(ADDRESS_LINE_4)));
-    actions.andExpect(jsonPath("$[1].town", is(TOWN)));
+    actions.andExpect(jsonPath("$[1].townName", is(TOWN)));
     actions.andExpect(jsonPath("$[1].region", is(REGION)));
     actions.andExpect(jsonPath("$[1].postcode", is(POSTCODE)));
-
-    actions.andExpect(jsonPath("$[1].responses[0].dateTime", is(RESPONSE1_DATE_TIME)));
-    actions.andExpect(jsonPath("$[1].responses[0].inboundChannel", is(RESPONSE1_INBOUND_CHANNEL)));
 
     actions.andExpect(jsonPath("$[1].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].description", is(EVENT_DESCRIPTION)));

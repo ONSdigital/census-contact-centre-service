@@ -18,7 +18,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 
@@ -51,20 +51,19 @@ public class CaseServiceClientServiceImplTest {
   @Test
   public void testGetCaseById_withCaseEvents() throws Exception {
     // Build results to be returned by the case service
-    CaseDetailsDTO resultsFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
+    CaseContainerDTO resultsFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/{uuid}"), eq(CaseDetailsDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), any()))
         .thenReturn(resultsFromCaseService);
 
     // Run the request
     boolean requireCaseEvents = true;
-    CaseDetailsDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
+    CaseContainerDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
 
     // Sanity check the response
     assertEquals(uuid, results.getId());
-    assertNotNull(results.getResponses());
     assertNotNull(results.getCaseEvents());
     verifyCaseEventsQueryParam(requireCaseEvents);
   }
@@ -72,20 +71,19 @@ public class CaseServiceClientServiceImplTest {
   @Test
   public void testGetCaseById_withNoCaseEvents() throws Exception {
     // Build results to be returned by the case service
-    CaseDetailsDTO resultsFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseDetailsDTO[].class).get(0);
+    CaseContainerDTO resultsFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/{uuid}"), eq(CaseDetailsDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), any()))
         .thenReturn(resultsFromCaseService);
 
     // Run the request
     boolean requireCaseEvents = false;
-    CaseDetailsDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
+    CaseContainerDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
 
     // Sanity check the response
     assertEquals(uuid, results.getId());
-    assertNotNull(results.getResponses());
     assertNotNull(results.getCaseEvents()); // Not removed at this level
     verifyCaseEventsQueryParam(requireCaseEvents);
   }

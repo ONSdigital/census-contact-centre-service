@@ -10,7 +10,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentReq
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalUnresolvedFulfilmentRequestDTO;
@@ -110,17 +109,6 @@ public interface CaseService {
   }
 
   private CaseDTO createFakeCaseDTO(String addressLine4) {
-    CaseResponseDTO caseResponseDTO1 =
-        CaseResponseDTO.builder()
-            .dateTime("2016-11-09T11:44:44.797")
-            .inboundChannel("ONLINE")
-            .build();
-    CaseResponseDTO caseResponseDTO2 =
-        CaseResponseDTO.builder()
-            .dateTime("2018-05-15T08:08:08.888")
-            .inboundChannel("POST")
-            .build();
-
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
             .description("Made up case event DTO")
@@ -149,11 +137,9 @@ public interface CaseService {
             .addressLine1("The Novelty Rock Emporium")
             .addressLine2("Rock House")
             .addressLine3("Cowick Lane")
-            .addressLine4(addressLine4)
-            .town("Exeter")
+            .townName("Exeter")
             .region("E")
             .postcode("EX2 9HY")
-            .responses(Arrays.asList(caseResponseDTO1, caseResponseDTO2))
             .caseEvents(Arrays.asList(caseEventDTO1, caseEventDTO2, caseEventDTO3))
             .build();
 

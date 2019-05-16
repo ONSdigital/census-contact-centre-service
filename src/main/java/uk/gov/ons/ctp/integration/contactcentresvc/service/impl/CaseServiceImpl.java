@@ -1,26 +1,29 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import java.util.List;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import ma.glasnost.orika.CustomConverter;
+import ma.glasnost.orika.MapperFacade;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.MappingContext;
+import ma.glasnost.orika.converter.ConverterFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
+import ma.glasnost.orika.metadata.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
-import ma.glasnost.orika.MapperFacade;
-import ma.glasnost.orika.MapperFactory;
-import ma.glasnost.orika.impl.DefaultMapperFactory;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants;
 
@@ -28,17 +31,40 @@ import uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants;
 @Validated()
 public class CaseServiceImpl implements CaseService {
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  
+
   private MapperFacade caseDTOMapper;
 
   @Autowired private CaseServiceClientServiceImpl caseServiceClient;
 
-  public CaseServiceImpl() {
-    MapperFactory mapperFactory = new DefaultMapperFactory
-        .Builder().build();
+  private static class DateMapper extends CustomConverter<String, LocalDateTime> {
+    private SimpleDateFormat caseDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
 
-      mapperFactory.classMap(CaseDetailsDTO.class, CaseDTO.class).byDefault().register();
-      caseDTOMapper = mapperFactory.getMapperFacade();
+    @Override
+    public LocalDateTime convert(
+        String dateAsText,
+        Type<? extends LocalDateTime> destinationType,
+        MappingContext mappingContext) {
+      try {
+        Date date = caseDateTimeFormatter.parse(dateAsText);
+        LocalDateTime dateAsLocalDateTime = DateTimeUtil.convertDateToLocalDateTime(date);
+        return dateAsLocalDateTime;
+      } catch (ParseException e) {
+        throw new RuntimeException("Failed to parse date: " + dateAsText);
+      }
+    }
+  }
+
+  public CaseServiceImpl() {
+
+    MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+
+    mapperFactory.classMap(CaseContainerDTO.class, CaseDTO.class).byDefault().register();
+
+    ConverterFactory converterFactory = mapperFactory.getConverterFactory();
+    DateMapper localDateTimeMapper = new DateMapper();
+    converterFactory.registerConverter(localDateTimeMapper);
+
+    caseDTOMapper = mapperFactory.getMapperFacade();
   }
 
   @Override
@@ -47,77 +73,26 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseDetailsDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
 
     // Only return Household cases
     boolean isHouseholdCase =
-        caseDetails.getSampleUnitType().equals(Constants.CASE_SERVICE_UNIT_TYPE_HOUSEHOLD);
+        caseDetails.getCaseType().equals(Constants.CASE_SERVICE_UNIT_TYPE_HOUSEHOLD);
     if (!isHouseholdCase) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is a non-household case");
     }
 
-    CaseDTO caseServiceResponse =
-        convertFromCaseServiceDTOToContactCentreDTO(caseDetails, getCaseEvents);
+    // Convert from Case service to Contact Centre DTOs
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
+    // Make sure that we don't return any events if the caller doesn't want them
+    if (!getCaseEvents) {
+      caseServiceResponse.setCaseEvents(null);
+    }
+    // pmb switch from caseevents to caseEvents
 
     log.debug("Returning case details for caseId: {}", caseId);
 
     return caseServiceResponse;
-  }
-
-  private CaseDTO convertFromCaseServiceDTOToContactCentreDTO(
-      CaseDetailsDTO caseServiceDTO, boolean getCaseEvents) {
-    // Convert Case Service response DTO objects to the Contact Centre equivalent DTO
-    List<CaseResponseDTO> responses = null;
-    List<ResponseDTO> responsesFromCaseService = caseServiceDTO.getResponses();
-    if (responsesFromCaseService != null) {
-      responses =
-          responsesFromCaseService
-              .stream()
-              .map(
-                  originalResponse -> {
-                    CaseResponseDTO convertedResponse = new CaseResponseDTO();
-                    convertedResponse.setInboundChannel(originalResponse.getInboundChannel());
-                    convertedResponse.setDateTime(
-                        DateTimeUtil.formatDate(originalResponse.getDateTime()));
-                    return convertedResponse;
-                  })
-              .collect(Collectors.toList());
-    }
-
-    // Convert Case Service event DTO objects to the Contact Centre equivalent DTO
-    List<CaseEventDTO> events = null;
-    List<uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseEventDTO>
-        caseEventsFromCaseService = caseServiceDTO.getCaseEvents();
-    if (getCaseEvents && caseEventsFromCaseService != null) {
-      events =
-          caseEventsFromCaseService
-              .stream()
-              .map(
-                  originalEvent -> {
-                    CaseEventDTO convertedEvent = new CaseEventDTO();
-                    convertedEvent.setDescription(originalEvent.getDescription());
-                    convertedEvent.setCategory(originalEvent.getCategory().toString());
-                    convertedEvent.setCreatedDateTime(
-                        DateTimeUtil.convertDateToLocalDateTime(
-                            originalEvent.getCreatedDateTime()));
-                    return convertedEvent;
-                  })
-              .collect(Collectors.toList());
-    }
-
-    // Convert top level Case Service case DTO object to Contact Centre equivalent
-    CaseDTO caseContactCenterDTO =
-        CaseDTO.builder()
-            .id(caseServiceDTO.getId())
-            .caseRef(caseServiceDTO.getCaseRef())
-            .caseType(caseServiceDTO.getSampleUnitType())
-            .createdDateTime(
-                DateTimeUtil.convertDateToLocalDateTime(caseServiceDTO.getCreatedDateTime()))
-            // TODO: Populate address fields when Case service makes them available
-            .responses(responses)
-            .caseEvents(events)
-            .build();
-
-    return caseContactCenterDTO;
   }
 }

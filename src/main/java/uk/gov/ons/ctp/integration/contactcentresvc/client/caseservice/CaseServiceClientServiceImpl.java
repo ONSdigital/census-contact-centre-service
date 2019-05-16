@@ -11,7 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import uk.gov.ons.ctp.common.rest.RestClient;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseDetailsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** This class is responsible for communications with the Address Index service. */
@@ -26,7 +26,7 @@ public class CaseServiceClientServiceImpl {
   @Qualifier("caseServiceClient")
   private RestClient caseServiceClient;
 
-  public CaseDetailsDTO getCaseById(UUID caseId, Boolean listCaseEvents) {
+  public CaseContainerDTO getCaseById(UUID caseId, Boolean listCaseEvents) {
     log.debug("getCaseById. Calling Case Service to find case details by ID: " + caseId);
 
     // Build map for query params
@@ -35,9 +35,9 @@ public class CaseServiceClientServiceImpl {
 
     // Ask Case Service to find case details
     String path = appConfig.getCaseServiceSettings().getCaseByIdQueryPath();
-    CaseDetailsDTO caseDetails =
+    CaseContainerDTO caseDetails =
         caseServiceClient.getResource(
-            path, CaseDetailsDTO.class, null, queryParams, caseId.toString());
+            path, CaseContainerDTO.class, null, queryParams, caseId.toString());
 
     log.debug("getCaseById. Found details for case: " + caseId);
 
