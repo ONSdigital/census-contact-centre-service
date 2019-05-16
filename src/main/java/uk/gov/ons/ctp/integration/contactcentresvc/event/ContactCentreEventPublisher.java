@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.message;
+package uk.gov.ons.ctp.integration.contactcentresvc.event;
 
 /**
  * Service responsible for the publication of contact centre requests to the Response Management
