@@ -66,7 +66,7 @@ public class CaseServiceImpl implements CaseService {
   public FulfilmentRequestedEvent searchProductsAndConstructEvent(
       String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException {
     log.with(fulfilmentCode)
-        .info("Now in the earchProductsAndConstructEvent method in class CaseServiceImpl.");
+        .info("Now in the searchProductsAndConstructEvent method in class CaseServiceImpl.");
 
     Product example = new Product();
     example.setFulfilmentCode(fulfilmentCode);
