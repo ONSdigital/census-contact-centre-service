@@ -37,18 +37,39 @@ public class CaseServiceImpl implements CaseService {
   @Autowired ProductReference productReference;
 
   @Override
-  public ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO)
-      throws CTPException {
+  public ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException {
     log.with(caseId)
         .with(requestBodyDTO)
         .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
+
     // Get the case using the CaseServiceClientServiceImpl when available
     // Case caze = caseServiceClientService.getCase(requestBodyDTO.getCaseId());
 
+    String fulfilmentCode = requestBodyDTO.getProductCode();
+    Product.DeliveryChannel deliveryChannel = DeliveryChannel.POST;
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent = searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel);
+
+    // publish the event
+
+
+    ResponseDTO response =
+        ResponseDTO.builder()
+            .id(caseId.toString())
+            .dateTime(LocalDateTime.now().toString())
+            .build();
+
+    return response;
+  }
+
+  public FulfilmentRequestedEvent searchProductsAndConstructEvent (String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException {
+    log.with(fulfilmentCode).info("Now in the earchProductsAndConstructEvent method in class CaseServiceImpl.");
+
     Product example = new Product();
-    example.setFulfilmentCode(requestBodyDTO.getProductCode());
+    example.setFulfilmentCode(fulfilmentCode);
     example.setRequestChannels(Arrays.asList(RequestChannel.CC));
-    example.setDeliveryChannel(DeliveryChannel.POST);
+    example.setDeliveryChannel(deliveryChannel);
+
     // once we have the case...
     // example.setRegions(Arrays.asList(Region.valueOf(caze.getRegion().substring(0,1))));
     List<Product> products = productReference.searchProducts(example);
@@ -65,7 +86,8 @@ public class CaseServiceImpl implements CaseService {
 
     Product productFound = products.get(0);
 
-    //if productFound caseType = HI then we need to set the individualCaseId of the fulfilmentRequestedEvent to be a new UUID
+    // if productFound caseType = HI then we need to set the individualCaseId of the
+    // fulfilmentRequestedEvent to be a new UUID
 
     // here you need to construct an Event to publish...
     FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
@@ -106,14 +128,6 @@ public class CaseServiceImpl implements CaseService {
     header.setTransactionId("c45de4dc-3c3b-11e9-b210-d663bd873d93");
     fulfilmentRequestedEvent.setEvent(header);
 
-    // and publish it
-
-    ResponseDTO response =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
-
-    return response;
+    return fulfilmentRequestedEvent;
   }
 }
