@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.time.LocalDateTime;
@@ -11,7 +12,6 @@ import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
-import uk.gov.ons.ctp.common.event.model.*;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
@@ -65,44 +65,10 @@ public class CaseServiceImplTest {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     requestBodyDTOFixture.setDateTime(LocalDateTime.parse(REQUEST_DATE_TIME, formatter));
 
-    // call the unit under test
+    // execution - call the unit under test
     ResponseDTO responseDTO = target.fulfilmentRequestByPost(caseIdFixture, requestBodyDTOFixture);
 
-    //verify the values of the id and dateTime fields ResponseDTO
-
-
-    //    // fulfilmentService should call the productReference with this example Product
-    ////    Product expectedExample =
-    ////        Product.builder()
-    ////            .caseType(Product.CaseType.H)
-    ////            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
-    ////            .requestChannels(
-    ////                new ArrayList<Product.RequestChannel>(List.of(Product.RequestChannel.CC)))
-    ////            .build();
-    ////
-    ////    // verify that the unit under test called the expected productReference and with the
-    ////    // expectedExample
-    ////    ArgumentCaptor<Product> argument = ArgumentCaptor.forClass(Product.class);
-    ////    verify(productReference).searchProducts(argument.capture());
-    ////    assertEquals(expectedExample, argument.getValue());
-    ////
-    ////    // now check that the returned fulfilment DTOs are correctly populated by the mapper the
-    // unit
-    ////    // under test used
-    ////    assertTrue(fulfilments.size() == 1);
-    ////    FulfilmentDTO fulfilment = fulfilments.get(0);
-    ////
-    ////    assertEquals(fulfilment.getCaseType().name(), CaseType.H.name());
-    ////    assertEquals(fulfilment.getDescription(), "foobar");
-    ////    assertEquals(
-    ////        fulfilment.getDeliveryChannel().name(),
-    ////
-    // uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST.name());
-    ////    assertEquals(fulfilment.getFulfilmentCode(), "ABC123");
-    ////    assertEquals(fulfilment.getLanguage(), "eng");
-    ////    assertTrue(
-    ////        fulfilment
-    ////            .getRegions()
-    ////            .contains(Region.E));
+    // verify the value of the id in the ResponseDTO
+    assertEquals(responseDTO.getId(), caseIdFixture.toString());
   }
 }

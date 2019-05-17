@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
+import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -60,6 +62,9 @@ public interface CaseService {
   //
   //    return fakeResponse;
   //  }
+
+  public FulfilmentRequestedEvent searchProductsAndConstructEvent(
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException;
 
   default ResponseDTO fulfilmentRequestBySMS(UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =

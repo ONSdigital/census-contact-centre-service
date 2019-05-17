@@ -37,7 +37,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired ProductReference productReference;
 
   @Override
-  public ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException {
+  public ResponseDTO fulfilmentRequestByPost(UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException {
     log.with(caseId)
         .with(requestBodyDTO)
         .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
@@ -48,10 +49,10 @@ public class CaseServiceImpl implements CaseService {
     String fulfilmentCode = requestBodyDTO.getProductCode();
     Product.DeliveryChannel deliveryChannel = DeliveryChannel.POST;
 
-    FulfilmentRequestedEvent fulfilmentRequestedEvent = searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel);
+    FulfilmentRequestedEvent fulfilmentRequestedEvent =
+        searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel);
 
     // publish the event
-
 
     ResponseDTO response =
         ResponseDTO.builder()
@@ -62,8 +63,10 @@ public class CaseServiceImpl implements CaseService {
     return response;
   }
 
-  public FulfilmentRequestedEvent searchProductsAndConstructEvent (String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException {
-    log.with(fulfilmentCode).info("Now in the earchProductsAndConstructEvent method in class CaseServiceImpl.");
+  public FulfilmentRequestedEvent searchProductsAndConstructEvent(
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException {
+    log.with(fulfilmentCode)
+        .info("Now in the earchProductsAndConstructEvent method in class CaseServiceImpl.");
 
     Product example = new Product();
     example.setFulfilmentCode(fulfilmentCode);
