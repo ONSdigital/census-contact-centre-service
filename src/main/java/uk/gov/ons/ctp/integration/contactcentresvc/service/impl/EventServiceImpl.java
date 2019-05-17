@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -20,11 +19,11 @@ public class EventServiceImpl implements EventService {
   /** Create and publish event */
   @Override
   public void createEvent(GenericEvent event) throws CTPException {
-    try {
-      String message = objectMapper.writeValueAsString(event);
-      publisher.sendEvent(message);
-    } catch (JsonProcessingException ex) {
-      throw new CTPException(CTPException.Fault.BAD_REQUEST, "JSON failed to parse");
-    }
+    //    try {
+    //      String message = objectMapper.writeValueAsString(event);
+    //      publisher.sendEvent(event);
+    //    } catch (JsonProcessingException ex) {
+    //      throw new CTPException(CTPException.Fault.BAD_REQUEST, "JSON failed to parse");
+    //    }
   }
 }
