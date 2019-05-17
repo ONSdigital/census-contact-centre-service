@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class CaseContainerDTO {
 
   private String caseType;
 
-  private String createdDateTime;
+  private Date createdDateTime;
 
   private String addressLine1;
 

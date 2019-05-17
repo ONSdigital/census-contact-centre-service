@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model;
 
+import java.util.Date;
 import lombok.Data;
 
 @Data
@@ -11,5 +12,5 @@ public class EventDTO {
 
   private String description;
 
-  private String createdDateTime;
+  private Date createdDateTime;
 }
