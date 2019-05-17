@@ -4,7 +4,6 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 import ma.glasnost.orika.CustomConverter;
@@ -36,18 +35,15 @@ public class CaseServiceImpl implements CaseService {
 
   @Autowired private CaseServiceClientServiceImpl caseServiceClient;
 
-  private static class DateMapper extends CustomConverter<String, LocalDateTime> {
-    private SimpleDateFormat caseDateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+  private static class DateMapper extends CustomConverter<String, Date> {
+    private SimpleDateFormat caseDateTimeFormatter =
+        new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
 
     @Override
-    public LocalDateTime convert(
-        String dateAsText,
-        Type<? extends LocalDateTime> destinationType,
-        MappingContext mappingContext) {
+    public Date convert(
+        String dateAsText, Type<? extends Date> destinationType, MappingContext mappingContext) {
       try {
-        Date date = caseDateTimeFormatter.parse(dateAsText);
-        LocalDateTime dateAsLocalDateTime = DateTimeUtil.convertDateToLocalDateTime(date);
-        return dateAsLocalDateTime;
+        return caseDateTimeFormatter.parse(dateAsText);
       } catch (ParseException e) {
         throw new RuntimeException("Failed to parse date: " + dateAsText);
       }
@@ -61,8 +57,8 @@ public class CaseServiceImpl implements CaseService {
     mapperFactory.classMap(CaseContainerDTO.class, CaseDTO.class).byDefault().register();
 
     ConverterFactory converterFactory = mapperFactory.getConverterFactory();
-    DateMapper localDateTimeMapper = new DateMapper();
-    converterFactory.registerConverter(localDateTimeMapper);
+    DateMapper dateTimeMapper = new DateMapper();
+    converterFactory.registerConverter(dateTimeMapper);
 
     caseDTOMapper = mapperFactory.getMapperFacade();
   }
@@ -89,7 +85,6 @@ public class CaseServiceImpl implements CaseService {
     if (!getCaseEvents) {
       caseServiceResponse.setCaseEvents(null);
     }
-    // pmb switch from caseevents to caseEvents
 
     log.debug("Returning case details for caseId: {}", caseId);
 

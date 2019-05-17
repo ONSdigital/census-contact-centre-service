@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -113,19 +114,19 @@ public interface CaseService {
         CaseEventDTO.builder()
             .description("Made up case event DTO")
             .category("create")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(new Date())
             .build();
     CaseEventDTO caseEventDTO2 =
         CaseEventDTO.builder()
             .description("Another fake case event DTO")
             .category("update")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(new Date())
             .build();
     CaseEventDTO caseEventDTO3 =
         CaseEventDTO.builder()
             .description("Yet another fake case event DTO")
             .category("update")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(new Date())
             .build();
 
     CaseDTO fakeCaseDTO =
@@ -133,7 +134,7 @@ public interface CaseService {
             .id(createSemiRandomFakeUUID())
             .caseRef("123456789")
             .caseType("HI")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(new Date())
             .addressLine1("The Novelty Rock Emporium")
             .addressLine2("Rock House")
             .addressLine3("Cowick Lane")

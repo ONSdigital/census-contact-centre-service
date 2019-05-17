@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +40,7 @@ public final class CaseEndpointGetCaseTest {
   private static final String CASE_UUID_STRING = "dca05c61-8b95-46af-8f73-36f0dc2cbf5e";
   private static final String CASE_REF = "123456";
   private static final String CASE_TYPE = "R1";
-  private static final String CASE_CREATED_DATE_TIME = "2019-01-29T14:14:27.512";
+  private static final String CASE_CREATED_DATE_TIME = "2019-01-29T14:14:27.512Z";
   private static final String ADDRESS_LINE_1 = "Smiths Renovations";
   private static final String ADDRESS_LINE_2 = "Rock House";
   private static final String ADDRESS_LINE_3 = "Cowick Lane";
@@ -48,12 +48,9 @@ public final class CaseEndpointGetCaseTest {
   private static final String REGION = "E";
   private static final String POSTCODE = "EX2 9HY";
 
-  private static final String RESPONSE1_DATE_TIME = "2016-11-09T11:44:44.797";
-  private static final String RESPONSE1_INBOUND_CHANNEL = "ONLINE";
-
   private static final String EVENT_CATEGORY = "REFUSAL";
   private static final String EVENT_DESCRIPTION = "Event for testcase";
-  private static final String EVENT_DATE_TIME = "2017-02-11T16:32:11.863";
+  private static final String EVENT_DATE_TIME = "2017-02-11T16:32:11.863Z";
 
   @InjectMocks private CaseEndpoint caseEndpoint;
 
@@ -176,14 +173,14 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(status().isBadRequest());
   }
 
-  private CaseDTO createResponseCaseDTO() {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+  private CaseDTO createResponseCaseDTO() throws ParseException {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
             .description(EVENT_DESCRIPTION)
             .category(EVENT_CATEGORY)
-            .createdDateTime(LocalDateTime.parse(EVENT_DATE_TIME, formatter))
+            .createdDateTime(formatter.parse(EVENT_DATE_TIME))
             .build();
 
     CaseDTO fakeCaseDTO =
@@ -191,7 +188,7 @@ public final class CaseEndpointGetCaseTest {
             .id(UUID.fromString(CASE_UUID_STRING))
             .caseRef(CASE_REF)
             .caseType(CASE_TYPE)
-            .createdDateTime(LocalDateTime.parse(CASE_CREATED_DATE_TIME, formatter))
+            .createdDateTime(formatter.parse(CASE_CREATED_DATE_TIME))
             .addressLine1(ADDRESS_LINE_1)
             .addressLine2(ADDRESS_LINE_2)
             .addressLine3(ADDRESS_LINE_3)

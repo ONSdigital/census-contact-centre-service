@@ -31,7 +31,7 @@ public class CaseServiceClientServiceImpl {
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-    queryParams.add("caseevents", Boolean.toString(listCaseEvents));
+    queryParams.add("caseEvents", Boolean.toString(listCaseEvents));
 
     // Ask Case Service to find case details
     String path = appConfig.getCaseServiceSettings().getCaseByIdQueryPath();

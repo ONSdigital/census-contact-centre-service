@@ -5,8 +5,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -97,25 +96,23 @@ public class CaseServiceImplTest {
     assertEquals(uuid, results.getId());
     assertEquals("1000000000000001", results.getCaseRef());
     assertEquals("H", results.getCaseType());
-    assertEquals("2019-05-14T16:11:41", formatDate(results.getCreatedDateTime()));
+    assertEquals(
+        "2019-05-14T16:11:41.343+01:00", DateTimeUtil.formatDate(results.getCreatedDateTime()));
 
     if (caseEventsExpected) {
       assertEquals(2, results.getCaseEvents().size());
       CaseEventDTO event = results.getCaseEvents().get(0);
       assertEquals("Initial creation of case", event.getDescription());
       assertEquals("CASE_CREATED", event.getCategory());
-      assertEquals("2019-05-14T16:11:41", formatDate(event.getCreatedDateTime()));
+      assertEquals(
+          "2019-05-14T16:11:41.343+01:00", DateTimeUtil.formatDate(event.getCreatedDateTime()));
       event = results.getCaseEvents().get(1);
       assertEquals("Create Household Visit", event.getDescription());
       assertEquals("ACTION_CREATED", event.getCategory());
-      assertEquals("2019-05-15T16:02:12", formatDate(event.getCreatedDateTime()));
+      assertEquals(
+          "2019-05-16T13:12:12.343+01:00", DateTimeUtil.formatDate(event.getCreatedDateTime()));
     } else {
       assertNull(results.getCaseEvents());
     }
-  }
-
-  private String formatDate(LocalDateTime createdDateTime) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-    return createdDateTime.format(formatter);
   }
 }

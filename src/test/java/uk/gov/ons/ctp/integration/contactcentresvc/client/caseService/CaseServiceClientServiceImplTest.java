@@ -91,7 +91,7 @@ public class CaseServiceClientServiceImplTest {
   private void verifyCaseEventsQueryParam(boolean expectedCaseEventsValue) {
     Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
     MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
-    assertEquals("[" + expectedCaseEventsValue + "]", queryParams.get("caseevents").toString());
+    assertEquals("[" + expectedCaseEventsValue + "]", queryParams.get("caseEvents").toString());
     assertEquals(1, queryParams.keySet().size());
   }
 }
