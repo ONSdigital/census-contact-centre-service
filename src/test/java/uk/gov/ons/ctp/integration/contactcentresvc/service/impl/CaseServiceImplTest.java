@@ -12,6 +12,7 @@ import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import uk.gov.ons.ctp.common.event.model.*;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
@@ -65,10 +66,62 @@ public class CaseServiceImplTest {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     requestBodyDTOFixture.setDateTime(LocalDateTime.parse(REQUEST_DATE_TIME, formatter));
 
-    // execution - call the unit under test
+    // execution - call the first unit under test
     ResponseDTO responseDTO = target.fulfilmentRequestByPost(caseIdFixture, requestBodyDTOFixture);
 
     // verify the value of the id in the ResponseDTO
     assertEquals(responseDTO.getId(), caseIdFixture.toString());
+
+    // execution - call the second unit under test
+    String fulfilmentCodeFixture = requestBodyDTOFixture.getProductCode();
+    Product.DeliveryChannel deliveryChannelFixture = Product.DeliveryChannel.POST;
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent =
+        target.searchProductsAndConstructEvent(fulfilmentCodeFixture, deliveryChannelFixture);
+
+    // here you need to construct an Event to compare with the one returned...
+    FulfilmentRequestedEvent fulfilmentRequestedEventFixture = new FulfilmentRequestedEvent();
+
+    FulfilmentPayload fulfilmentPayloadFixture = fulfilmentRequestedEventFixture.getPayload();
+
+    FulfilmentRequest fulfilmentRequestFixture = fulfilmentPayloadFixture.getFulfilmentRequest();
+
+    fulfilmentRequestFixture.setFulfilmentCode("XXXXXX-XXXXXX");
+    fulfilmentRequestFixture.setCaseId("bbd55984-0dbf-4499-bfa7-0aa4228700e9");
+
+    Address addressFixture = fulfilmentRequestFixture.getAddress();
+    addressFixture.setAddressLine1("1 main street");
+    addressFixture.setAddressLine2("upper upperingham");
+    addressFixture.setAddressLine3("");
+    addressFixture.setTownName("upton");
+    addressFixture.setPostcode("UP103UP");
+    addressFixture.setRegion("E");
+    addressFixture.setLatitude("50.863849");
+    addressFixture.setLongitude("-1.229710");
+    addressFixture.setUprn("XXXXXXXXXXXXX");
+    addressFixture.setArid("XXXXX");
+    addressFixture.setAddressType("CE");
+    addressFixture.setEstabType("XXX");
+
+    Contact contactFixture = fulfilmentRequestFixture.getContact();
+    contactFixture.setTitle("Ms");
+    contactFixture.setForename("jo");
+    contactFixture.setSurname("smith");
+    contactFixture.setEmail("me@example.com");
+    contactFixture.setTelNo("+447890000000");
+
+    Header headerFixture = new Header();
+    headerFixture.setType("FULFILMENT_REQUESTED");
+    headerFixture.setSource("CONTACT_CENTRE_API");
+    headerFixture.setChannel("CC");
+    //    headerFixture.setDateTime(DateTimeUtil.getCurrentDateTimeInJsonFormat());
+    headerFixture.setTransactionId("c45de4dc-3c3b-11e9-b210-d663bd873d93");
+    fulfilmentRequestedEventFixture.setEvent(headerFixture);
+
+    // verify the values of the fields within the fulfilmentRequestedEvent header
+    assertEquals(headerFixture, fulfilmentRequestedEvent.getEvent());
+
+    // verify the values of the fields within the fulfilmentRequestedEvent payload
+    assertEquals(fulfilmentPayloadFixture, fulfilmentRequestedEvent.getPayload());
   }
 }
