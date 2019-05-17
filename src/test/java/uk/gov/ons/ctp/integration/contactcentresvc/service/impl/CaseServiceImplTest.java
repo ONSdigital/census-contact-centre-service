@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,27 +94,30 @@ public class CaseServiceImplTest {
     }
   }
 
-  private void verifyCase(CaseDTO results, boolean caseEventsExpected) {
+  private void verifyCase(CaseDTO results, boolean caseEventsExpected) throws ParseException {
     assertEquals(uuid, results.getId());
     assertEquals("1000000000000001", results.getCaseRef());
     assertEquals("H", results.getCaseType());
-    assertEquals(
-        "2019-05-14T16:11:41.343+01:00", DateTimeUtil.formatDate(results.getCreatedDateTime()));
+    assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
 
     if (caseEventsExpected) {
       assertEquals(2, results.getCaseEvents().size());
       CaseEventDTO event = results.getCaseEvents().get(0);
       assertEquals("Initial creation of case", event.getDescription());
       assertEquals("CASE_CREATED", event.getCategory());
-      assertEquals(
-          "2019-05-14T16:11:41.343+01:00", DateTimeUtil.formatDate(event.getCreatedDateTime()));
+      assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), event.getCreatedDateTime().getTime());
       event = results.getCaseEvents().get(1);
       assertEquals("Create Household Visit", event.getDescription());
       assertEquals("ACTION_CREATED", event.getCategory());
-      assertEquals(
-          "2019-05-16T13:12:12.343+01:00", DateTimeUtil.formatDate(event.getCreatedDateTime()));
+      assertEquals(asMillis("2019-05-16T12:12:12.343Z"), event.getCreatedDateTime().getTime());
     } else {
       assertNull(results.getCaseEvents());
     }
+  }
+
+  private long asMillis(String datetime) throws ParseException {
+    SimpleDateFormat dateParser = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
+
+    return dateParser.parse(datetime).getTime();
   }
 }
