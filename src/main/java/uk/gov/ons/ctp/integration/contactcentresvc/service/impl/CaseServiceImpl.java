@@ -6,9 +6,12 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.model.Address;
@@ -21,7 +24,13 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -31,10 +40,12 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public class CaseServiceImpl implements CaseService {
 
   @Autowired private ContactCentreEventPublisher publisher;
-  private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
 
-  // when the rest client has been written
-  // @Autowired private CaseServiceClientServiceImpl caseServiceClient;
+  private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
+
+  private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
+
+  @Autowired private CaseServiceClientServiceImpl caseServiceClient;
 
   @Autowired ProductReference productReference;
 
@@ -54,7 +65,6 @@ public class CaseServiceImpl implements CaseService {
     FulfilmentRequestedEvent fulfilmentRequestedEvent =
         searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel);
 
-    // publish the event
     publisher.sendEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
@@ -135,5 +145,31 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequestedEvent.setEvent(header);
 
     return fulfilmentRequestedEvent;
+  }
+
+  @Override
+  public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
+    log.debug("Fetching case details by caseId: {}", caseId);
+
+    // Get the case details from the case service
+    Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
+
+    // Only return Household cases
+    if (!caseDetails.getCaseType().equals(CaseType.H.name())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is a non-household case");
+    }
+
+    // Convert from Case service to Contact Centre DTOs
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
+    // Make sure that we don't return any events if the caller doesn't want them
+    if (!getCaseEvents) {
+      caseServiceResponse.setCaseEvents(null);
+    }
+
+    log.debug("Returning case details for caseId: {}", caseId);
+
+    return caseServiceResponse;
   }
 }

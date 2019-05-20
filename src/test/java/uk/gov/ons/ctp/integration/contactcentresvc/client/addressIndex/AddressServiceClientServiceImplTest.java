@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.client;
+package uk.gov.ons.ctp.integration.contactcentresvc.client.addressIndex;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,13 +15,14 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.util.MultiValueMap;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.rest.RestClient;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AddressIndexSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model.AddressIndexSearchResultsDTO;
 
-public class AddressServiceClientServiceImpleTest {
+public class AddressServiceClientServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
 
   @Mock RestClient restClient;

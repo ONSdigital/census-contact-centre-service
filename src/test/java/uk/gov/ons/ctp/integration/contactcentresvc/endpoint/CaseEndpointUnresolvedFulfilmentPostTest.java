@@ -239,7 +239,7 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
 
   @Test
   public void postUnresolvedFulfilmentProductCodeTooLong() throws Exception {
-    assertBadRequest(PRODUCT_CODE, "EN12345678910");
+    assertBadRequest(PRODUCT_CODE, "EN12345xxxxxx");
   }
 
   @Test
