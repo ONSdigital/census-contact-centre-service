@@ -33,7 +33,7 @@ public interface CaseService {
     return cases;
   }
 
-  public CaseDTO getCaseByCaseReference(Long caseRef, CaseRequestDTO requestParamsDTO);
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO);
 
   public default String getLaunchURLForCaseId(
       final UUID caseId, LaunchRequestDTO requestParamsDTO) {

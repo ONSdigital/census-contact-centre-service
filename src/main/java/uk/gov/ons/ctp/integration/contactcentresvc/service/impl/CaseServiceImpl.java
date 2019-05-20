@@ -53,7 +53,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public CaseDTO getCaseByCaseReference(Long caseRef, CaseRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
     log.debug("Fetching case details by case reference: {}", caseRef);
 
     // Get the case details from the case service
