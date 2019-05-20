@@ -1,9 +1,9 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
-import org.springframework.stereotype.Component;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.ConfigurableMapper;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+import org.springframework.stereotype.Component;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 
@@ -19,7 +19,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
    */
   protected final void configure(final MapperFactory factory) {
     MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
-    
+
     mapperFactory.classMap(CaseContainerDTO.class, CaseDTO.class).byDefault().register();
   }
 }
