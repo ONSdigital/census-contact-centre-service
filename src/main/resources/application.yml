@@ -63,13 +63,11 @@ address-index-settings:
     port: 80
     
 case-service-settings:
-  case-by-id-query-path: /cases-rm-fake/{case-id}
+  case-by-id-query-path: /cases/{case-id}
   rest-client-config:
-    username: serco_cks
-    password: temporary
     scheme: http
     host: localhost
-    port: 8171
+    port: 8161
     
 rabbitmq:
   username: guest
