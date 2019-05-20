@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,9 +21,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePr
 
 public interface CaseService {
 
-  public default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO(caseId);
-  }
+  public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO);
 
   public default List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
@@ -50,10 +47,7 @@ public interface CaseService {
   public default ResponseDTO fulfilmentRequestByPost(
       UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return fakeResponse;
   }
@@ -61,10 +55,7 @@ public interface CaseService {
   public default ResponseDTO fulfilmentRequestBySMS(
       UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return fakeResponse;
   }
@@ -93,27 +84,22 @@ public interface CaseService {
 
   public default ResponseDTO makeAppointment(UUID caseId, AppointmentRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return fakeResponse;
   }
 
   public default ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO) {
     ResponseDTO fakeResponse =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return fakeResponse;
   }
 
   private CaseDTO createFakeCaseDTO() {
-    return createFakeCaseDTO(createSemiRandomFakeUUID());  
+    return createFakeCaseDTO(createSemiRandomFakeUUID());
   }
+
   private CaseDTO createFakeCaseDTO(UUID caseId) {
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()

@@ -62,6 +62,13 @@ address-index-settings:
     host: addressindex-api-beta.apps.devtest.onsclofo.uk
     port: 80
     
+case-service-settings:
+  case-by-id-query-path: /cases/{case-id}
+  rest-client-config:
+    scheme: http
+    host: localhost
+    port: 8161
+    
 rabbitmq:
   username: guest
   password: guest

@@ -1,0 +1,38 @@
+{
+  "state": null,
+  "id": "b7565b5e-1396-4965-91a2-918c0d3642ed",
+  "actionPlanId": null,
+  "collectionInstrumentId": null,
+  "partyId": null,
+  "sampleUnitId": null,
+  "iac": null,
+  "caseRef": "1000000000000001",
+  "createdBy": null,
+  "sampleUnitType": "H",
+  "createdDateTime": "2019-05-14T16:11:41.561+01:00",
+  "caseGroup": null,
+  "responses": [
+    {
+      "inboundChannel": "ONLINE",
+      "dateTime": "2019-05-14T16:11:41.558+01:00"
+    }
+  ],
+  "caseEvents": [
+    {
+      "createdDateTime": "2019-05-14T16:11:41.561+01:00",
+      "category": "CASE_CREATED",
+      "subCategory": null,
+      "createdBy": null,
+      "description": "Initial creation of case",
+      "metadata": null
+    },
+    {
+      "createdDateTime": "2019-05-15T16:11:41.561+01:00",
+      "category": "ACTION_CREATED",
+      "subCategory": null,
+      "createdBy": null,
+      "description": "Create Household Visit",
+      "metadata": null
+    }
+  ]
+}

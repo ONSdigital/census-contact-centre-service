@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.service.addressindex.model;
+package uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model;
 
 import lombok.Data;
 

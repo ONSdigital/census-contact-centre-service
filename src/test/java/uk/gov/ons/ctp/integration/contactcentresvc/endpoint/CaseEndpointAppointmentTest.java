@@ -206,7 +206,10 @@ public final class CaseEndpointAppointmentTest {
   private void assertOk(ObjectNode json) throws Exception {
     SimpleDateFormat dateFormat = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
     ResponseDTO responseDTO =
-        ResponseDTO.builder().id(uuid.toString()).dateTime(dateFormat.parse(RESPONSE_DATE_TIME)).build();
+        ResponseDTO.builder()
+            .id(uuid.toString())
+            .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
+            .build();
     Mockito.when(caseService.makeAppointment(any(), any())).thenReturn(responseDTO);
 
     ResultActions actions =

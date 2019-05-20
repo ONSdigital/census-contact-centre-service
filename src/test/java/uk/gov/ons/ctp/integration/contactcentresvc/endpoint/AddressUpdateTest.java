@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.junit.Before;
@@ -18,7 +20,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
@@ -58,7 +59,10 @@ public final class AddressUpdateTest {
     UUID uuid = UUID.randomUUID();
     SimpleDateFormat dateFormat = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
     ResponseDTO responseDTO =
-        ResponseDTO.builder().id(uuid.toString()).dateTime(dateFormat.parse(RESPONSE_DATE_TIME)).build();
+        ResponseDTO.builder()
+            .id(uuid.toString())
+            .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
+            .build();
     Mockito.when(addressService.addressChange(any())).thenReturn(responseDTO);
 
     ObjectNode json = FixtureHelper.loadClassObjectNode();

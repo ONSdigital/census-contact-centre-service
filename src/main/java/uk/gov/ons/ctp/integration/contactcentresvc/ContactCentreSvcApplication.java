@@ -61,6 +61,14 @@ public class ContactCentreSvcApplication {
     return restHelper;
   }
 
+  @Bean
+  @Qualifier("caseServiceClient")
+  public RestClient caseServiceClient() {
+    RestClientConfig clientConfig = appConfig.getCaseServiceSettings().getRestClientConfig();
+    RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
+    return restHelper;
+  }
+
   /**
    * The main entry point for this application.
    *
