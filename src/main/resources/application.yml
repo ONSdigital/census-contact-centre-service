@@ -64,6 +64,7 @@ address-index-settings:
     
 case-service-settings:
   case-by-id-query-path: /cases/{case-id}
+  case-by-uprn-query-path: /cases/uprn/{uprn}
   case-by-case-reference-query-path: /cases/ref/{reference}
   rest-client-config:
     scheme: http

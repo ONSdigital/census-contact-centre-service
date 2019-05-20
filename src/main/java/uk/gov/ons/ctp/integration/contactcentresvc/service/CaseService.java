@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -23,14 +22,8 @@ public interface CaseService {
 
   public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO);
 
-  public default List<CaseDTO> getCaseByUPRN(
-      final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
-    List<CaseDTO> cases = new ArrayList<>();
-    cases.add(createFakeCaseDTO());
-    cases.add(createFakeCaseDTO());
-    cases.add(createFakeCaseDTO());
-    return cases;
-  }
+  public List<CaseDTO> getCaseByUPRN(
+      final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO);
 
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO);
 

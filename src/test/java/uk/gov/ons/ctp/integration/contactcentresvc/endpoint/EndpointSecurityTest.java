@@ -53,22 +53,22 @@ public class EndpointSecurityTest {
   }
 
   @Test
-  public void whenUserWithWrongCredentialsRequestCaseThenUnauthorizedPage() throws Exception {
+  public void whenUserWithWrongCredentialsRequestsVersionThenUnauthorizedPage() throws Exception {
 
     restTemplate = new TestRestTemplate("user", "wrongpassword");
     ResponseEntity<String> response =
-        restTemplate.getForEntity(base.toString() + "/cases/uprn/123", String.class);
+        restTemplate.getForEntity(base.toString() + "/version", String.class);
 
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     assertTrue(response.getBody().contains("Unauthorized"));
   }
 
   @Test
-  public void whenUserWithCorrectCredentialsRequestCaseThenSuccess() throws Exception {
+  public void whenUserWithCorrectCredentialsRequestsVersionThenSuccess() throws Exception {
 
     restTemplate = new TestRestTemplate("serco_cks", "temporary");
     ResponseEntity<String> response =
-        restTemplate.getForEntity(base.toString() + "/cases/uprn/123", String.class);
+        restTemplate.getForEntity(base.toString() + "/version", String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
