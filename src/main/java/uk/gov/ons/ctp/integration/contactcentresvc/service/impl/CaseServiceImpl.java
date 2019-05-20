@@ -51,4 +51,30 @@ public class CaseServiceImpl implements CaseService {
 
     return caseServiceResponse;
   }
+
+  @Override
+  public CaseDTO getCaseByCaseReference(Long caseRef, CaseRequestDTO requestParamsDTO) {
+    log.debug("Fetching case details by case reference: {}", caseRef);
+
+    // Get the case details from the case service
+    Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
+
+    // Only return Household cases
+    if (!caseDetails.getCaseType().equals(CaseType.H.name())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is a non-household case");
+    }
+
+    // Convert from Case service to Contact Centre DTOs
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
+    // Make sure that we don't return any events if the caller doesn't want them
+    if (!getCaseEvents) {
+      caseServiceResponse.setCaseEvents(null);
+    }
+
+    log.debug("Returning case details for case reference: {}", caseRef);
+
+    return caseServiceResponse;
+  }
 }

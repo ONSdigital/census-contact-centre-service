@@ -33,9 +33,7 @@ public interface CaseService {
     return cases;
   }
 
-  public default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Stoke Hill");
-  }
+  public CaseDTO getCaseByCaseReference(Long caseRef, CaseRequestDTO requestParamsDTO);
 
   public default String getLaunchURLForCaseId(
       final UUID caseId, LaunchRequestDTO requestParamsDTO) {

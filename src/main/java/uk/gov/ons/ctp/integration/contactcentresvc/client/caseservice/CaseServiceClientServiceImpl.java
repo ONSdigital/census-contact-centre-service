@@ -43,4 +43,22 @@ public class CaseServiceClientServiceImpl {
 
     return caseDetails;
   }
+
+  public CaseContainerDTO getCaseByCaseRef(Long caseReference, Boolean listCaseEvents) {
+    log.debug("getCaseByCaseReference. Calling Case Service to find case details by case reference: " + caseReference);
+
+    // Build map for query params
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    queryParams.add("caseEvents", Boolean.toString(listCaseEvents));
+
+    // Ask Case Service to find case details
+    String path = appConfig.getCaseServiceSettings().getCaseByCaseReferenceQueryPath();
+    CaseContainerDTO caseDetails =
+        caseServiceClient.getResource(
+            path, CaseContainerDTO.class, null, queryParams, caseReference);
+
+    log.debug("getCaseByCaseReference. Found details for case reference: " + caseReference);
+
+    return caseDetails;
+  }
 }
