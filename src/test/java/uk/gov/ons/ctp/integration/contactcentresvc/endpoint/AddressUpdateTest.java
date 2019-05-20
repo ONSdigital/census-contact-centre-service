@@ -8,6 +8,7 @@ import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,13 +23,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** Contact Centre Data endpoint Unit tests */
 public final class AddressUpdateTest {
 
-  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
+  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
 
   @InjectMocks private AddressEndpoint addressEndpoint;
 
@@ -55,8 +57,12 @@ public final class AddressUpdateTest {
   @Test
   public void postValidAddressUpdate() throws Exception {
     UUID uuid = UUID.randomUUID();
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
     ResponseDTO responseDTO =
-        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
+        ResponseDTO.builder()
+            .id(uuid.toString())
+            .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
+            .build();
     Mockito.when(addressService.addressChange(any())).thenReturn(responseDTO);
 
     ObjectNode json = FixtureHelper.loadClassObjectNode();

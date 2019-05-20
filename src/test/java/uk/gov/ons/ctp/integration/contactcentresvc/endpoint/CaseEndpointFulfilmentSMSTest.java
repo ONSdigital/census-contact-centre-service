@@ -8,6 +8,7 @@ import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
@@ -29,7 +31,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl
 /** Contact Centre Data Endpoint Unit tests */
 public final class CaseEndpointFulfilmentSMSTest {
 
-  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
+  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
 
   @Mock private EventServiceImpl eventSvc;
   @Mock private CaseService caseService;
@@ -58,8 +60,12 @@ public final class CaseEndpointFulfilmentSMSTest {
 
   @Test
   public void postFulfilmentByCaseById_GoodId() throws Exception {
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
     ResponseDTO responseDTO =
-        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
+        ResponseDTO.builder()
+            .id(uuid.toString())
+            .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
+            .build();
     Mockito.when(caseService.fulfilmentRequestBySMS(any(), any())).thenReturn(responseDTO);
 
     ObjectNode json = FixtureHelper.loadClassObjectNode();

@@ -2,7 +2,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +19,7 @@ import uk.gov.ons.ctp.common.event.model.FulfilmentPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.common.event.model.Header;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
@@ -59,7 +59,7 @@ public class CaseServiceImpl implements CaseService {
     // Get the case using the CaseServiceClientServiceImpl when available
     // Case caze = caseServiceClientService.getCase(requestBodyDTO.getCaseId());
 
-    String fulfilmentCode = requestBodyDTO.getProductCode();
+    String fulfilmentCode = requestBodyDTO.getFulfilmentCode();
     Product.DeliveryChannel deliveryChannel = DeliveryChannel.POST;
 
     FulfilmentRequestedEvent fulfilmentRequestedEvent =
@@ -68,10 +68,7 @@ public class CaseServiceImpl implements CaseService {
     publisher.sendEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
-        ResponseDTO.builder()
-            .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return response;
   }
@@ -169,6 +166,32 @@ public class CaseServiceImpl implements CaseService {
     }
 
     log.debug("Returning case details for caseId: {}", caseId);
+
+    return caseServiceResponse;
+  }
+
+  @Override
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
+    log.debug("Fetching case details by case reference: {}", caseRef);
+
+    // Get the case details from the case service
+    Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
+
+    // Only return Household cases
+    if (!caseDetails.getCaseType().equals(CaseType.H.name())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is a non-household case");
+    }
+
+    // Convert from Case service to Contact Centre DTOs
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
+    // Make sure that we don't return any events if the caller doesn't want them
+    if (!getCaseEvents) {
+      caseServiceResponse.setCaseEvents(null);
+    }
+
+    log.debug("Returning case details for case reference: {}", caseRef);
 
     return caseServiceResponse;
   }

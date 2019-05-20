@@ -8,6 +8,7 @@ import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
@@ -39,10 +41,10 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
   private static final String TOWN_NAME = "townName";
   private static final String REGION = "region";
   private static final String POSTCODE = "postcode";
-  private static final String PRODUCT_CODE = "productCode";
+  private static final String FULFILMENT_CODE = "fulfilmentCode";
   private static final String DATE_TIME = "dateTime";
 
-  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705340";
+  private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
 
   @Mock private EventServiceImpl eventSvc;
   @Mock private CaseService caseService;
@@ -229,17 +231,17 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
 
   @Test
   public void postUnresolvedFulfilmentProductCodeNull() throws Exception {
-    assertBadRequest(PRODUCT_CODE, (String) null);
+    assertBadRequest(FULFILMENT_CODE, (String) null);
   }
 
   @Test
   public void postUnresolvedFulfilmentProductCodeBlank() throws Exception {
-    assertBadRequest(PRODUCT_CODE, "");
+    assertBadRequest(FULFILMENT_CODE, "");
   }
 
   @Test
   public void postUnresolvedFulfilmentProductCodeTooLong() throws Exception {
-    assertBadRequest(PRODUCT_CODE, "EN12345xxxxxx");
+    assertBadRequest(FULFILMENT_CODE, "EN12345xxxxxx");
   }
 
   @Test
@@ -261,8 +263,12 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
 
   private void assertOk(String field, String value) throws Exception {
     UUID uuid = UUID.randomUUID();
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
     ResponseDTO responseDTO =
-        ResponseDTO.builder().id(uuid.toString()).dateTime(RESPONSE_DATE_TIME).build();
+        ResponseDTO.builder()
+            .id(uuid.toString())
+            .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
+            .build();
     Mockito.when(caseService.fulfilmentUnresolvedRequestByPost(any())).thenReturn(responseDTO);
 
     ObjectNode json = FixtureHelper.loadClassObjectNode();
