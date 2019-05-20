@@ -24,7 +24,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.Case
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -86,18 +85,18 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByCaseRef_nonHouseholdCase() throws Exception {
-    UniquePropertyReferenceNumber testCaseRef = new UniquePropertyReferenceNumber("88234544");
+    long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType("X"); // Not household case
-    Mockito.when(CaseServiceClientService.getCaseByCaseRef(eq(testCaseRef.getValue()), any()))
+    Mockito.when(CaseServiceClientService.getCaseByCaseRef(eq(testCaseRef), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request
     try {
-      caseService.getCaseByCaseReference(testCaseRef.getValue(), new CaseRequestDTO(true));
+      caseService.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
       assertEquals("Case is a non-household case", e.getReason());
@@ -120,7 +119,7 @@ public class CaseServiceImplTest {
   }
 
   private void doTestGetCaseByCaseRef(boolean caseEvents) throws Exception {
-    UniquePropertyReferenceNumber testCaseRef = new UniquePropertyReferenceNumber("88234544");
+    long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -130,7 +129,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
-    CaseDTO results = caseService.getCaseByCaseReference(testCaseRef.getValue(), requestParams);
+    CaseDTO results = caseService.getCaseByCaseReference(testCaseRef, requestParams);
 
     verifyCase(results, caseEvents);
   }
