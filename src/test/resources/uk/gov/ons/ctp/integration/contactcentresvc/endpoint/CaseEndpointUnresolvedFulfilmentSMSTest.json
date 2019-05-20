@@ -3,10 +3,9 @@
   "addressLine1": "Brathay",
   "addressline2": "2A Priors Way",
   "addressLine3": "Olivers",
-  "addressLine4": "Battery",
   "townName": "Winchester",
   "region": "E",
   "postcode": "SO22 4HJ",
-  "productCode": "EN12",
-  "dateTime": "2007-12-03T10:15:30"
+  "fulfilmentCode": "EN12",
+  "dateTime": "2007-12-03T10:15:30.123Z"
 }
