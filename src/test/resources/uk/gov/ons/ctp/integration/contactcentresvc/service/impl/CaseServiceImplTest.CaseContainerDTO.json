@@ -1,0 +1,39 @@
+{
+  "id": "b7565b5e-1396-4965-91a2-918c0d3642ed",
+  "arid": "2344266233",
+  "estabArid": "AABBCC",
+  "estabType": "ET",
+  "uprn": "1235532324343434",
+  "caseRef": "1000000000000001",
+  "caseType": "H",
+  "createdDateTime": "2019-05-14T16:11:41.343+01:00",
+  "addressLine1": "Napier House",
+  "addressLine2": "11 Park Street",
+  "addressLine3": "Parkhead",
+  "townName": "Glasgow",
+  "postcode": "G1 2AA",
+  "organisationName": "ON",
+  "addressLevel": "E",
+  "abpCode": "AACC",
+  "region": "E",
+  "latitude": "41.40338",
+  "longitude": "2.17403",
+  "oa": "EE22",
+  "lsoa": "x1",
+  "msoa": "x2",
+  "lad": "H1",
+  "caseEvents": [
+    {
+      "id": "101",
+      "category": "CASE_CREATED",
+      "description": "Initial creation of case",
+      "createdDateTime": "2019-05-14T16:11:41.343+01:00"
+    },
+    {
+      "id": "102",
+      "category": "ACTION_CREATED",
+      "description": "Create Household Visit",
+      "createdDateTime": "2019-05-16T12:12:12.343Z"
+    }
+  ]
+}

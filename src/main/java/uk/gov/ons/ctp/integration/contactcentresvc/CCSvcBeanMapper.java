@@ -2,7 +2,10 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.ConfigurableMapper;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 import org.springframework.stereotype.Component;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 
 /** The bean mapper that maps to/from DTOs and JPA entity types. */
 @Component
@@ -14,5 +17,9 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
    *
    * @param factory the factory to which we add our mappings
    */
-  protected final void configure(final MapperFactory factory) {}
+  protected final void configure(final MapperFactory factory) {
+    MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+
+    mapperFactory.classMap(CaseContainerDTO.class, CaseDTO.class).byDefault().register();
+  }
 }

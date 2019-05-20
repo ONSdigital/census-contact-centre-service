@@ -14,5 +14,6 @@ public class AppConfig {
   private ReportSettings reportSettings;
   // private Rabbitmq rabbitmq;
   private AddressIndexSettings addressIndexSettings;
+  private CaseServiceSettings caseServiceSettings;
   private Logging logging;
 }
