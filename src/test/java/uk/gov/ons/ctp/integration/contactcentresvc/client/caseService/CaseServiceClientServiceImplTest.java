@@ -73,10 +73,11 @@ public class CaseServiceClientServiceImplTest {
 
     // Sanity check the response
     assertEquals(testUuid, results.getId());
-    assertNotNull(results.getCaseEvents()); // Response will have events as not removed at this level
+    assertNotNull(
+        results.getCaseEvents()); // Response will have events as not removed at this level
     verifyRequestUsedCaseEventsQueryParam(requireCaseEvents);
   }
-  
+
   @Test
   public void testGetCaseByCaseRef_withCaseEvents() throws Exception {
     doTestGetCaseByCaseRef(true);
@@ -90,7 +91,7 @@ public class CaseServiceClientServiceImplTest {
   private void doTestGetCaseByCaseRef(boolean requireCaseEvents) throws Exception {
     UUID testUuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
     Long testCaseRef = 52224L;
-    
+
     // Build results to be returned by the case service
     CaseContainerDTO resultsFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -100,12 +101,14 @@ public class CaseServiceClientServiceImplTest {
         .thenReturn(resultsFromCaseService);
 
     // Run the request
-    CaseContainerDTO results = caseServiceClientService.getCaseByCaseRef(testCaseRef, requireCaseEvents);
+    CaseContainerDTO results =
+        caseServiceClientService.getCaseByCaseRef(testCaseRef, requireCaseEvents);
 
     // Sanity check the response
     assertEquals(Long.toString(testCaseRef), results.getCaseRef());
     assertEquals(testUuid, results.getId());
-    assertNotNull(results.getCaseEvents()); // Response will have events as not removed at this level
+    assertNotNull(
+        results.getCaseEvents()); // Response will have events as not removed at this level
     verifyRequestUsedCaseEventsQueryParam(requireCaseEvents);
   }
 

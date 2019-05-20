@@ -45,7 +45,9 @@ public class CaseServiceClientServiceImpl {
   }
 
   public CaseContainerDTO getCaseByCaseRef(Long caseReference, Boolean listCaseEvents) {
-    log.debug("getCaseByCaseReference. Calling Case Service to find case details by case reference: " + caseReference);
+    log.debug(
+        "getCaseByCaseReference. Calling Case Service to find case details by case reference: "
+            + caseReference);
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();

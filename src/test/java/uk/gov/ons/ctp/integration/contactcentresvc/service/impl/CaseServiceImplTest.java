@@ -120,7 +120,7 @@ public class CaseServiceImplTest {
 
   private void doTestGetCaseByCaseRef(boolean caseEvents) throws Exception {
     UniquePropertyReferenceNumber testCaseRef = new UniquePropertyReferenceNumber("88234544");
-    
+
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
