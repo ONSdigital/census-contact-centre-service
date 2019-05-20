@@ -6,11 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalUnresolvedFulfilmentRequestDTO;
@@ -23,20 +23,20 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePr
 public interface CaseService {
 
   public default CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Digby");
+    return createFakeCaseDTO(caseId);
   }
 
   public default List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
     List<CaseDTO> cases = new ArrayList<>();
-    cases.add(createFakeCaseDTO("Tinky Winky"));
-    cases.add(createFakeCaseDTO("LaLa"));
-    cases.add(createFakeCaseDTO("Po"));
+    cases.add(createFakeCaseDTO());
+    cases.add(createFakeCaseDTO());
+    cases.add(createFakeCaseDTO());
     return cases;
   }
 
   public default CaseDTO getCaseByCaseReference(final long ref, CaseRequestDTO requestParamsDTO) {
-    return createFakeCaseDTO("Stoke Hill");
+    return createFakeCaseDTO();
   }
 
   public default String getLaunchURLForCaseId(
@@ -52,7 +52,7 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
@@ -63,7 +63,7 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
@@ -74,7 +74,7 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
@@ -85,7 +85,7 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(createSemiRandomFakeUUID().toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
@@ -95,7 +95,7 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
@@ -105,60 +105,47 @@ public interface CaseService {
     ResponseDTO fakeResponse =
         ResponseDTO.builder()
             .id(caseId.toString())
-            .dateTime(LocalDateTime.now().toString())
+            .dateTime(DateTimeUtil.nowUTC())
             .build();
 
     return fakeResponse;
   }
 
-  private CaseDTO createFakeCaseDTO(String addressLine4) {
-    CaseResponseDTO caseResponseDTO1 =
-        CaseResponseDTO.builder()
-            .dateTime("2016-11-09T11:44:44.797")
-            .inboundChannel("ONLINE")
-            .build();
-    CaseResponseDTO caseResponseDTO2 =
-        CaseResponseDTO.builder()
-            .dateTime("2018-05-15T08:08:08.888")
-            .inboundChannel("POST")
-            .build();
-
+  private CaseDTO createFakeCaseDTO() {
+    return createFakeCaseDTO(createSemiRandomFakeUUID());  
+  }
+  private CaseDTO createFakeCaseDTO(UUID caseId) {
     CaseEventDTO caseEventDTO1 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Made up case event DTO")
             .category("create")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(DateTimeUtil.nowUTC())
             .build();
     CaseEventDTO caseEventDTO2 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Another fake case event DTO")
             .category("update")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(DateTimeUtil.nowUTC())
             .build();
     CaseEventDTO caseEventDTO3 =
         CaseEventDTO.builder()
-            .id(createSemiRandomFakeUUID())
             .description("Yet another fake case event DTO")
             .category("update")
-            .createdDateTime(LocalDateTime.now())
+            .createdDateTime(DateTimeUtil.nowUTC())
             .build();
 
     CaseDTO fakeCaseDTO =
         CaseDTO.builder()
-            .id(createSemiRandomFakeUUID())
+            .id(caseId)
             .caseRef("123456789")
-            .caseType("HI")
-            .createdDateTime(LocalDateTime.now())
+            .caseType("H")
+            .createdDateTime(DateTimeUtil.nowUTC())
             .addressLine1("The Novelty Rock Emporium")
             .addressLine2("Rock House")
             .addressLine3("Cowick Lane")
-            .addressLine4(addressLine4)
-            .town("Exeter")
+            .townName("Exeter")
             .region("E")
             .postcode("EX2 9HY")
-            .responses(Arrays.asList(caseResponseDTO1, caseResponseDTO2))
             .caseEvents(Arrays.asList(caseEventDTO1, caseEventDTO2, caseEventDTO3))
             .build();
 
