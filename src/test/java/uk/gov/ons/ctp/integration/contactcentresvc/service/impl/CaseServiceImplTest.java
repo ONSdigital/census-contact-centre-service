@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -45,34 +46,12 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByCaseId_withCaseDetails() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    boolean caseEvents = true;
-    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
-    CaseDTO results = caseService.getCaseById(uuid, requestParams);
-
-    verifyCase(results, caseEvents);
+    doTestGetCaseByCaseId(true);
   }
 
   @Test
   public void testGetCaseByCaseId_withNoCaseDetails() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request, with caseEvents turned off
-    boolean caseEvents = false;
-    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
-    CaseDTO results = caseService.getCaseById(uuid, requestParams);
-
-    verifyCase(results, caseEvents);
+    doTestGetCaseByCaseId(false);
   }
 
   @Test
@@ -92,6 +71,67 @@ public class CaseServiceImplTest {
       assertEquals("Case is a non-household case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
+  }
+
+  @Test
+  public void testGetCaseByCaseRef_withCaseDetails() throws Exception {
+    doTestGetCaseByCaseRef(true);
+  }
+
+  @Test
+  public void testGetCaseByCaseRef_withNoCaseDetails() throws Exception {
+    doTestGetCaseByCaseRef(false);
+  }
+
+  @Test
+  public void testGetCaseByCaseRef_nonHouseholdCase() throws Exception {
+    long testCaseRef = 88234544;
+
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType("X"); // Not household case
+    Mockito.when(CaseServiceClientService.getCaseByCaseRef(eq(testCaseRef), any()))
+        .thenReturn(caseFromCaseService);
+
+    // Run the request
+    try {
+      caseService.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
+      fail();
+    } catch (ResponseStatusException e) {
+      assertEquals("Case is a non-household case", e.getReason());
+      assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+    }
+  }
+
+  private void doTestGetCaseByCaseId(boolean caseEvents) throws Exception {
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(CaseServiceClientService.getCaseById(eq(uuid), any()))
+        .thenReturn(caseFromCaseService);
+
+    // Run the request
+    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseDTO results = caseService.getCaseById(uuid, requestParams);
+
+    verifyCase(results, caseEvents);
+  }
+
+  private void doTestGetCaseByCaseRef(boolean caseEvents) throws Exception {
+    long testCaseRef = 88234544;
+
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(CaseServiceClientService.getCaseByCaseRef(any(), any()))
+        .thenReturn(caseFromCaseService);
+
+    // Run the request
+    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseDTO results = caseService.getCaseByCaseReference(testCaseRef, requestParams);
+
+    verifyCase(results, caseEvents);
   }
 
   private void verifyCase(CaseDTO results, boolean caseEventsExpected) throws ParseException {

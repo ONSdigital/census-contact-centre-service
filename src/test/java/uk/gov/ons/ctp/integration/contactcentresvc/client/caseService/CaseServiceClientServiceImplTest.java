@@ -36,8 +36,6 @@ public class CaseServiceClientServiceImplTest {
 
   @Captor ArgumentCaptor<MultiValueMap<String, String>> queryParamsCaptor;
 
-  private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
-
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -45,50 +43,84 @@ public class CaseServiceClientServiceImplTest {
     // Mock the case service settings
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
     caseServiceSettings.setCaseByIdQueryPath("/cases/{uuid}");
+    caseServiceSettings.setCaseByCaseReferenceQueryPath("/cases/ref/{reference}");
     Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
   }
 
   @Test
   public void testGetCaseById_withCaseEvents() throws Exception {
-    // Build results to be returned by the case service
-    CaseContainerDTO resultsFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(
-            restClient.getResource(
-                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), any()))
-        .thenReturn(resultsFromCaseService);
-
-    // Run the request
-    boolean requireCaseEvents = true;
-    CaseContainerDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
-
-    // Sanity check the response
-    assertEquals(uuid, results.getId());
-    assertNotNull(results.getCaseEvents());
-    verifyCaseEventsQueryParam(requireCaseEvents);
+    doTestGetCaseById(true);
   }
 
   @Test
   public void testGetCaseById_withNoCaseEvents() throws Exception {
+    doTestGetCaseById(false);
+  }
+
+  private void doTestGetCaseById(boolean requireCaseEvents) throws Exception {
+    UUID testUuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
+
     // Build results to be returned by the case service
     CaseContainerDTO resultsFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"),
+                eq(CaseContainerDTO.class),
+                any(),
+                any(),
+                eq(testUuid.toString())))
         .thenReturn(resultsFromCaseService);
 
     // Run the request
-    boolean requireCaseEvents = false;
-    CaseContainerDTO results = caseServiceClientService.getCaseById(uuid, requireCaseEvents);
+    CaseContainerDTO results = caseServiceClientService.getCaseById(testUuid, requireCaseEvents);
 
     // Sanity check the response
-    assertEquals(uuid, results.getId());
-    assertNotNull(results.getCaseEvents()); // Not removed at this level
-    verifyCaseEventsQueryParam(requireCaseEvents);
+    assertEquals(testUuid, results.getId());
+    assertNotNull(
+        results.getCaseEvents()); // Response will have events as not removed at this level
+    verifyRequestUsedCaseEventsQueryParam(requireCaseEvents);
   }
 
-  private void verifyCaseEventsQueryParam(boolean expectedCaseEventsValue) {
+  @Test
+  public void testGetCaseByCaseRef_withCaseEvents() throws Exception {
+    doTestGetCaseByCaseRef(true);
+  }
+
+  @Test
+  public void testGetCaseByCaseRef_withNoCaseEvents() throws Exception {
+    doTestGetCaseByCaseRef(false);
+  }
+
+  private void doTestGetCaseByCaseRef(boolean requireCaseEvents) throws Exception {
+    UUID testUuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
+    Long testCaseRef = 52224L;
+
+    // Build results to be returned by the case service
+    CaseContainerDTO resultsFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(
+            restClient.getResource(
+                eq("/cases/ref/{reference}"),
+                eq(CaseContainerDTO.class),
+                any(),
+                any(),
+                eq(testCaseRef)))
+        .thenReturn(resultsFromCaseService);
+
+    // Run the request
+    CaseContainerDTO results =
+        caseServiceClientService.getCaseByCaseRef(testCaseRef, requireCaseEvents);
+
+    // Sanity check the response
+    assertEquals(Long.toString(testCaseRef), results.getCaseRef());
+    assertEquals(testUuid, results.getId());
+    assertNotNull(
+        results.getCaseEvents()); // Response will have events as not removed at this level
+    verifyRequestUsedCaseEventsQueryParam(requireCaseEvents);
+  }
+
+  private void verifyRequestUsedCaseEventsQueryParam(boolean expectedCaseEventsValue) {
     Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
     MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
     assertEquals("[" + expectedCaseEventsValue + "]", queryParams.get("caseEvents").toString());
