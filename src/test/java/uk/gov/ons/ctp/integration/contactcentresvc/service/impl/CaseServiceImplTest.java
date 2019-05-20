@@ -16,6 +16,7 @@ import uk.gov.ons.ctp.common.event.model.*;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -25,6 +26,7 @@ public class CaseServiceImplTest {
   private static final String REQUEST_DATE_TIME = "2017-02-11T16:32:11.863";
 
   @Mock ProductReference productReference;
+  @Mock ContactCentreEventPublisher publisher;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 

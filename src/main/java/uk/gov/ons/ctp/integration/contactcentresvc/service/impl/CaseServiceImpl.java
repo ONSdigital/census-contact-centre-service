@@ -21,6 +21,7 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -29,6 +30,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @Validated()
 public class CaseServiceImpl implements CaseService {
 
+  @Autowired private ContactCentreEventPublisher publisher;
   private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
 
   // when the rest client has been written
@@ -53,6 +55,7 @@ public class CaseServiceImpl implements CaseService {
         searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel);
 
     // publish the event
+    publisher.sendEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
         ResponseDTO.builder()
