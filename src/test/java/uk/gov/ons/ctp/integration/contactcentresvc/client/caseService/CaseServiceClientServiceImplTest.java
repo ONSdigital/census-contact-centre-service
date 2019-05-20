@@ -65,7 +65,7 @@ public class CaseServiceClientServiceImplTest {
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), any()))
+                eq("/cases/{uuid}"), eq(CaseContainerDTO.class), any(), any(), eq(testUuid.toString())))
         .thenReturn(resultsFromCaseService);
 
     // Run the request
@@ -97,7 +97,7 @@ public class CaseServiceClientServiceImplTest {
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(
             restClient.getResource(
-                eq("/cases/ref/{reference}"), eq(CaseContainerDTO.class), any(), any(), any()))
+                eq("/cases/ref/{reference}"), eq(CaseContainerDTO.class), any(), any(), eq(testCaseRef)))
         .thenReturn(resultsFromCaseService);
 
     // Run the request

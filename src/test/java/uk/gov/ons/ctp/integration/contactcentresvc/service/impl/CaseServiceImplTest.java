@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -91,7 +92,7 @@ public class CaseServiceImplTest {
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType("X"); // Not household case
-    Mockito.when(CaseServiceClientService.getCaseByCaseRef(any(), any()))
+    Mockito.when(CaseServiceClientService.getCaseByCaseRef(eq(testCaseRef.getValue()), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request
@@ -108,7 +109,7 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
+    Mockito.when(CaseServiceClientService.getCaseById(eq(uuid), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request
