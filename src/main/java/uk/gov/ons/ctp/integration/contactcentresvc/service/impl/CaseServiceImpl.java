@@ -96,9 +96,6 @@ public class CaseServiceImpl implements CaseService {
     example.setFulfilmentCode(fulfilmentCode);
     example.setRequestChannels(Arrays.asList(Product.RequestChannel.CC));
     example.setDeliveryChannel(deliveryChannel);
-    //    String regionStr = caseContainerDTO.getRegion();
-    //    log.debug("The value of regionStr is:" + regionStr);
-    //    Product.Region region = Product.Region.valueOf(regionStr);
     Product.Region region = Product.Region.valueOf(caseContainerDTO.getRegion().substring(0, 1));
     example.setRegions(Arrays.asList(region));
     List<Product> products = productReference.searchProducts(example);
