@@ -30,10 +30,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.*;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -84,20 +81,13 @@ public class CaseServiceImplTest {
     requestBodyDTOFixture.setForename("Mickey");
     requestBodyDTOFixture.setSurname("Mouse");
     requestBodyDTOFixture.setFulfilmentCode("ABC123");
-
-    //    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
 
     UUID caseIdFixture = requestBodyDTOFixture.getCaseId();
 
-    //    CaseContainerDTO caseContainerDTOFixture =
-    //        caseServiceClient.getCaseById(requestBodyDTOFixture.getCaseId(), false);
-
     CaseContainerDTO caseContainerDTOFixture = new CaseContainerDTO();
 
     caseContainerDTOFixture.setRegion("E");
-
-    //    Product.Region regionFixture = Product.Region.valueOf("E");
 
     String fulfilmentCodeFixture = requestBodyDTOFixture.getFulfilmentCode();
     Product.DeliveryChannel deliveryChannelFixture = Product.DeliveryChannel.POST;
@@ -116,27 +106,6 @@ public class CaseServiceImplTest {
 
     fulfilmentRequestFixture.setFulfilmentCode(productFoundFixture.getFulfilmentCode());
     fulfilmentRequestFixture.setCaseId(caseIdFixture.toString());
-
-    //    fulfilmentRequestFixture.setFulfilmentCode("XXXXXX-XXXXXX");
-    //    fulfilmentRequestFixture.setCaseId("bbd55984-0dbf-4499-bfa7-0aa4228700e9");
-
-    //    Contact contactFixture = fulfilmentRequestFixture.getContact();
-    //    contactFixture.setTitle("Ms");
-    //    contactFixture.setForename("jo");
-    //    contactFixture.setSurname("smith");
-    //    contactFixture.setEmail("me@example.com");
-    //    contactFixture.setTelNo("+447890000000");
-
-    Header headerFixture = new Header();
-    headerFixture.setType("FULFILMENT_REQUESTED");
-    headerFixture.setSource("CONTACT_CENTRE_API");
-    headerFixture.setChannel("CC");
-    //    headerFixture.setDateTime(DateTimeUtil.getCurrentDateTimeInJsonFormat());
-    headerFixture.setTransactionId("c45de4dc-3c3b-11e9-b210-d663bd873d93");
-    fulfilmentRequestedEventFixture.setEvent(headerFixture);
-
-    // verify the values of the fields within the fulfilmentRequestedEvent header
-    //    assertEquals(headerFixture, fulfilmentRequestedEvent.getEvent());
 
     // verify the values of the fields within the fulfilmentRequestedEvent payload
     assertEquals(fulfilmentPayloadFixture, fulfilmentRequestedEvent.getPayload());
