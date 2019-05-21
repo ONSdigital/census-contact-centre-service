@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import ma.glasnost.orika.MapperFacade;
@@ -93,11 +94,13 @@ public class CaseServiceImpl implements CaseService {
 
     Product example = new Product();
     example.setFulfilmentCode(fulfilmentCode);
-    //    example.setRequestChannels(Arrays.asList(RequestChannel.CC));
-    //    example.setDeliveryChannel(deliveryChannel);
-    //    Product.Region region = Product.Region.valueOf(caseContainerDTO.getRegion().substring(0,
-    // 1));
-    //    example.setRegions(Arrays.asList(region));
+    example.setRequestChannels(Arrays.asList(Product.RequestChannel.CC));
+    example.setDeliveryChannel(deliveryChannel);
+    //    String regionStr = caseContainerDTO.getRegion();
+    //    log.debug("The value of regionStr is:" + regionStr);
+    //    Product.Region region = Product.Region.valueOf(regionStr);
+    Product.Region region = Product.Region.valueOf(caseContainerDTO.getRegion().substring(0, 1));
+    example.setRegions(Arrays.asList(region));
     List<Product> products = productReference.searchProducts(example);
 
     if (products.size() == 0) {
