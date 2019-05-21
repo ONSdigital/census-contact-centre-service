@@ -50,17 +50,27 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseId_withCaseDetails() throws Exception {
+  public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
     doTestGetCaseByCaseId(CaseType.H, true);
   }
 
   @Test
-  public void testGetCaseByCaseId_withNoCaseDetails() throws Exception {
+  public void testGetHouseholdCaseByCaseId_withNoCaseDetails() throws Exception {
+    doTestGetCaseByCaseId(CaseType.H, false);
+  }
+
+  @Test
+  public void testGetCommunalCaseByCaseId_withCaseDetails() throws Exception {
+    doTestGetCaseByCaseId(CaseType.C, true);
+  }
+
+  @Test
+  public void testGetCommunalCaseByCaseId_withNoCaseDetails() throws Exception {
     doTestGetCaseByCaseId(CaseType.C, false);
   }
 
   @Test
-  public void testGetCaseByCaseId_nonHouseholdOrCommonualCase() throws Exception {
+  public void testGetCaseByCaseId_nonHouseholdOrCommunalCase() throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -73,7 +83,7 @@ public class CaseServiceImplTest {
       caseService.getCaseById(uuid, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a not a household or commonual case", e.getReason());
+      assertEquals("Case is a not a household or communal case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }
@@ -101,7 +111,7 @@ public class CaseServiceImplTest {
         .thenReturn(caseFromCaseService);
 
     // Run the request, and check that there are no results (all filtered out as there are no
-    // household or commonual cases)
+    // household or communal cases)
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, new CaseRequestDTO(true));
     assertTrue(results.isEmpty());
   }
@@ -124,12 +134,22 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseRef_withCaseDetails() throws Exception {
+  public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
     doTestGetCaseByCaseRef(CaseType.H, true);
   }
 
   @Test
-  public void testGetCaseByCaseRef_withNoCaseDetails() throws Exception {
+  public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
+    doTestGetCaseByCaseRef(CaseType.H, false);
+  }
+
+  @Test
+  public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
+    doTestGetCaseByCaseRef(CaseType.C, true);
+  }
+
+  @Test
+  public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
     doTestGetCaseByCaseRef(CaseType.C, false);
   }
 
@@ -149,7 +169,7 @@ public class CaseServiceImplTest {
       caseService.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a not a household or commonual case", e.getReason());
+      assertEquals("Case is a not a household or communal case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }

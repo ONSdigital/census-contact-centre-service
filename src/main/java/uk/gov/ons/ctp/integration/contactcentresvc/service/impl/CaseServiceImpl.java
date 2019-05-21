@@ -38,9 +38,9 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
 
     // Only return Household cases
-    if (!caseIsHouseholdOrCommonual(caseDetails.getCaseType())) {
+    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or commonual case");
+          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
     }
 
     // Convert from Case service to Contact Centre DTOs
@@ -70,7 +70,7 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> householdCases =
         caseDetails
             .parallelStream()
-            .filter(c -> caseIsHouseholdOrCommonual(c.getCaseType()))
+            .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
             .collect(Collectors.toList());
 
     // Convert from Case service to Contact Centre DTOs
@@ -98,9 +98,9 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
 
     // Only return Household cases
-    if (!caseIsHouseholdOrCommonual(caseDetails.getCaseType())) {
+    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or commonual case");
+          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
     }
 
     // Convert from Case service to Contact Centre DTOs
@@ -116,7 +116,7 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
-  private boolean caseIsHouseholdOrCommonual(String caseTypeString) {
+  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
     return caseTypeString.equals(CaseType.H.name()) || caseTypeString.equals(CaseType.C.name());
   }
 }
