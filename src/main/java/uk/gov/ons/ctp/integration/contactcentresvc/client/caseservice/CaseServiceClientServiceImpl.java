@@ -28,17 +28,19 @@ public class CaseServiceClientServiceImpl {
 
   public CaseContainerDTO getCaseById(UUID caseId, Boolean listCaseEvents) {
     log.debug("getCaseById. Calling Case Service to find case details by ID: " + caseId);
+    log.info("hello there 1");
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("caseEvents", Boolean.toString(listCaseEvents));
 
+    log.info("hello there 2");
     // Ask Case Service to find case details
     String path = appConfig.getCaseServiceSettings().getCaseByIdQueryPath();
     CaseContainerDTO caseDetails =
         caseServiceClient.getResource(
             path, CaseContainerDTO.class, null, queryParams, caseId.toString());
-
+    log.info("hello there 3");
     log.debug("getCaseById. Found details for case: " + caseId);
 
     return caseDetails;

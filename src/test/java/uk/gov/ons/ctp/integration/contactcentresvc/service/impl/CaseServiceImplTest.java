@@ -9,8 +9,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
@@ -47,7 +45,7 @@ public class CaseServiceImplTest {
 
   @Mock ProductReference productReference;
   @Mock ContactCentreEventPublisher publisher;
-  @Mock CaseServiceClientServiceImpl CaseServiceClientService = new CaseServiceClientServiceImpl();
+  @Mock CaseServiceClientServiceImpl caseServiceClient = new CaseServiceClientServiceImpl();
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
@@ -64,22 +62,22 @@ public class CaseServiceImplTest {
   public void caseServiceGood() throws Exception {
 
     // The mocked productReference will return this product
-    Product returnedProduct =
-        Product.builder()
-            .caseType(Product.CaseType.H)
-            .description("foobar")
-            .fulfilmentCode("ABC123")
-            .language("eng")
-            .deliveryChannel(Product.DeliveryChannel.POST)
-            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E, Product.Region.W)))
-            .requestChannels(
-                new ArrayList<Product.RequestChannel>(
-                    List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
-            .build();
-    Mockito.when(productReference.searchProducts(any()))
-        .thenReturn(new ArrayList<Product>(List.of(returnedProduct)));
+    //    Product returnedProduct =
+    //        Product.builder()
+    //            .caseType(Product.CaseType.H)
+    //            .description("foobar")
+    //            .fulfilmentCode("ABC123")
+    //            .language("eng")
+    //            .deliveryChannel(Product.DeliveryChannel.POST)
+    //            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E,
+    // Product.Region.W)))
+    //            .requestChannels(
+    //                new ArrayList<Product.RequestChannel>(
+    //                    List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
+    //            .build();
+    //    Mockito.when(productReference.searchProducts(any()))
+    //        .thenReturn(new ArrayList<Product>(List.of(returnedProduct)));
 
-    UUID caseIdFixture = UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6");
     PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
 
     requestBodyDTOFixture.setCaseId(UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
@@ -90,6 +88,15 @@ public class CaseServiceImplTest {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
+
+    UUID caseIdFixture = requestBodyDTOFixture.getCaseId();
+
+    //    CaseContainerDTO caseContainerDTOFixture =
+    //        caseServiceClient.getCaseById(requestBodyDTOFixture.getCaseId(), false);
+
+    CaseContainerDTO caseContainerDTOFixture = new CaseContainerDTO();
+
+    Product.Region regionFixture = Product.Region.valueOf("E");
 
     // execution - call the first unit under test
     ResponseDTO responseDTO = target.fulfilmentRequestByPost(caseIdFixture, requestBodyDTOFixture);
@@ -102,7 +109,8 @@ public class CaseServiceImplTest {
     Product.DeliveryChannel deliveryChannelFixture = Product.DeliveryChannel.POST;
 
     FulfilmentRequestedEvent fulfilmentRequestedEvent =
-        target.searchProductsAndConstructEvent(fulfilmentCodeFixture, deliveryChannelFixture);
+        target.searchProductsAndConstructEvent(
+            fulfilmentCodeFixture, deliveryChannelFixture, caseContainerDTOFixture, caseIdFixture);
 
     // here you need to construct an Event to compare with the one returned...
     FulfilmentRequestedEvent fulfilmentRequestedEventFixture = new FulfilmentRequestedEvent();
@@ -113,20 +121,6 @@ public class CaseServiceImplTest {
 
     fulfilmentRequestFixture.setFulfilmentCode("XXXXXX-XXXXXX");
     fulfilmentRequestFixture.setCaseId("bbd55984-0dbf-4499-bfa7-0aa4228700e9");
-
-    Address addressFixture = fulfilmentRequestFixture.getAddress();
-    addressFixture.setAddressLine1("1 main street");
-    addressFixture.setAddressLine2("upper upperingham");
-    addressFixture.setAddressLine3("");
-    addressFixture.setTownName("upton");
-    addressFixture.setPostcode("UP103UP");
-    addressFixture.setRegion("E");
-    addressFixture.setLatitude("50.863849");
-    addressFixture.setLongitude("-1.229710");
-    addressFixture.setUprn("XXXXXXXXXXXXX");
-    addressFixture.setArid("XXXXX");
-    addressFixture.setAddressType("CE");
-    addressFixture.setEstabType("XXX");
 
     Contact contactFixture = fulfilmentRequestFixture.getContact();
     contactFixture.setTitle("Ms");
@@ -165,8 +159,7 @@ public class CaseServiceImplTest {
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType("X"); // Not household case
-    Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
-        .thenReturn(caseFromCaseService);
+    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     try {
@@ -196,7 +189,7 @@ public class CaseServiceImplTest {
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType("X"); // Not household case
-    Mockito.when(CaseServiceClientService.getCaseByCaseRef(eq(testCaseRef), any()))
+    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request
@@ -213,8 +206,7 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(CaseServiceClientService.getCaseById(eq(uuid), any()))
-        .thenReturn(caseFromCaseService);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
@@ -229,8 +221,7 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(CaseServiceClientService.getCaseByCaseRef(any(), any()))
-        .thenReturn(caseFromCaseService);
+    Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);

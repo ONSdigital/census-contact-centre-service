@@ -9,6 +9,7 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -54,7 +55,11 @@ public interface CaseService {
   }
 
   public FulfilmentRequestedEvent searchProductsAndConstructEvent(
-      String fulfilmentCode, Product.DeliveryChannel deliveryChannel) throws CTPException;
+      String fulfilmentCode,
+      Product.DeliveryChannel deliveryChannel,
+      CaseContainerDTO caseContainerDTO,
+      UUID caseId)
+      throws CTPException;
 
   public default ResponseDTO fulfilmentRequestBySMS(
       UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
