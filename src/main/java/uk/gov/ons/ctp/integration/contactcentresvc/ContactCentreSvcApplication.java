@@ -47,7 +47,11 @@ public class ContactCentreSvcApplication {
   // This is the http status to be used for error mapping if a status is not in the mapping table
   HttpStatus defaultHttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
-  /** Constructor for ContactCentreSvcApplication */
+  /**
+   * Constructor for ContactCentreSvcApplication
+   *
+   * @param appConfig contains the configuration for the current deployment.
+   */
   @Autowired
   public ContactCentreSvcApplication(final AppConfig appConfig) {
     this.appConfig = appConfig;
