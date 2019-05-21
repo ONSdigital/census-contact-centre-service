@@ -26,6 +26,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.Case
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -50,20 +51,20 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(true);
+    doTestGetCaseByCaseId(CaseType.H, true);
   }
 
   @Test
   public void testGetCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(false);
+    doTestGetCaseByCaseId(CaseType.C, false);
   }
 
   @Test
-  public void testGetCaseByCaseId_nonHouseholdCase() throws Exception {
+  public void testGetCaseByCaseId_nonHouseholdOrCommonualCase() throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("X"); // Not household case
+    caseFromCaseService.setCaseType("HI"); // Not household case
     Mockito.when(CaseServiceClientService.getCaseById(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -72,7 +73,7 @@ public class CaseServiceImplTest {
       caseService.getCaseById(uuid, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a non-household case", e.getReason());
+      assertEquals("Case is a not a household or commonual case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }
@@ -88,19 +89,19 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByUprn_nonHouseholdCase_empty() throws Exception {
+  public void testGetCaseByUprn_nonHouseholdCase_emptyResultSet() throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(1235532324343434L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("X"); // Not household case
-    caseFromCaseService.get(1).setCaseType("X"); // Not household case
+    caseFromCaseService.get(0).setCaseType("CI");
+    caseFromCaseService.get(1).setCaseType("HI");
     Mockito.when(CaseServiceClientService.getCaseByUprn(eq(uprn.getValue()), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request, and check that there are no results (all filtered out as there are no
-    // household cases)
+    // household or commonual cases)
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, new CaseRequestDTO(true));
     assertTrue(results.isEmpty());
   }
@@ -119,17 +120,17 @@ public class CaseServiceImplTest {
     // Run the request
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, new CaseRequestDTO(true));
     assertEquals(1, results.size());
-    verifyCase(results.get(0), uuid2, true);
+    verifyCase(results.get(0), uuid2, CaseType.H, true);
   }
 
   @Test
   public void testGetCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(true);
+    doTestGetCaseByCaseRef(CaseType.H, true);
   }
 
   @Test
   public void testGetCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(false);
+    doTestGetCaseByCaseRef(CaseType.C, false);
   }
 
   @Test
@@ -148,15 +149,16 @@ public class CaseServiceImplTest {
       caseService.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a non-household case", e.getReason());
+      assertEquals("Case is a not a household or commonual case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }
 
-  private void doTestGetCaseByCaseId(boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents) throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType(caseType.name());
     Mockito.when(CaseServiceClientService.getCaseById(eq(uuid), any()))
         .thenReturn(caseFromCaseService);
 
@@ -164,7 +166,7 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = caseService.getCaseById(uuid, requestParams);
 
-    verifyCase(results, uuid, caseEvents);
+    verifyCase(results, uuid, caseType, caseEvents);
   }
 
   private void doTestGetCaseByUprn(boolean caseEvents) throws Exception {
@@ -173,6 +175,8 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    caseFromCaseService.get(0).setCaseType(CaseType.H.name());
+    caseFromCaseService.get(1).setCaseType(CaseType.C.name());
     Mockito.when(CaseServiceClientService.getCaseByUprn(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -180,16 +184,17 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, requestParams);
 
-    verifyCase(results.get(0), uuid, caseEvents);
-    verifyCase(results.get(1), uuid2, caseEvents);
+    verifyCase(results.get(0), uuid, CaseType.H, caseEvents);
+    verifyCase(results.get(1), uuid2, CaseType.C, caseEvents);
   }
 
-  private void doTestGetCaseByCaseRef(boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {
     long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType(caseType.name());
     Mockito.when(CaseServiceClientService.getCaseByCaseRef(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -197,14 +202,15 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = caseService.getCaseByCaseReference(testCaseRef, requestParams);
 
-    verifyCase(results, uuid, caseEvents);
+    verifyCase(results, uuid, caseType, caseEvents);
   }
 
-  private void verifyCase(CaseDTO results, UUID expectedUUID, boolean caseEventsExpected)
+  private void verifyCase(
+      CaseDTO results, UUID expectedUUID, CaseType expectedCaseType, boolean caseEventsExpected)
       throws ParseException {
     assertEquals(expectedUUID, results.getId());
     assertEquals("1000000000000001", results.getCaseRef());
-    assertEquals("H", results.getCaseType());
+    assertEquals(expectedCaseType.name(), results.getCaseType());
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
 
     if (caseEventsExpected) {
