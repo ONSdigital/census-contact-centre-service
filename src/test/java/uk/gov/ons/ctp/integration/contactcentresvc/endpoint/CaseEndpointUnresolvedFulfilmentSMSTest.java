@@ -26,7 +26,6 @@ import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
 
 /** Contact Centre Data Endpoint Unit tests */
 public final class CaseEndpointUnresolvedFulfilmentSMSTest {
@@ -44,7 +43,6 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
 
   private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
 
-  @Mock private EventServiceImpl eventSvc;
   @Mock private CaseService caseService;
 
   @InjectMocks private CaseEndpoint caseEndpoint;

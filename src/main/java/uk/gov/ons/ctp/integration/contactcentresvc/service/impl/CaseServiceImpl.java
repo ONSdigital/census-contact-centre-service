@@ -23,6 +23,8 @@ import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
+import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
+import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
@@ -60,22 +62,14 @@ public class CaseServiceImpl implements CaseService {
 
     UUID caseId = requestBodyDTO.getCaseId();
 
-    CaseContainerDTO caseContainerDTO = caseServiceClient.getCaseById(caseId, false);
-
-    String fulfilmentCode = requestBodyDTO.getFulfilmentCode();
-    Product.DeliveryChannel deliveryChannel = DeliveryChannel.POST;
-
-    FulfilmentRequestedEvent fulfilmentRequestedEvent =
-        searchProductsAndConstructEvent(fulfilmentCode, deliveryChannel, caseContainerDTO, caseId);
-
-    FulfilmentPayload fulfilmentPayload = fulfilmentRequestedEvent.getPayload();
-
-    FulfilmentRequest fulfilmentRequest = fulfilmentPayload.getFulfilmentRequest();
-
-    Contact contact = fulfilmentRequest.getContact();
+    Contact contact = new Contact();
     contact.setTitle(requestBodyDTO.getTitle());
     contact.setForename(requestBodyDTO.getForename());
     contact.setSurname(requestBodyDTO.getSurname());
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent =
+        createFulfilmentEvent(
+            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
 
     publisher.sendEvent(fulfilmentRequestedEvent);
 
@@ -233,5 +227,85 @@ public class CaseServiceImpl implements CaseService {
 
   private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
     return caseTypeString.equals(CaseType.H.name()) || caseTypeString.equals(CaseType.C.name());
+  }
+
+  /**
+   * create a contact centre fulfilment request event
+   *
+   * @param fulfilmentCode the code for the product requested
+   * @param deliveryChannel how the fulfilment should be delivered
+   * @param caseId the id of the household case the fulfilment is for
+   * @return the request event to be delivered to the events exchange
+   * @throws CTPException the requested product is invalid for the parameters given
+   */
+  private FulfilmentRequestedEvent createFulfilmentEvent(
+      String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
+      throws CTPException {
+    log.with(fulfilmentCode)
+        .info("Entering createFulfilmentEvent method in class CaseServiceImpl.");
+
+    Region region =
+        Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
+    Product product = findProduct(fulfilmentCode, deliveryChannel, region);
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
+
+    // Set up the event header
+    Header header =
+        Header.builder()
+            .type(FULFILMENT_REQUESTED_TYPE)
+            .source(CONTACT_CENTRE_SOURCE)
+            .channel(RequestChannel.CC.name())
+            .dateTime(DateTimeUtil.nowUTC())
+            .transactionId(UUID.randomUUID().toString())
+            .build();
+    fulfilmentRequestedEvent.setEvent(header);
+
+    // Set up the event payload request
+    FulfilmentRequest fulfilmentRequest =
+        fulfilmentRequestedEvent.getPayload().getFulfilmentRequest();
+    if (product.getCaseType().toString().equals(Product.CaseType.HI.name())) {
+      fulfilmentRequest.setIndividualCaseId(UUID.randomUUID().toString());
+    }
+
+    fulfilmentRequest.setFulfilmentCode(product.getFulfilmentCode());
+    fulfilmentRequest.setCaseId(caseId.toString());
+    fulfilmentRequest.setContact(contact);
+
+    return fulfilmentRequestedEvent;
+  }
+
+  /**
+   * find the product using the parameters provided
+   *
+   * @param fulfilmentCode the code for the product requested
+   * @param deliveryChannel how should the fulfilment be delivered
+   * @param region identifies the region of the household case the fulfilment is for - used to
+   *     confirm the requested products eligibility
+   * @return the matching product
+   * @throws CTPException the product could not found or is ineligible for the given parameters
+   */
+  private Product findProduct(
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel, Product.Region region)
+      throws CTPException {
+    log.info("Entering findProduct method in class CaseServiceImpl.");
+    Product example =
+        Product.builder()
+            .fulfilmentCode("")
+            .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+            .deliveryChannel(deliveryChannel)
+            .regions(Arrays.asList(region))
+            .build();
+    List<Product> products = productReference.searchProducts(example);
+    if (products.size() == 0) {
+      log.with(products).warn("Compatible product cannot be found");
+      throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");
+    }
+
+    if (products.size() > 1) {
+      log.with(products).warn("More then one matching product was found");
+      throw new CTPException(Fault.SYSTEM_ERROR, "More than one matching product was found");
+    }
+    return products.get(0);
   }
 }
