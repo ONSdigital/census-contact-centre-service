@@ -6,10 +6,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import ma.glasnost.orika.MapperFacade;
@@ -65,6 +67,19 @@ public class CaseServiceImplTest {
   @Test
   public void caseServiceGood() throws Exception {
 
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
+
+//    Product expectedExample =
+//            Product.builder()
+//                    .fulfilmentCode(fulfilmentCode)
+//                    .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+//                    .deliveryChannel(deliveryChannel)
+//                    .regions(Arrays.asList(region))
+//                    .build();
+
     // The mocked productReference will return this product
     Product productFoundFixture =
         Product.builder()
@@ -83,39 +98,30 @@ public class CaseServiceImplTest {
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
 
-    requestBodyDTOFixture.setCaseId(UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
+    requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
     requestBodyDTOFixture.setTitle("Mr");
     requestBodyDTOFixture.setForename("Mickey");
     requestBodyDTOFixture.setSurname("Mouse");
     requestBodyDTOFixture.setFulfilmentCode("ABC123");
     requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
 
-    UUID caseIdFixture = requestBodyDTOFixture.getCaseId();
-
-    CaseContainerDTO caseContainerDTOFixture = new CaseContainerDTO();
-
-    caseContainerDTOFixture.setRegion("E");
-
-    String fulfilmentCodeFixture = requestBodyDTOFixture.getFulfilmentCode();
-    Product.DeliveryChannel deliveryChannelFixture = Product.DeliveryChannel.POST;
+    UUID notNeededFixture = null;
 
     // execution - call the unit under test
-    FulfilmentRequestedEvent fulfilmentRequestedEvent =
-        target.searchProductsAndConstructEvent(
-            fulfilmentCodeFixture, deliveryChannelFixture, caseContainerDTOFixture, caseIdFixture);
+    ResponseDTO responseDTOFixture =
+        target.fulfilmentRequestByPost(notNeededFixture, requestBodyDTOFixture);
 
-    // here you need to construct an Event to compare with the one returned...
-    FulfilmentRequestedEvent fulfilmentRequestedEventFixture = new FulfilmentRequestedEvent();
+    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg = ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
+    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    assertEquals("FULFILMENT_REQUESTED", fulfilmentRequestedEventArg.getValue().getEvent().getType());
+    assertEquals("CONTACT_CENTRE_API", fulfilmentRequestedEventArg.getValue().getEvent().getSource());
+    assertEquals("CC", fulfilmentRequestedEventArg.getValue().getEvent().getChannel());
+    assertEquals(requestBodyDTOFixture.getFulfilmentCode(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getFulfilmentCode());
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getCaseId());
+    assertEquals(requestBodyDTOFixture.getTitle(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getTitle());
+    assertEquals(requestBodyDTOFixture.getForename(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getForename());
+    assertEquals(requestBodyDTOFixture.getSurname(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getSurname());
 
-    FulfilmentPayload fulfilmentPayloadFixture = fulfilmentRequestedEventFixture.getPayload();
-
-    FulfilmentRequest fulfilmentRequestFixture = fulfilmentPayloadFixture.getFulfilmentRequest();
-
-    fulfilmentRequestFixture.setFulfilmentCode(productFoundFixture.getFulfilmentCode());
-    fulfilmentRequestFixture.setCaseId(caseIdFixture.toString());
-
-    // verify the values of the fields within the fulfilmentRequestedEvent payload
-    assertEquals(fulfilmentPayloadFixture, fulfilmentRequestedEvent.getPayload());
   }
 
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {

@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.model.Contact;
-import uk.gov.ons.ctp.common.event.model.FulfilmentPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.common.event.model.Header;
@@ -46,7 +45,6 @@ public class CaseServiceImpl implements CaseService {
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
   private static final String FULFILMENT_REQUESTED_TYPE = "FULFILMENT_REQUESTED";
   private static final String CONTACT_CENTRE_SOURCE = "CONTACT_CENTRE_API";
-  private static final String CONTACT_CENTRE_CHANNEL = "CC";
 
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
 
@@ -77,65 +75,6 @@ public class CaseServiceImpl implements CaseService {
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return response;
-  }
-
-  public FulfilmentRequestedEvent searchProductsAndConstructEvent(
-      String fulfilmentCode,
-      Product.DeliveryChannel deliveryChannel,
-      CaseContainerDTO caseContainerDTO,
-      UUID caseId)
-      throws CTPException {
-    log.with(fulfilmentCode)
-        .info("Now in the searchProductsAndConstructEvent method in class CaseServiceImpl.");
-
-    Product example = new Product();
-    example.setFulfilmentCode(fulfilmentCode);
-    example.setRequestChannels(Arrays.asList(Product.RequestChannel.CC));
-    example.setDeliveryChannel(deliveryChannel);
-    Product.Region region = Product.Region.valueOf(caseContainerDTO.getRegion().substring(0, 1));
-    example.setRegions(Arrays.asList(region));
-    List<Product> products = productReference.searchProducts(example);
-
-    if (products.size() == 0) {
-      log.with(products).warn("Compatible product cannot be found");
-      throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");
-    }
-
-    if (products.size() > 1) {
-      log.with(products).warn("More then one matching product was found");
-      throw new CTPException(Fault.SYSTEM_ERROR, "More then one matching product was found");
-    }
-
-    Product productFound = products.get(0);
-
-    FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
-
-    FulfilmentPayload fulfilmentPayload = fulfilmentRequestedEvent.getPayload();
-
-    FulfilmentRequest fulfilmentRequest = fulfilmentPayload.getFulfilmentRequest();
-
-    Product.CaseType caseType = productFound.getCaseType();
-
-    if (caseType.toString().equals("HI")) {
-      UUID newUUID;
-
-      newUUID = UUID.randomUUID();
-
-      fulfilmentRequest.setIndividualCaseId(newUUID.toString());
-    }
-
-    fulfilmentRequest.setFulfilmentCode(productFound.getFulfilmentCode());
-    fulfilmentRequest.setCaseId(caseId.toString());
-
-    Header header = new Header();
-    header.setType(FULFILMENT_REQUESTED_TYPE);
-    header.setSource(CONTACT_CENTRE_SOURCE);
-    header.setChannel(CONTACT_CENTRE_CHANNEL);
-    header.setDateTime(DateTimeUtil.nowUTC());
-    header.setTransactionId(UUID.randomUUID().toString());
-    fulfilmentRequestedEvent.setEvent(header);
-
-    return fulfilmentRequestedEvent;
   }
 
   @Override
@@ -302,10 +241,6 @@ public class CaseServiceImpl implements CaseService {
       throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");
     }
 
-    if (products.size() > 1) {
-      log.with(products).warn("More then one matching product was found");
-      throw new CTPException(Fault.SYSTEM_ERROR, "More than one matching product was found");
-    }
     return products.get(0);
   }
 }
