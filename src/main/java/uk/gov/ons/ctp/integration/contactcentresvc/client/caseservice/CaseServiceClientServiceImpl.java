@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,24 @@ public class CaseServiceClientServiceImpl {
     log.debug("getCaseById. Found details for case: " + caseId);
 
     return caseDetails;
+  }
+
+  public List<CaseContainerDTO> getCaseByUprn(Long uprn, Boolean listCaseEvents) {
+    log.debug("getCaseByUprn. Calling Case Service to find case details by Uprn: " + uprn);
+
+    // Build map for query params
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    queryParams.add("caseEvents", Boolean.toString(listCaseEvents));
+
+    // Ask Case Service to find case details
+    String path = appConfig.getCaseServiceSettings().getCaseByUprnQueryPath();
+    List<CaseContainerDTO> cases =
+        caseServiceClient.getResources(
+            path, CaseContainerDTO[].class, null, queryParams, Long.toString(uprn));
+
+    log.debug("getCaseByUprn. Found details for Uprn" + uprn);
+
+    return cases;
   }
 
   public CaseContainerDTO getCaseByCaseRef(Long caseReference, Boolean listCaseEvents) {

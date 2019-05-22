@@ -1,7 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -12,7 +10,6 @@ import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
@@ -27,14 +24,8 @@ public interface CaseService {
 
   public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO);
 
-  public default List<CaseDTO> getCaseByUPRN(
-      final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
-    List<CaseDTO> cases = new ArrayList<>();
-    cases.add(createFakeCaseDTO());
-    cases.add(createFakeCaseDTO());
-    cases.add(createFakeCaseDTO());
-    return cases;
-  }
+  public List<CaseDTO> getCaseByUPRN(
+      final UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO);
 
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO);
 
@@ -103,48 +94,6 @@ public interface CaseService {
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     return fakeResponse;
-  }
-
-  private CaseDTO createFakeCaseDTO() {
-    return createFakeCaseDTO(createSemiRandomFakeUUID());
-  }
-
-  private CaseDTO createFakeCaseDTO(UUID caseId) {
-    CaseEventDTO caseEventDTO1 =
-        CaseEventDTO.builder()
-            .description("Made up case event DTO")
-            .category("create")
-            .createdDateTime(DateTimeUtil.nowUTC())
-            .build();
-    CaseEventDTO caseEventDTO2 =
-        CaseEventDTO.builder()
-            .description("Another fake case event DTO")
-            .category("update")
-            .createdDateTime(DateTimeUtil.nowUTC())
-            .build();
-    CaseEventDTO caseEventDTO3 =
-        CaseEventDTO.builder()
-            .description("Yet another fake case event DTO")
-            .category("update")
-            .createdDateTime(DateTimeUtil.nowUTC())
-            .build();
-
-    CaseDTO fakeCaseDTO =
-        CaseDTO.builder()
-            .id(caseId)
-            .caseRef("123456789")
-            .caseType("H")
-            .createdDateTime(DateTimeUtil.nowUTC())
-            .addressLine1("The Novelty Rock Emporium")
-            .addressLine2("Rock House")
-            .addressLine3("Cowick Lane")
-            .townName("Exeter")
-            .region("E")
-            .postcode("EX2 9HY")
-            .caseEvents(Arrays.asList(caseEventDTO1, caseEventDTO2, caseEventDTO3))
-            .build();
-
-    return fakeCaseDTO;
   }
 
   private UUID createSemiRandomFakeUUID() {

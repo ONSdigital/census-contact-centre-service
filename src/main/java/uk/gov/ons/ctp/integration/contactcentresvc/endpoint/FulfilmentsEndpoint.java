@@ -23,7 +23,12 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
 
   private FulfilmentsService fulfilmentsService;
 
-  /** Constructor for ContactCentre Fulfilment endpoint */
+  /**
+   * Constructor for ContactCentre Fulfilment endpoint
+   *
+   * @param fulfilmentsService is a service layer object that will do processing on behalf of this
+   *     endpoint.
+   */
   @Autowired
   public FulfilmentsEndpoint(final FulfilmentsService fulfilmentsService) {
     this.fulfilmentsService = fulfilmentsService;
@@ -32,8 +37,8 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
   /**
    * the GET end point to retrieve fulfilment ie product codes for case type and region
    *
-   * @param caseType the case type (optional)
-   * @param region the region (optional)
+   * @param requestDTO holds the case type and region, to be used in the search of available
+   *     fulfilments.
    * @return the list of fulfilments
    * @throws CTPException something went wrong
    */

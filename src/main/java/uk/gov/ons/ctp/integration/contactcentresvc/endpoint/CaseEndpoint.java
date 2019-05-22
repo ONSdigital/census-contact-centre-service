@@ -42,7 +42,12 @@ public class CaseEndpoint implements CTPEndpoint {
 
   private CaseService caseService;
 
-  /** Constructor for ContactCentreDataEndpoint */
+  /**
+   * Constructor for ContactCentreDataEndpoint
+   *
+   * @param caseService is a service layer object that we be doing the processing on behalf of this
+   *     endpoint.
+   */
   @Autowired
   public CaseEndpoint(final CaseService caseService) {
     this.caseService = caseService;
@@ -221,6 +226,7 @@ public class CaseEndpoint implements CTPEndpoint {
   /**
    * the POST end point to request an appointment
    *
+   * @param caseId is the case to schedule an appointment for.
    * @param requestBodyDTO the request body
    * @return response entity
    * @throws CTPException something went wrong
@@ -241,7 +247,8 @@ public class CaseEndpoint implements CTPEndpoint {
   /**
    * the POST end point to report a refusal - caseId may be "unknown"
    *
-   * @param requestBodyDTO the request body
+   * @param caseId is the case to log the refusal against. May contain 'unknown'.
+   * @param requestBodyDTO the request body.
    * @return response entity
    * @throws CTPException something went wrong
    */

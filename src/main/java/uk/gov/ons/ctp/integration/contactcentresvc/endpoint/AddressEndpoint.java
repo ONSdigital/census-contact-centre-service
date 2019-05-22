@@ -30,7 +30,6 @@ public final class AddressEndpoint implements CTPEndpoint {
    *
    * @param addressService is the object that this endpoint can call for address and postcode
    *     searches.
-   * @param mapperFacade is a MapperFacade object.
    */
   @Autowired
   public AddressEndpoint(final AddressService addressService) {
