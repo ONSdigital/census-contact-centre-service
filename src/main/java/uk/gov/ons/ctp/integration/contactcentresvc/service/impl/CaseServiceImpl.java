@@ -291,7 +291,7 @@ public class CaseServiceImpl implements CaseService {
     log.info("Entering findProduct method in class CaseServiceImpl.");
     Product example =
         Product.builder()
-            .fulfilmentCode("")
+            .fulfilmentCode(fulfilmentCode)
             .requestChannels(Arrays.asList(Product.RequestChannel.CC))
             .deliveryChannel(deliveryChannel)
             .regions(Arrays.asList(region))
