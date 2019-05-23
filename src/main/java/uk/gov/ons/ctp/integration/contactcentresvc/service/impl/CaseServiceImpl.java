@@ -203,7 +203,7 @@ public class CaseServiceImpl implements CaseService {
     // Set up the event payload request
     FulfilmentRequest fulfilmentRequest =
         fulfilmentRequestedEvent.getPayload().getFulfilmentRequest();
-    if (product.getCaseType().toString().equals(Product.CaseType.HI.name())) {
+    if (product.getCaseType().equals(Product.CaseType.HI)) {
       fulfilmentRequest.setIndividualCaseId(UUID.randomUUID().toString());
     }
 
@@ -228,14 +228,14 @@ public class CaseServiceImpl implements CaseService {
       String fulfilmentCode, Product.DeliveryChannel deliveryChannel, Product.Region region)
       throws CTPException {
     log.info("Entering findProduct method in class CaseServiceImpl.");
-    Product example =
+    Product searchCriteria =
         Product.builder()
             .fulfilmentCode(fulfilmentCode)
             .requestChannels(Arrays.asList(Product.RequestChannel.CC))
             .deliveryChannel(deliveryChannel)
             .regions(Arrays.asList(region))
             .build();
-    List<Product> products = productReference.searchProducts(example);
+    List<Product> products = productReference.searchProducts(searchCriteria);
     if (products.size() == 0) {
       log.with(products).warn("Compatible product cannot be found");
       throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");

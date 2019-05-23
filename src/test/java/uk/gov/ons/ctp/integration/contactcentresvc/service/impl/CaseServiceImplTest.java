@@ -25,6 +25,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.model.*;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
@@ -65,63 +66,109 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void caseServiceGood() throws Exception {
+  public void testFulfilmentRequestByPostSuccess_withCaseTypeH() throws Exception {
+    doFulfilmentRequestByPostSuccess(Product.CaseType.H);
+  }
+
+  @Test
+  public void testFulfilmentRequestByPostSuccess_withCaseTypeHI() throws Exception {
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HI);
+  }
+
+  public void doFulfilmentRequestByPostSuccess(Product.CaseType caseType) throws Exception {
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
-//    Product expectedExample =
-//            Product.builder()
-//                    .fulfilmentCode(fulfilmentCode)
-//                    .requestChannels(Arrays.asList(Product.RequestChannel.CC))
-//                    .deliveryChannel(deliveryChannel)
-//                    .regions(Arrays.asList(region))
-//                    .build();
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseFromCaseService);
+
+    Product expectedSearchCriteria = getExpectedSearchCriteria(requestBodyDTOFixture);
 
     // The mocked productReference will return this product
-    Product productFoundFixture =
-        Product.builder()
-            .caseType(Product.CaseType.H)
-            .description("foobar")
-            .fulfilmentCode("ABC123")
-            .language("eng")
-            .deliveryChannel(Product.DeliveryChannel.POST)
-            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
-            .requestChannels(
-                new ArrayList<Product.RequestChannel>(
-                    List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
-            .build();
-    Mockito.when(productReference.searchProducts(any()))
+    Product productFoundFixture = getProductFoundFixture(caseType);
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
-    PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
-
-    requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
-    requestBodyDTOFixture.setTitle("Mr");
-    requestBodyDTOFixture.setForename("Mickey");
-    requestBodyDTOFixture.setSurname("Mouse");
-    requestBodyDTOFixture.setFulfilmentCode("ABC123");
-    requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
-
-    UUID notNeededFixture = null;
-
     // execution - call the unit under test
-    ResponseDTO responseDTOFixture =
-        target.fulfilmentRequestByPost(notNeededFixture, requestBodyDTOFixture);
+    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
 
-    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg = ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
+    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
+        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
     verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
-    assertEquals("FULFILMENT_REQUESTED", fulfilmentRequestedEventArg.getValue().getEvent().getType());
-    assertEquals("CONTACT_CENTRE_API", fulfilmentRequestedEventArg.getValue().getEvent().getSource());
-    assertEquals("CC", fulfilmentRequestedEventArg.getValue().getEvent().getChannel());
-    assertEquals(requestBodyDTOFixture.getFulfilmentCode(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getFulfilmentCode());
-    assertEquals(requestBodyDTOFixture.getCaseId().toString(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getCaseId());
-    assertEquals(requestBodyDTOFixture.getTitle(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getTitle());
-    assertEquals(requestBodyDTOFixture.getForename(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getForename());
-    assertEquals(requestBodyDTOFixture.getSurname(), fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest().getContact().getSurname());
 
+    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
+
+    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
+    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
+    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+
+    FulfilmentRequest actualFulfilmentRequest =
+        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+
+    assertEquals(
+        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
+
+    Contact actualContact = actualFulfilmentRequest.getContact();
+
+    assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
+    assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
+    assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
+  }
+
+  private Product getProductFoundFixture(Product.CaseType caseType) {
+    return Product.builder()
+        .caseType(caseType)
+        .description("foobar")
+        .fulfilmentCode("ABC123")
+        .language("eng")
+        .deliveryChannel(Product.DeliveryChannel.POST)
+        .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
+        .requestChannels(
+            new ArrayList<Product.RequestChannel>(
+                List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
+        .build();
+  }
+
+  private Product getExpectedSearchCriteria(PostalFulfilmentRequestDTO requestBodyDTOFixture) {
+    return Product.builder()
+        .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
+        .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+        .deliveryChannel(Product.DeliveryChannel.POST)
+        .regions(Arrays.asList(Product.Region.E))
+        .build();
+  }
+
+  @Test
+  public void caseServiceProductNotFound() throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseData);
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture = getPostalFulfilmentRequestDTO(caseData);
+
+    Product expectedSearchCriteria =
+        Product.builder()
+            .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
+            .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+            .deliveryChannel(Product.DeliveryChannel.POST)
+            .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
+            .build();
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>());
+
+    try {
+      // execution - call the unit under test
+      ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertEquals("Compatible product cannot be found", e.getMessage());
+      //      assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+    }
   }
 
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
@@ -322,5 +369,17 @@ public class CaseServiceImplTest {
     SimpleDateFormat dateParser = new SimpleDateFormat(DateTimeUtil.DATE_FORMAT_IN_JSON);
 
     return dateParser.parse(datetime).getTime();
+  }
+
+  private PostalFulfilmentRequestDTO getPostalFulfilmentRequestDTO(
+      CaseContainerDTO caseFromCaseService) {
+    PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
+    requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
+    requestBodyDTOFixture.setTitle("Mr");
+    requestBodyDTOFixture.setForename("Mickey");
+    requestBodyDTOFixture.setSurname("Mouse");
+    requestBodyDTOFixture.setFulfilmentCode("ABC123");
+    requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
+    return requestBodyDTOFixture;
   }
 }
