@@ -72,59 +72,8 @@ public class CaseServiceImplTest {
     doFulfilmentRequestByPostSuccess(Product.CaseType.HI);
   }
 
-  public void doFulfilmentRequestByPostSuccess(Product.CaseType caseType) throws Exception {
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
-
-    PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseFromCaseService);
-
-    Product expectedSearchCriteria = getExpectedSearchCriteria(requestBodyDTOFixture);
-
-    // The mocked productReference will return this product
-    Product productFoundFixture = getProductFoundFixture(caseType);
-    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
-        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
-
-    // execution - call the unit under test
-    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
-
-    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
-        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
-
-    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
-
-    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
-    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
-    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
-
-    FulfilmentRequest actualFulfilmentRequest =
-        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
-
-    assertEquals(
-        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
-    assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
-
-    //If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
-    if (caseType == Product.CaseType.HI) {
-      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
-    } else {
-      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
-    }
-
-    Contact actualContact = actualFulfilmentRequest.getContact();
-
-    assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
-    assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
-    assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
-  }
-
   @Test
-  public void caseServiceProductNotFound() throws Exception {
+  public void testFulfilmentRequestByPostFailure_productNotFound() throws Exception {
 
     // Build results to be returned from search
     CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -132,13 +81,8 @@ public class CaseServiceImplTest {
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture = getPostalFulfilmentRequestDTO(caseData);
 
-    Product expectedSearchCriteria =
-        Product.builder()
-            .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
-            .requestChannels(Arrays.asList(Product.RequestChannel.CC))
-            .deliveryChannel(Product.DeliveryChannel.POST)
-            .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
-            .build();
+    Product expectedSearchCriteria = getExpectedSearchCriteria(caseData, requestBodyDTOFixture);
+
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
 
@@ -366,24 +310,77 @@ public class CaseServiceImplTest {
 
   private Product getProductFoundFixture(Product.CaseType caseType) {
     return Product.builder()
-            .caseType(caseType)
-            .description("foobar")
-            .fulfilmentCode("ABC123")
-            .language("eng")
-            .deliveryChannel(Product.DeliveryChannel.POST)
-            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
-            .requestChannels(
-                    new ArrayList<Product.RequestChannel>(
-                            List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
-            .build();
+        .caseType(caseType)
+        .description("foobar")
+        .fulfilmentCode("ABC123")
+        .language("eng")
+        .deliveryChannel(Product.DeliveryChannel.POST)
+        .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
+        .requestChannels(
+            new ArrayList<Product.RequestChannel>(
+                List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
+        .build();
   }
 
-  private Product getExpectedSearchCriteria(PostalFulfilmentRequestDTO requestBodyDTOFixture) {
+  private Product getExpectedSearchCriteria(
+      CaseContainerDTO caseData, PostalFulfilmentRequestDTO requestBodyDTOFixture) {
     return Product.builder()
-            .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
-            .requestChannels(Arrays.asList(Product.RequestChannel.CC))
-            .deliveryChannel(Product.DeliveryChannel.POST)
-            .regions(Arrays.asList(Product.Region.E))
-            .build();
+        .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
+        .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+        .deliveryChannel(Product.DeliveryChannel.POST)
+        .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
+        .build();
+  }
+
+  private void doFulfilmentRequestByPostSuccess(Product.CaseType caseType) throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseFromCaseService);
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(caseFromCaseService, requestBodyDTOFixture);
+
+    // The mocked productReference will return this product
+    Product productFoundFixture = getProductFoundFixture(caseType);
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
+
+    // execution - call the unit under test
+    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+
+    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
+        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
+    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+
+    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
+
+    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
+    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
+    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+
+    FulfilmentRequest actualFulfilmentRequest =
+        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+
+    assertEquals(
+        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
+
+    // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
+    if (caseType == Product.CaseType.HI) {
+      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    } else {
+      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    }
+
+    Contact actualContact = actualFulfilmentRequest.getContact();
+
+    assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
+    assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
+    assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
   }
 }
