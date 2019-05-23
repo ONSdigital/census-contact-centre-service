@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class CaseContainerDTO {
 
-  private UUID id;
+  private String caseRef;
 
   private String arid;
 
@@ -17,10 +17,6 @@ public class CaseContainerDTO {
   private String estabType;
 
   private String uprn;
-
-  private String caseRef;
-
-  private String caseType;
 
   private Date createdDateTime;
 
@@ -40,8 +36,6 @@ public class CaseContainerDTO {
 
   private String abpCode;
 
-  private String region;
-
   private String latitude;
 
   private String longitude;
@@ -54,5 +48,13 @@ public class CaseContainerDTO {
 
   private String lad;
 
+  private String state;
+
   private List<EventDTO> caseEvents;
+
+  private UUID id;
+
+  private String caseType;
+
+  private String region;
 }
