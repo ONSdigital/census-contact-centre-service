@@ -43,6 +43,7 @@ public final class VersionEndpointTest {
     mockMvc
         .perform(get("/version"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.dataVersion", matchesRegex("^[0-9]+\\.[0-9]+\\.[0-9]+$")));
+        .andExpect(jsonPath("$.apiVersion", matchesRegex("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
+        .andExpect(jsonPath("$.dataVersion", matchesRegex("^[0-9]+$")));
   }
 }
