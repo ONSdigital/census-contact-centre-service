@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -9,8 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;

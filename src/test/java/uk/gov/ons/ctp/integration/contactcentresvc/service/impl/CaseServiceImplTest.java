@@ -52,7 +52,7 @@ public class CaseServiceImplTest {
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
 
-    // Mock the case service settings
+    // Mock out a whitelist of allowable case events
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
@@ -244,7 +244,8 @@ public class CaseServiceImplTest {
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
 
     if (caseEventsExpected) {
-      // Note that the test data contains 3 events, but the 'X11' event is not on the whitelist
+      // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
+      // on the whitelist
       assertEquals(2, results.getCaseEvents().size());
       CaseEventDTO event = results.getCaseEvents().get(0);
       assertEquals("Initial creation of case", event.getDescription());
