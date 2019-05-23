@@ -1,9 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -112,34 +109,18 @@ public class CaseServiceImplTest {
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
 
+    //If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
+    if (caseType == Product.CaseType.HI) {
+      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    } else {
+      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    }
+
     Contact actualContact = actualFulfilmentRequest.getContact();
 
     assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
-  }
-
-  private Product getProductFoundFixture(Product.CaseType caseType) {
-    return Product.builder()
-        .caseType(caseType)
-        .description("foobar")
-        .fulfilmentCode("ABC123")
-        .language("eng")
-        .deliveryChannel(Product.DeliveryChannel.POST)
-        .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
-        .requestChannels(
-            new ArrayList<Product.RequestChannel>(
-                List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
-        .build();
-  }
-
-  private Product getExpectedSearchCriteria(PostalFulfilmentRequestDTO requestBodyDTOFixture) {
-    return Product.builder()
-        .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
-        .requestChannels(Arrays.asList(Product.RequestChannel.CC))
-        .deliveryChannel(Product.DeliveryChannel.POST)
-        .regions(Arrays.asList(Product.Region.E))
-        .build();
   }
 
   @Test
@@ -167,7 +148,7 @@ public class CaseServiceImplTest {
       fail();
     } catch (CTPException e) {
       assertEquals("Compatible product cannot be found", e.getMessage());
-      //      assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+      assertEquals("BAD_REQUEST", e.getFault().name());
     }
   }
 
@@ -381,5 +362,28 @@ public class CaseServiceImplTest {
     requestBodyDTOFixture.setFulfilmentCode("ABC123");
     requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
     return requestBodyDTOFixture;
+  }
+
+  private Product getProductFoundFixture(Product.CaseType caseType) {
+    return Product.builder()
+            .caseType(caseType)
+            .description("foobar")
+            .fulfilmentCode("ABC123")
+            .language("eng")
+            .deliveryChannel(Product.DeliveryChannel.POST)
+            .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
+            .requestChannels(
+                    new ArrayList<Product.RequestChannel>(
+                            List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
+            .build();
+  }
+
+  private Product getExpectedSearchCriteria(PostalFulfilmentRequestDTO requestBodyDTOFixture) {
+    return Product.builder()
+            .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
+            .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+            .deliveryChannel(Product.DeliveryChannel.POST)
+            .regions(Arrays.asList(Product.Region.E))
+            .build();
   }
 }
