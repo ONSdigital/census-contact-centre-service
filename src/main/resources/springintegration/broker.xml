@@ -16,16 +16,7 @@
 		on the broker -->
 	<rabbit:admin id="amqpAdmin" connection-factory="connectionFactory"/>
 
-	<!-- Start of Queues -->
-	<rabbit:queue name="Fulfilment.Request" durable="true" />
-
-	<!-- Start of Exchanges -->
 	<rabbit:topic-exchange name="events">
-		<rabbit:bindings>
-			<rabbit:binding queue="Fulfilment.Request" pattern="event.fulfilment.request" />
-		</rabbit:bindings>
 	</rabbit:topic-exchange>
-
-	<!-- End of Exchanges -->
 
 </beans>

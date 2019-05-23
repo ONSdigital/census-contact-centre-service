@@ -12,7 +12,4 @@
     <rabbit:template id="fulfilmentRequestRabbitTemplate" connection-factory="connectionFactory" exchange="events" routing-key="event.fulfilment.request"
                      message-converter="fulfilmentRequestJsonMessageConverter" channel-transacted="true"/>
 
-    <!--<rabbit:template id="surveyLaunchedRabbitTemplate" connection-factory="connectionFactory" exchange="events" routing-key="event.response.authentication"-->
-                     <!--message-converter="surveyLaunchedJsonMessageConverter" channel-transacted="true"/>-->
-
 </beans>
