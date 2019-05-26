@@ -1,11 +1,13 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CaseContainerDTO {
 
   private String caseRef;
