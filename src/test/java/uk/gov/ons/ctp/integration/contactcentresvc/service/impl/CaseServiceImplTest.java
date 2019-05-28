@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,8 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
@@ -36,6 +39,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
  * service.
  */
 public class CaseServiceImplTest {
+  @Mock AppConfig appConfig = new AppConfig();
 
   @Mock CaseServiceClientServiceImpl CaseServiceClientService = new CaseServiceClientServiceImpl();
 
@@ -47,6 +51,12 @@ public class CaseServiceImplTest {
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+
+    // Mock out a whitelist of allowable case events
+    CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
+    Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
+    caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
+    Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
   }
 
   @Test
@@ -234,6 +244,8 @@ public class CaseServiceImplTest {
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
 
     if (caseEventsExpected) {
+      // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
+      // on the whitelist
       assertEquals(2, results.getCaseEvents().size());
       CaseEventDTO event = results.getCaseEvents().get(0);
       assertEquals("Initial creation of case", event.getDescription());
@@ -241,7 +253,7 @@ public class CaseServiceImplTest {
       assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), event.getCreatedDateTime().getTime());
       event = results.getCaseEvents().get(1);
       assertEquals("Create Household Visit", event.getDescription());
-      assertEquals("ACTION_CREATED", event.getCategory());
+      assertEquals("CASE_UPDATED", event.getCategory());
       assertEquals(asMillis("2019-05-16T12:12:12.343Z"), event.getCreatedDateTime().getTime());
     } else {
       assertNull(results.getCaseEvents());

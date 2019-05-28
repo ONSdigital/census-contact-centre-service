@@ -70,7 +70,25 @@ case-service-settings:
     scheme: http
     host: localhost
     port: 8161
-    
+  whitelisted-event-categories:
+      - FULFILMENT_REQUESTED
+      - FULFILMENT_CONFIRMED
+      - UNDELIVERED_MAIL_REPORTED
+      - RESPONDENT_AUTHENTICATED
+      - SURVEY_LAUNCHED
+      - RESPONSE_RECEIVED
+      - REFUSAL_RECEIVED
+      - UAC_UPDATED
+      - QUESTIONNAIRE_LINKED
+      - CASE_UPDATED
+      - CASE_CREATED
+      - ADDRESS_MODIFIED
+      - ADDRESS_NOT_VALID
+      - ADDRESS_TYPE_CHANGED
+      - NEW_ADDRESS_REPORTED
+      - FIELD_CASE_UPDATED
+      - SAMPLE_UNIT_VALIDATED
+
 rabbitmq:
   username: guest
   password: guest
