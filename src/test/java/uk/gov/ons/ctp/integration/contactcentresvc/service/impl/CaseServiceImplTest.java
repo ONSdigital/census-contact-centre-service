@@ -61,22 +61,22 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.H, true);
+    doTestGetCaseByCaseId(CaseType.HH, true);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.H, false);
+    doTestGetCaseByCaseId(CaseType.HH, false);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.C, true);
+    doTestGetCaseByCaseId(CaseType.CE, true);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.C, false);
+    doTestGetCaseByCaseId(CaseType.CE, false);
   }
 
   @Test
@@ -140,27 +140,27 @@ public class CaseServiceImplTest {
     // Run the request
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, new CaseRequestDTO(true));
     assertEquals(1, results.size());
-    verifyCase(results.get(0), uuid2, CaseType.H, true);
+    verifyCase(results.get(0), uuid2, CaseType.HH, true);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.H, true);
+    doTestGetCaseByCaseRef(CaseType.HH, true);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.H, false);
+    doTestGetCaseByCaseRef(CaseType.HH, false);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.C, true);
+    doTestGetCaseByCaseRef(CaseType.CE, true);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.C, false);
+    doTestGetCaseByCaseRef(CaseType.CE, false);
   }
 
   @Test
@@ -205,8 +205,8 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType(CaseType.H.name());
-    caseFromCaseService.get(1).setCaseType(CaseType.C.name());
+    caseFromCaseService.get(0).setCaseType(CaseType.HH.name());
+    caseFromCaseService.get(1).setCaseType(CaseType.CE.name());
     Mockito.when(CaseServiceClientService.getCaseByUprn(any(), any()))
         .thenReturn(caseFromCaseService);
 
@@ -214,8 +214,8 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, requestParams);
 
-    verifyCase(results.get(0), uuid, CaseType.H, caseEvents);
-    verifyCase(results.get(1), uuid2, CaseType.C, caseEvents);
+    verifyCase(results.get(0), uuid, CaseType.HH, caseEvents);
+    verifyCase(results.get(1), uuid2, CaseType.CE, caseEvents);
   }
 
   private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {

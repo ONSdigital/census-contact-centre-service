@@ -42,7 +42,7 @@ public class FulfilmentServiceImplTest {
     // The mocked productReference will return this product
     Product returnedProduct =
         Product.builder()
-            .caseType(Product.CaseType.H)
+            .caseType(Product.CaseType.HH)
             .description("foobar")
             .fulfilmentCode("ABC123")
             .language("eng")
@@ -56,12 +56,12 @@ public class FulfilmentServiceImplTest {
         .thenReturn(new ArrayList<Product>(List.of(returnedProduct)));
 
     // call the unit under test
-    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.H, Region.E);
+    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.HH, Region.E);
 
     // fulfilmentService should call the productReference with this example Product
     Product expectedExample =
         Product.builder()
-            .caseType(Product.CaseType.H)
+            .caseType(Product.CaseType.HH)
             .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
             .requestChannels(
                 new ArrayList<Product.RequestChannel>(List.of(Product.RequestChannel.CC)))
@@ -78,7 +78,7 @@ public class FulfilmentServiceImplTest {
     assertTrue(fulfilments.size() == 1);
     FulfilmentDTO fulfilment = fulfilments.get(0);
 
-    assertEquals(fulfilment.getCaseType().name(), CaseType.H.name());
+    assertEquals(fulfilment.getCaseType().name(), CaseType.HH.name());
     assertEquals(fulfilment.getDescription(), "foobar");
     assertEquals(
         fulfilment.getDeliveryChannel().name(),
@@ -97,7 +97,7 @@ public class FulfilmentServiceImplTest {
     Mockito.when(productReference.searchProducts(any())).thenReturn(new ArrayList<Product>());
 
     // call the unit under test
-    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.H, Region.E);
+    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.HH, Region.E);
 
     // now check that no dtos were returned
     assertTrue(fulfilments.size() == 0);

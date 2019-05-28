@@ -138,6 +138,6 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-    return caseTypeString.equals(CaseType.H.name()) || caseTypeString.equals(CaseType.C.name());
+    return caseTypeString.equals(CaseType.HH.name()) || caseTypeString.equals(CaseType.CE.name());
   }
 }
