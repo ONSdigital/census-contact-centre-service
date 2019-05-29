@@ -81,6 +81,9 @@ public class CaseServiceImpl implements CaseService {
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
+    log.with(response)
+        .info("Now returning from the fulfilmentRequestByPost method in class CaseServiceImpl.");
+
     return response;
   }
 
@@ -198,7 +201,7 @@ public class CaseServiceImpl implements CaseService {
       String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
-        .info("Entering createFulfilmentEvent method in class CaseServiceImpl.");
+        .debug("Entering createFulfilmentEvent method in class CaseServiceImpl.");
 
     Region region =
         Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
@@ -258,7 +261,10 @@ public class CaseServiceImpl implements CaseService {
   private Product findProduct(
       String fulfilmentCode, Product.DeliveryChannel deliveryChannel, Product.Region region)
       throws CTPException {
-    log.info("Entering findProduct method in class CaseServiceImpl.");
+    log.with(fulfilmentCode)
+        .with(deliveryChannel)
+        .with(region)
+        .debug("Passing fulfilmentCode, deliveryChannel, and region, into findProduct method.");
     Product searchCriteria =
         Product.builder()
             .fulfilmentCode(fulfilmentCode)

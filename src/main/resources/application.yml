@@ -67,6 +67,8 @@ case-service-settings:
   case-by-uprn-query-path: /cases/uprn/{uprn}
   case-by-case-reference-query-path: /cases/ref/{reference}
   rest-client-config:
+    username: serco_cks
+    password: temporary
     scheme: http
     host: localhost
     port: 8161

@@ -39,7 +39,6 @@ public class CaseServiceClientServiceImpl {
     CaseContainerDTO caseDetails =
         caseServiceClient.getResource(
             path, CaseContainerDTO.class, null, queryParams, caseId.toString());
-
     log.debug("getCaseById. Found details for case: " + caseId);
 
     return caseDetails;

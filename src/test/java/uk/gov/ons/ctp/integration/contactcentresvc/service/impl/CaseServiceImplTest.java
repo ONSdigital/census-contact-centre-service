@@ -110,6 +110,40 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testFulfilmentRequestByPostSuccess_withCaseTypeHH() throws Exception {
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse");
+  }
+
+  @Test
+  public void testFulfilmentRequestByPostSuccess_withCaseTypeHI() throws Exception {
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HI, "Mr", "Mickey", "Mouse");
+  }
+
+  @Test
+  public void testFulfilmentRequestByPostFailure_productNotFound() throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseData);
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseData, "Mr", "Mickey", "Mouse");
+
+    Product expectedSearchCriteria = getExpectedSearchCriteria(caseData, requestBodyDTOFixture);
+
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>());
+
+    try {
+      // execution - call the unit under test
+      target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertEquals("Compatible product cannot be found", e.getMessage());
+      assertEquals("BAD_REQUEST", e.getFault().name());
+    }
+  }
+
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
     doTestGetCaseByCaseId(CaseType.HH, true);
   }

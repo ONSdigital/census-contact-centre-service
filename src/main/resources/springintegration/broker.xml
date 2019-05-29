@@ -16,18 +16,7 @@
 		on the broker -->
 	<rabbit:admin id="amqpAdmin" connection-factory="connectionFactory"/>
 
-	<!-- Start of Queues -->
-	<rabbit:queue name="RM.Queue1" durable="true"/>
-	<rabbit:queue name="RM.Queue2" durable="true"/>
-
-	<rabbit:queue name="Respondent.EventDLQ" durable="true" />
-	<!-- Start of Exchanges -->
-    <rabbit:fanout-exchange name="contact-message-outbound-exchange">
-        <rabbit:bindings>
-           <rabbit:binding queue="RM.Queue1" />
-           <rabbit:binding queue="RM.Queue2" />
-        </rabbit:bindings>
-    </rabbit:fanout-exchange>
-	<!-- End of Exchanges -->
+	<rabbit:topic-exchange name="events">
+	</rabbit:topic-exchange>
 
 </beans>
