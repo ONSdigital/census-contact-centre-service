@@ -1,8 +1,12 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.MappingContext;
+import ma.glasnost.orika.converter.BidirectionalConverter;
+import ma.glasnost.orika.converter.ConverterFactory;
 import ma.glasnost.orika.impl.ConfigurableMapper;
-import ma.glasnost.orika.impl.DefaultMapperFactory;
+import ma.glasnost.orika.metadata.Type;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -18,8 +22,29 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
    * @param factory the factory to which we add our mappings
    */
   protected final void configure(final MapperFactory factory) {
-    MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+    ConverterFactory converterFactory = factory.getConverterFactory();
+    converterFactory.registerConverter("regionConverter", new RegionConverter());
 
-    mapperFactory.classMap(CaseContainerDTO.class, CaseDTO.class).byDefault().register();
+    factory
+        .classMap(CaseContainerDTO.class, CaseDTO.class)
+        .byDefault()
+        .fieldMap("region", "region")
+        .converter("regionConverter")
+        .add()
+        .register();
+  }
+
+  private class RegionConverter extends BidirectionalConverter<String, String> {
+    public String convertTo(String src, Type<String> dstType, MappingContext context) {
+      return convert(src);
+    }
+
+    public String convertFrom(String src, Type<String> dstType, MappingContext context) {
+      return convert(src);
+    }
+
+    private String convert(String src) {
+      return StringUtils.isEmpty(src) ? src : src.substring(0, 1).toUpperCase();
+    }
   }
 }
