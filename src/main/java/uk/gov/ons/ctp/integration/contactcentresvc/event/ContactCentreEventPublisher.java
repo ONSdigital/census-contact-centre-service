@@ -1,4 +1,6 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.message;
+package uk.gov.ons.ctp.integration.contactcentresvc.event;
+
+import uk.gov.ons.ctp.common.event.model.GenericEvent;
 
 /**
  * Service responsible for the publication of contact centre requests to the Response Management
@@ -11,5 +13,5 @@ public interface ContactCentreEventPublisher {
    *
    * @param event CaseEvent to publish.
    */
-  void sendEvent(String event);
+  void sendEvent(GenericEvent event);
 }
