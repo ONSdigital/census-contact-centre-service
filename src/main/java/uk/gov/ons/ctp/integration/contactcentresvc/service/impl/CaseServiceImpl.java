@@ -229,7 +229,10 @@ public class CaseServiceImpl implements CaseService {
   private Product findProduct(
       String fulfilmentCode, Product.DeliveryChannel deliveryChannel, Product.Region region)
       throws CTPException {
-    log.info("Entering findProduct method in class CaseServiceImpl.");
+    log.with(fulfilmentCode)
+        .with(deliveryChannel)
+        .with(region)
+        .debug("Passing fulfilmentCode, deliveryChannel, and region, into findProduct method.");
     Product searchCriteria =
         Product.builder()
             .fulfilmentCode(fulfilmentCode)
