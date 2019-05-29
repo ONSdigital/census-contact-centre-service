@@ -24,9 +24,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
   protected final void configure(final MapperFactory factory) {
     ConverterFactory converterFactory = factory.getConverterFactory();
     converterFactory.registerConverter("regionConverter", new RegionConverter());
-    //    MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
-    //    ConverterFactory converterFactory = mapperFactory.getConverterFactory();
-    //    converterFactory.registerConverter("regionConverter", new RegionConverter());
+
     factory
         .classMap(CaseContainerDTO.class, CaseDTO.class)
         .byDefault()

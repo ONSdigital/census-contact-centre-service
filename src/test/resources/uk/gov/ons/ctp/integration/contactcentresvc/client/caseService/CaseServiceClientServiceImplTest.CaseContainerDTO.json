@@ -6,7 +6,7 @@
   "estabType": "ET",
   "uprn": "1235532324343434",
   "caseRef": "52224",
-  "caseType": "H",
+  "caseType": "HH",
   "createdDateTime": "2019-05-14T16:11:41.343+01:00",
   "addressLine1": "Napier House",
   "addressLine2": "11 Park Street",
@@ -32,7 +32,7 @@
     },
     {
       "id": "102",
-      "category": "ACTION_CREATED",
+      "category": "CASE_UPDATED",
       "description": "Create Household Visit",
       "createdDateTime": "2019-05-15T17:02:12.343+04:00"
     }
@@ -45,7 +45,7 @@
   "estabType": "ET",
   "uprn": "1235532324343434",
   "caseRef": "52224",
-  "caseType": "H",
+  "caseType": "HH",
   "createdDateTime": "2019-05-14T16:11:41.343+01:00",
   "addressLine1": "Napier House",
   "addressLine2": "11 Park Street",
@@ -71,7 +71,7 @@
     },
     {
       "id": "102",
-      "category": "ACTION_CREATED",
+      "category": "CASE_UPDATED",
       "description": "Create Household Visit",
       "createdDateTime": "2019-05-15T17:02:12.343+04:00"
     }
