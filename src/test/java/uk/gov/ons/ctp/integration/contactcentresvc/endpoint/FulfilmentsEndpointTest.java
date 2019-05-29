@@ -24,7 +24,6 @@ import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
-import uk.gov.ons.ctp.integration.contactcentresvc.service.impl.EventServiceImpl;
 
 /** Contact Centre Data Endpoint Unit tests */
 public final class FulfilmentsEndpointTest {
@@ -39,8 +38,6 @@ public final class FulfilmentsEndpointTest {
   private static final String FULFILMENT_CODE_2 = "P2";
   private static final String LANGUAGE_2 = "wel";
   private static final String DESCRIPTION_2 = "Another fulfilment";
-
-  @Mock private EventServiceImpl eventSvc;
 
   @Mock private FulfilmentsService fulfilmentService;
 

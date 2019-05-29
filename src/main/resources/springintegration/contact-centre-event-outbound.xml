@@ -6,8 +6,10 @@
   http://www.springframework.org/schema/beans/spring-beans.xsd
   http://www.springframework.org/schema/rabbit
   http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
-  
 
-    <rabbit:template id="contactCentreEventRabbitTemplate" connection-factory="connectionFactory" exchange="contact-message-outbound-exchange"
-                     channel-transacted="true"/>
+    <bean id="fulfilmentRequestJsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"/>
+
+    <rabbit:template id="fulfilmentRequestRabbitTemplate" connection-factory="connectionFactory" exchange="events" routing-key="event.fulfilment.request"
+                     message-converter="fulfilmentRequestJsonMessageConverter" channel-transacted="true"/>
+
 </beans>

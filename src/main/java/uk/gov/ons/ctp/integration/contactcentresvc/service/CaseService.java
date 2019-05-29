@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -33,13 +34,8 @@ public interface CaseService {
         + "\"}\n";
   }
 
-  public default ResponseDTO fulfilmentRequestByPost(
-      UUID caseId, PostalFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
-
-    return fakeResponse;
-  }
+  public ResponseDTO fulfilmentRequestByPost(
+      UUID notNeeded, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException;
 
   public default ResponseDTO fulfilmentRequestBySMS(
       UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {

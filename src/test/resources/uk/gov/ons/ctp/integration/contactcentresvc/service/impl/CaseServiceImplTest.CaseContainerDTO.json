@@ -16,7 +16,7 @@
   "organisationName": "ON",
   "addressLevel": "E",
   "abpCode": "AACC",
-  "region": "E",
+  "region": "E12345678",
   "latitude": "41.40338",
   "longitude": "2.17403",
   "oa": "EE22",
