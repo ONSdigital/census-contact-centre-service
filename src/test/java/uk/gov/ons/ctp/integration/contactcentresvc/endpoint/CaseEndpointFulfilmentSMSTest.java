@@ -68,7 +68,7 @@ public final class CaseEndpointFulfilmentSMSTest {
             .id(requestData.getCaseId().toString())
             .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
             .build();
-    Mockito.when(caseService.fulfilmentRequestBySMS(any(), any())).thenReturn(responseDTO);
+    Mockito.when(caseService.fulfilmentRequestBySMS(any())).thenReturn(responseDTO);
 
     ResultActions actions =
         mockMvc.perform(

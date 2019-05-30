@@ -37,7 +37,7 @@ public interface CaseService {
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;
 
-  public ResponseDTO fulfilmentRequestBySMS(UUID notNeeded, SMSFulfilmentRequestDTO requestBodyDTO)
+  public ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;
 
   public default ResponseDTO fulfilmentUnresolvedRequestByPost(

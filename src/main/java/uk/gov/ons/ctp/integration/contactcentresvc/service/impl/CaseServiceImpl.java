@@ -91,7 +91,7 @@ public class CaseServiceImpl implements CaseService {
     return response;
   }
 
-  public ResponseDTO fulfilmentRequestBySMS(UUID notNeeded, SMSFulfilmentRequestDTO requestBodyDTO)
+  public ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with(requestBodyDTO)
         .info("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");

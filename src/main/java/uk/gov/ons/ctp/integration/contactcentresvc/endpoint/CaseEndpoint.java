@@ -194,7 +194,7 @@ public class CaseEndpoint implements CTPEndpoint {
           Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
     }
 
-    ResponseDTO response = caseService.fulfilmentRequestBySMS(caseId, requestBodyDTO);
+    ResponseDTO response = caseService.fulfilmentRequestBySMS(requestBodyDTO);
 
     return ResponseEntity.ok(response);
   }
