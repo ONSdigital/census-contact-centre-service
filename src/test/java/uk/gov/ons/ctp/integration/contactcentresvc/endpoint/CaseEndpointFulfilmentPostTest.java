@@ -69,7 +69,7 @@ public final class CaseEndpointFulfilmentPostTest {
             .id(requestData.getCaseId().toString())
             .dateTime(dateFormat.parse(RESPONSE_DATE_TIME))
             .build();
-    Mockito.when(caseService.fulfilmentRequestByPost(any(), any())).thenReturn(responseDTO);
+    Mockito.when(caseService.fulfilmentRequestByPost(any())).thenReturn(responseDTO);
 
     String jsonString = mapper.writeValueAsString(requestData);
     ResultActions actions =

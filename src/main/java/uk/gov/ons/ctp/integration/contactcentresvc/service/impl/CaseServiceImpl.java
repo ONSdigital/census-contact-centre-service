@@ -64,8 +64,8 @@ public class CaseServiceImpl implements CaseService {
   @Value("${spring.security.user.name}")
   String whitelistedEventNames;
 
-  public ResponseDTO fulfilmentRequestByPost(
-      UUID notNeeded, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException {
+  public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException {
     log.with(requestBodyDTO)
         .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
 

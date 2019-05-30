@@ -98,7 +98,7 @@ public class CaseServiceImplTest {
 
     try {
       // execution - call the unit under test
-      ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+      ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
       assertEquals("Compatible product cannot be found", e.getMessage());
@@ -363,7 +363,7 @@ public class CaseServiceImplTest {
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
     // execution - call the unit under test
-    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
 
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
@@ -394,5 +394,62 @@ public class CaseServiceImplTest {
     assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
+  }
+
+  private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType) throws Exception {
+
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //            FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    Mockito.when(caseServiceClient.getCaseById(eq(uuid),
+    // any())).thenReturn(caseFromCaseService);
+    //
+    //    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+    //            getPostalFulfilmentRequestDTO(caseFromCaseService);
+    //
+    //    Product expectedSearchCriteria =
+    //            getExpectedSearchCriteria(caseFromCaseService, requestBodyDTOFixture);
+    //
+    //    // The mocked productReference will return this product
+    //    Product productFoundFixture = getProductFoundFixture(caseType);
+    //    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+    //            .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
+    //
+    //    // execution - call the unit under test
+    //    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null,
+    // requestBodyDTOFixture);
+    //
+    //    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
+    //            ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
+    //    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    //
+    //    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
+    //
+    //    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
+    //    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
+    //    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+    //
+    //    FulfilmentRequest actualFulfilmentRequest =
+    //            fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+    //
+    //    assertEquals(
+    //            requestBodyDTOFixture.getFulfilmentCode(),
+    // actualFulfilmentRequest.getFulfilmentCode());
+    //    assertEquals(requestBodyDTOFixture.getCaseId().toString(),
+    // actualFulfilmentRequest.getCaseId());
+    //
+    //    // If the caseType is HI then the individualCaseId should be set, otherwise it should be
+    // empty.
+    //    if (caseType == Product.CaseType.HI) {
+    //      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    //    } else {
+    //      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    //    }
+    //
+    //    Contact actualContact = actualFulfilmentRequest.getContact();
+    //
+    //    assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
+    //    assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
+    //    assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
   }
 }
