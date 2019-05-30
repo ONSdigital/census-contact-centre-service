@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -211,9 +212,9 @@ public class CaseServiceImpl implements CaseService {
         product.getCaseType() == Product.CaseType.HI
             || product.getCaseType() == Product.CaseType.CI;
     if (requestIsForIndividualProduct) {
-      if (isEmpty(contact.getTitle())
-          || isEmpty(contact.getForename())
-          || isEmpty(contact.getSurname())) {
+      if (StringUtils.isBlank(contact.getTitle())
+          || StringUtils.isBlank(contact.getForename())
+          || StringUtils.isBlank(contact.getSurname())) {
         throw new CTPException(
             Fault.BAD_REQUEST,
             "The case is for an individual so none of the following fields can be empty: "
@@ -279,9 +280,5 @@ public class CaseServiceImpl implements CaseService {
     }
 
     return products.get(0);
-  }
-
-  private boolean isEmpty(String str) {
-    return str == null || str.isEmpty();
   }
 }
