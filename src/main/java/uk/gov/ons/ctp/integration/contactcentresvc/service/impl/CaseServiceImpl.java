@@ -208,16 +208,13 @@ public class CaseServiceImpl implements CaseService {
         Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    boolean requestIsForIndividualProduct =
-        product.getCaseType() == Product.CaseType.HI
-            || product.getCaseType() == Product.CaseType.CI;
-    if (requestIsForIndividualProduct) {
+    if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
       if (StringUtils.isBlank(contact.getTitle())
           || StringUtils.isBlank(contact.getForename())
           || StringUtils.isBlank(contact.getSurname())) {
         throw new CTPException(
             Fault.BAD_REQUEST,
-            "The case is for an individual so none of the following fields can be empty: "
+            "The fulfilment is for an individual so none of the following fields can be empty: "
                 + "'title', 'forename' and 'surname'");
       }
     }
