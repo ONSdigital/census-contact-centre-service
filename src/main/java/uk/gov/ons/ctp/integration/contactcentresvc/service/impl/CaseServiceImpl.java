@@ -38,6 +38,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -86,6 +87,31 @@ public class CaseServiceImpl implements CaseService {
 
     log.with(response)
         .info("Now returning from the fulfilmentRequestByPost method in class CaseServiceImpl.");
+
+    return response;
+  }
+
+  public ResponseDTO fulfilmentRequestBySMS(UUID notNeeded, SMSFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException {
+    log.with(requestBodyDTO)
+        .info("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");
+
+    UUID caseId = requestBodyDTO.getCaseId();
+
+    Contact contact = new Contact();
+    contact.setTelNo(requestBodyDTO.getTelNo());
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent =
+        createFulfilmentEvent(
+            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
+
+    publisher.sendEvent(fulfilmentRequestedEvent);
+
+    ResponseDTO response =
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
+
+    log.with(response)
+        .info("Now returning from the fulfilmentRequestBySMS method in class CaseServiceImpl.");
 
     return response;
   }

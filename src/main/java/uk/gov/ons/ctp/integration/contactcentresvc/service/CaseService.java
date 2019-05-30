@@ -37,13 +37,8 @@ public interface CaseService {
   public ResponseDTO fulfilmentRequestByPost(
       UUID notNeeded, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException;
 
-  public default ResponseDTO fulfilmentRequestBySMS(
-      UUID caseId, SMSFulfilmentRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
-
-    return fakeResponse;
-  }
+  public ResponseDTO fulfilmentRequestBySMS(UUID notNeeded, SMSFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException;
 
   public default ResponseDTO fulfilmentUnresolvedRequestByPost(
       PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) {
