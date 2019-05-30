@@ -118,6 +118,32 @@ public class CaseServiceImplTest {
     doFulfilmentRequestBySMSSuccess(Product.CaseType.HI);
   }
 
+  @Test
+  public void testFulfilmentRequestBySMSFailure_productNotFound() throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseData);
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
+
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>());
+
+    try {
+      // execution - call the unit under test
+      ResponseDTO responseDTOFixture = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertEquals("Compatible product cannot be found", e.getMessage());
+      assertEquals("BAD_REQUEST", e.getFault().name());
+    }
+  }
+
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
     doTestGetCaseByCaseId(CaseType.HH, true);
   }
