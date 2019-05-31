@@ -237,16 +237,16 @@ public class CaseServiceImpl implements CaseService {
     if (deliveryChannel.equals(DeliveryChannel.POST)) {
       if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
         if (StringUtils.isBlank(contact.getTitle())
-                || StringUtils.isBlank(contact.getForename())
-                || StringUtils.isBlank(contact.getSurname())) {
+            || StringUtils.isBlank(contact.getForename())
+            || StringUtils.isBlank(contact.getSurname())) {
           throw new CTPException(
-                  Fault.BAD_REQUEST,
-                  "The fulfilment is for an individual so none of the following fields can be empty: "
-                          + "'title', 'forename' and 'surname'");
+              Fault.BAD_REQUEST,
+              "The fulfilment is for an individual so none of the following fields can be empty: "
+                  + "'title', 'forename' and 'surname'");
         }
       }
     }
-    
+
     FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
 
     // Set up the event header
