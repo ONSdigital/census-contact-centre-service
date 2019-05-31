@@ -8,8 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -57,15 +57,13 @@ public class CaseServiceImpl implements CaseService {
 
   @Autowired private CaseServiceClientServiceImpl caseServiceClient;
 
-  @Autowired ProductReference productReference;
+  @Autowired private ProductReference productReference;
 
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
 
-  @Value("${spring.security.user.name}")
-  String whitelistedEventNames;
-
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
+
     log.with(requestBodyDTO)
         .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
 
@@ -236,6 +234,19 @@ public class CaseServiceImpl implements CaseService {
         Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
+    if (deliveryChannel.equals(DeliveryChannel.POST)) {
+      if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
+        if (StringUtils.isBlank(contact.getTitle())
+                || StringUtils.isBlank(contact.getForename())
+                || StringUtils.isBlank(contact.getSurname())) {
+          throw new CTPException(
+                  Fault.BAD_REQUEST,
+                  "The fulfilment is for an individual so none of the following fields can be empty: "
+                          + "'title', 'forename' and 'surname'");
+        }
+      }
+    }
+    
     FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
 
     // Set up the event header

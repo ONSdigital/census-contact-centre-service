@@ -1,6 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -15,16 +19,20 @@ import java.util.UUID;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
-import uk.gov.ons.ctp.common.event.model.*;
+import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
+import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
+import uk.gov.ons.ctp.common.event.model.Header;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -34,18 +42,19 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.Case
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.*;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
- * This class tests the CaseServiceImpl layer. It mocks out the layer below
- * (CaseServiceClientServiceImpl), which would deal with actually sending a HTTP request to the case
- * service.
+ * This class tests the CaseServiceImpl layer. It mocks out the layer below (caseServiceClientImpl),
+ * which would deal with actually sending a HTTP request to the case service.
  */
 public class CaseServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
@@ -73,13 +82,42 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testFulfilmentRequestByPost_individualFailsWithNullContactDetails() throws Exception {
+    // All of the following fail validation because one of the contact detail fields is always null
+    // or empty
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, null, "John", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, "", "John", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, "Mr", null, "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, "Mr", "", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, "Mr", "John", null);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HI, "Mr", "John", "");
+
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, null, "John", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, "", "John", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, "Mr", null, "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, "Mr", "", "Smith");
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, "Mr", "John", null);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CI, "Mr", "John", "");
+  }
+
+  @Test
+  public void testFulfilmentRequestByPost_nonIndividualAllowsNullContactDetails() throws Exception {
+    // Test that non-individual cases allow null/empty contact details
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, null, null);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "", "");
+
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, null, null);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "", "");
+  }
+
+  @Test
   public void testFulfilmentRequestByPostSuccess_withCaseTypeHH() throws Exception {
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HH);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse");
   }
 
   @Test
   public void testFulfilmentRequestByPostSuccess_withCaseTypeHI() throws Exception {
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HI);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HI, "Mr", "Mickey", "Mouse");
   }
 
   @Test
@@ -89,7 +127,8 @@ public class CaseServiceImplTest {
     CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseData);
 
-    PostalFulfilmentRequestDTO requestBodyDTOFixture = getPostalFulfilmentRequestDTO(caseData);
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseData, "Mr", "Mickey", "Mouse");
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
@@ -347,12 +386,12 @@ public class CaseServiceImplTest {
   }
 
   private PostalFulfilmentRequestDTO getPostalFulfilmentRequestDTO(
-      CaseContainerDTO caseFromCaseService) {
+      CaseContainerDTO caseFromCaseService, String title, String forename, String surname) {
     PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
     requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
-    requestBodyDTOFixture.setTitle("Mr");
-    requestBodyDTOFixture.setForename("Mickey");
-    requestBodyDTOFixture.setSurname("Mouse");
+    requestBodyDTOFixture.setTitle(title);
+    requestBodyDTOFixture.setForename(forename);
+    requestBodyDTOFixture.setSurname(surname);
     requestBodyDTOFixture.setFulfilmentCode("ABC123");
     requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
     return requestBodyDTOFixture;
@@ -392,7 +431,39 @@ public class CaseServiceImplTest {
         .build();
   }
 
-  private void doFulfilmentRequestByPostSuccess(Product.CaseType caseType) throws Exception {
+  private void doVerifyFulfilmentRequestByPostFailsValidation(
+      Product.CaseType caseType, String title, String forename, String surname) throws Exception {
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
+
+    // The mocked productReference will return this product
+    Product productFoundFixture = getProductFoundFixture(caseType, Product.DeliveryChannel.POST);
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
+
+    // execution - call the unit under test
+    try {
+      target.fulfilmentRequestByPost(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertTrue(e.getMessage().contains("none of the following fields can be empty"));
+    }
+  }
+
+  private void doFulfilmentRequestByPostSuccess(
+      Product.CaseType caseType, String title, String forename, String surname) throws Exception {
+    Mockito.clearInvocations(publisher);
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -400,7 +471,7 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseFromCaseService);
+        getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
