@@ -48,6 +48,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -129,14 +130,52 @@ public class CaseServiceImplTest {
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseData, "Mr", "Mickey", "Mouse");
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseData, requestBodyDTOFixture);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
 
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
 
     try {
       // execution - call the unit under test
-      target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+      ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertEquals("Compatible product cannot be found", e.getMessage());
+      assertEquals("BAD_REQUEST", e.getFault().name());
+    }
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMSSuccess_withCaseTypeHH() throws Exception {
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH);
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMSSuccess_withCaseTypeHI() throws Exception {
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HI);
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMSFailure_productNotFound() throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseData);
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
+
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>());
+
+    try {
+      // execution - call the unit under test
+      ResponseDTO responseDTOFixture = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
       assertEquals("Compatible product cannot be found", e.getMessage());
@@ -358,13 +397,23 @@ public class CaseServiceImplTest {
     return requestBodyDTOFixture;
   }
 
-  private Product getProductFoundFixture(Product.CaseType caseType) {
+  private SMSFulfilmentRequestDTO getSMSFulfilmentRequestDTO(CaseContainerDTO caseFromCaseService) {
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = new SMSFulfilmentRequestDTO();
+    requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
+    requestBodyDTOFixture.setTelNo("+447890000000");
+    requestBodyDTOFixture.setFulfilmentCode("ABC123");
+    requestBodyDTOFixture.setDateTime(DateTimeUtil.nowUTC());
+    return requestBodyDTOFixture;
+  }
+
+  private Product getProductFoundFixture(
+      Product.CaseType caseType, Product.DeliveryChannel deliveryChannel) {
     return Product.builder()
         .caseType(caseType)
         .description("foobar")
         .fulfilmentCode("ABC123")
         .language("eng")
-        .deliveryChannel(Product.DeliveryChannel.POST)
+        .deliveryChannel(deliveryChannel)
         .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
         .requestChannels(
             new ArrayList<Product.RequestChannel>(
@@ -373,11 +422,11 @@ public class CaseServiceImplTest {
   }
 
   private Product getExpectedSearchCriteria(
-      CaseContainerDTO caseData, PostalFulfilmentRequestDTO requestBodyDTOFixture) {
+      CaseContainerDTO caseData, String fulfilmentCode, Product.DeliveryChannel deliveryChannel) {
     return Product.builder()
-        .fulfilmentCode(requestBodyDTOFixture.getFulfilmentCode())
+        .fulfilmentCode(fulfilmentCode)
         .requestChannels(Arrays.asList(Product.RequestChannel.CC))
-        .deliveryChannel(Product.DeliveryChannel.POST)
+        .deliveryChannel(deliveryChannel)
         .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
         .build();
   }
@@ -393,16 +442,19 @@ public class CaseServiceImplTest {
         getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
 
     Product expectedSearchCriteria =
-        getExpectedSearchCriteria(caseFromCaseService, requestBodyDTOFixture);
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
     // The mocked productReference will return this product
-    Product productFoundFixture = getProductFoundFixture(caseType);
+    Product productFoundFixture = getProductFoundFixture(caseType, Product.DeliveryChannel.POST);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
     // execution - call the unit under test
     try {
-      target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+      target.fulfilmentRequestByPost(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
       assertTrue(e.getMessage().contains("none of the following fields can be empty"));
@@ -422,15 +474,18 @@ public class CaseServiceImplTest {
         getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
 
     Product expectedSearchCriteria =
-        getExpectedSearchCriteria(caseFromCaseService, requestBodyDTOFixture);
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
     // The mocked productReference will return this product
-    Product productFoundFixture = getProductFoundFixture(caseType);
+    Product productFoundFixture = getProductFoundFixture(caseType, Product.DeliveryChannel.POST);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
     // execution - call the unit under test
-    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(null, requestBodyDTOFixture);
+    ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
 
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
@@ -461,5 +516,57 @@ public class CaseServiceImplTest {
     assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
+  }
+
+  private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType) throws Exception {
+
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseFromCaseService);
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.SMS);
+
+    // The mocked productReference will return this product
+    Product productFoundFixture = getProductFoundFixture(caseType, Product.DeliveryChannel.SMS);
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
+
+    // execution - call the unit under test
+    ResponseDTO responseDTOFixture = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+
+    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
+        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
+    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+
+    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
+
+    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
+    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
+    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+
+    FulfilmentRequest actualFulfilmentRequest =
+        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+
+    assertEquals(
+        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
+
+    // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
+    if (caseType == Product.CaseType.HI) {
+      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    } else {
+      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+    }
+
+    Contact actualContact = actualFulfilmentRequest.getContact();
+
+    assertEquals(requestBodyDTOFixture.getTelNo(), actualContact.getTelNo());
   }
 }

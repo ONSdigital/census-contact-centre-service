@@ -161,7 +161,13 @@ public class CaseEndpoint implements CTPEndpoint {
       throws CTPException {
     log.with("caseId", caseId).debug("Entering makeFulfilmentRequestByPost");
 
-    ResponseDTO response = caseService.fulfilmentRequestByPost(caseId, requestBodyDTO);
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      log.with(caseId).warn("The caseid in the URL does not match the caseid in the request body");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
+    }
+
+    ResponseDTO response = caseService.fulfilmentRequestByPost(requestBodyDTO);
 
     return ResponseEntity.ok(response);
   }
@@ -182,7 +188,13 @@ public class CaseEndpoint implements CTPEndpoint {
       throws CTPException {
     log.with("caseId", caseId).debug("Entering fulfilmentRequestBySMS");
 
-    ResponseDTO response = caseService.fulfilmentRequestBySMS(caseId, requestBodyDTO);
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      log.with(caseId).warn("The caseid in the URL does not match the caseid in the request body");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
+    }
+
+    ResponseDTO response = caseService.fulfilmentRequestBySMS(requestBodyDTO);
 
     return ResponseEntity.ok(response);
   }

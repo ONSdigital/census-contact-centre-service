@@ -38,6 +38,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -60,9 +61,9 @@ public class CaseServiceImpl implements CaseService {
 
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
 
-  @Override
-  public ResponseDTO fulfilmentRequestByPost(
-      UUID notNeeded, PostalFulfilmentRequestDTO requestBodyDTO) throws CTPException {
+  public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException {
+
     log.with(requestBodyDTO)
         .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
 
@@ -84,6 +85,31 @@ public class CaseServiceImpl implements CaseService {
 
     log.with(response)
         .info("Now returning from the fulfilmentRequestByPost method in class CaseServiceImpl.");
+
+    return response;
+  }
+
+  public ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
+      throws CTPException {
+    log.with(requestBodyDTO)
+        .info("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");
+
+    UUID caseId = requestBodyDTO.getCaseId();
+
+    Contact contact = new Contact();
+    contact.setTelNo(requestBodyDTO.getTelNo());
+
+    FulfilmentRequestedEvent fulfilmentRequestedEvent =
+        createFulfilmentEvent(
+            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
+
+    publisher.sendEvent(fulfilmentRequestedEvent);
+
+    ResponseDTO response =
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
+
+    log.with(response)
+        .info("Now returning from the fulfilmentRequestBySMS method in class CaseServiceImpl.");
 
     return response;
   }
@@ -208,14 +234,16 @@ public class CaseServiceImpl implements CaseService {
         Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
-      if (StringUtils.isBlank(contact.getTitle())
-          || StringUtils.isBlank(contact.getForename())
-          || StringUtils.isBlank(contact.getSurname())) {
-        throw new CTPException(
-            Fault.BAD_REQUEST,
-            "The fulfilment is for an individual so none of the following fields can be empty: "
-                + "'title', 'forename' and 'surname'");
+    if (deliveryChannel.equals(DeliveryChannel.POST)) {
+      if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
+        if (StringUtils.isBlank(contact.getTitle())
+            || StringUtils.isBlank(contact.getForename())
+            || StringUtils.isBlank(contact.getSurname())) {
+          throw new CTPException(
+              Fault.BAD_REQUEST,
+              "The fulfilment is for an individual so none of the following fields can be empty: "
+                  + "'title', 'forename' and 'surname'");
+        }
       }
     }
 
