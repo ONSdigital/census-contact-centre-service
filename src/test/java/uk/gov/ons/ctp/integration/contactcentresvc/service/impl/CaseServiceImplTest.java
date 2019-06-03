@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -13,6 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -33,6 +35,8 @@ import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.common.event.model.Header;
+import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.event.model.RespondentRefusalEvent;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -41,12 +45,14 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServic
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.FulfilmentEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.RespondentRefusalEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
@@ -60,7 +66,8 @@ public class CaseServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
 
   @Mock ProductReference productReference;
-  @Mock ContactCentreEventPublisher publisher;
+  @Mock FulfilmentEventPublisher fulfilmentPublisher;
+  @Mock RespondentRefusalEventPublisher respondentRefusalPublisher;
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
@@ -183,6 +190,7 @@ public class CaseServiceImplTest {
     }
   }
 
+  @Test
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
     doTestGetCaseByCaseId(CaseType.HH, true);
   }
@@ -304,6 +312,74 @@ public class CaseServiceImplTest {
       assertEquals("Case is a not a household or communal case", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
+  }
+
+  @Test
+  public void testRespondentRefusal_withUUID() throws Exception {
+    UUID caseId = UUID.randomUUID();
+    doRespondentRefusalTest(caseId);
+  }
+
+  @Test
+  public void testRespondentRefusal_forUnknownUUID() throws Exception {
+    UUID unknownCaseId = null;
+    doRespondentRefusalTest(unknownCaseId);
+  }
+
+  private void doRespondentRefusalTest(UUID caseId) throws Exception {
+    RefusalRequestDTO refusalPayload =
+        RefusalRequestDTO.builder()
+            .caseId(caseId == null ? null : caseId.toString())
+            .notes("Description of refusal")
+            .title("Mr")
+            .forename("Steve")
+            .surname("Jones")
+            .telNo("+447890000000")
+            .build();
+
+    // report the refusal
+    long timeBeforeInvocation = System.currentTimeMillis();
+    ResponseDTO refusalResponse = target.reportRefusal(caseId, refusalPayload);
+    long timeAfterInvocation = System.currentTimeMillis();
+
+    // Validate the response to the refusal
+    assertEquals(caseId == null ? null : caseId.toString(), refusalResponse.getId());
+    verifyTimeInExpectedRange(
+        timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
+
+    // Grab the published event
+    ArgumentCaptor<RespondentRefusalEvent> refusalEventCaptor =
+        ArgumentCaptor.forClass(RespondentRefusalEvent.class);
+    verify(respondentRefusalPublisher).sendEvent(refusalEventCaptor.capture());
+
+    // Validate the header of the published event
+    RespondentRefusalEvent publishedMessage = refusalEventCaptor.getValue();
+    Header header = publishedMessage.getEvent();
+    assertEquals("REFUSAL_RECEIVED", header.getType());
+    assertEquals("CONTACT_CENTRE_API", header.getSource());
+    assertEquals(Product.RequestChannel.CC.name(), header.getChannel());
+    verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, header.getDateTime());
+    assertNotNull(UUID.fromString(header.getTransactionId()));
+    assertNotEquals(caseId, header.getTransactionId()); // Must be new transaction id
+
+    // Validate payload of published event
+    RespondentRefusalDetails refusal = publishedMessage.getPayload().getRefusal();
+    assertEquals("HARD_REFUSAL", refusal.getType());
+    assertEquals("Description of refusal", refusal.getReport());
+    assertNull(refusal.getAgentId());
+    assertEquals(caseId, refusal.getCollectionCase().getId());
+    Contact actualContact = refusal.getContact();
+    assertEquals("Mr", actualContact.getTitle());
+    assertEquals("Steve", actualContact.getForename());
+    assertEquals("Jones", actualContact.getSurname());
+    assertNull(actualContact.getEmail());
+    assertEquals("+447890000000", actualContact.getTelNo());
+  }
+
+  private void verifyTimeInExpectedRange(long minAllowed, long maxAllowed, Date dateTime) {
+    long actualInMillis = dateTime.getTime();
+    assertTrue(actualInMillis + " not after " + minAllowed, actualInMillis >= minAllowed);
+    assertTrue(actualInMillis + " not before " + maxAllowed, actualInMillis <= maxAllowed);
   }
 
   private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents) throws Exception {
@@ -463,7 +539,7 @@ public class CaseServiceImplTest {
 
   private void doFulfilmentRequestByPostSuccess(
       Product.CaseType caseType, String title, String forename, String surname) throws Exception {
-    Mockito.clearInvocations(publisher);
+    Mockito.clearInvocations(fulfilmentPublisher);
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -489,7 +565,7 @@ public class CaseServiceImplTest {
 
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    verify(fulfilmentPublisher).sendEvent(fulfilmentRequestedEventArg.capture());
 
     Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
 

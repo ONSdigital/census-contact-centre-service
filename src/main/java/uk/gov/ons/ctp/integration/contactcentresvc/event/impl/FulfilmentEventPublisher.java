@@ -12,7 +12,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPubli
  * System.
  */
 @MessageEndpoint
-public class ContactCentreEventPublisherImpl implements ContactCentreEventPublisher {
+public class FulfilmentEventPublisher implements ContactCentreEventPublisher {
 
   @Qualifier("fulfilmentRequestRabbitTemplate")
   @Autowired

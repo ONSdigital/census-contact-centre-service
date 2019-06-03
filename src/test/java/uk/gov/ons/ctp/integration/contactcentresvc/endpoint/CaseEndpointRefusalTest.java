@@ -97,6 +97,16 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
+  public void refusalBlankUUID() throws Exception {
+    ObjectNode json = FixtureHelper.loadClassObjectNode();
+    String uuid = "  ";
+    json.put(CASE_ID, uuid);
+    ResultActions actions =
+        mockMvc.perform(postJson("/cases/" + uuid + "/refusal", json.toString()));
+    actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
   public void refusalGoodBodyCaseIdBothFred() throws Exception {
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     json.put(CASE_ID, "fred");

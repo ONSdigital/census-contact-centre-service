@@ -271,15 +271,14 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody RefusalRequestDTO requestBodyDTO)
       throws CTPException {
 
-    if (caseId != null
-        && requestBodyDTO.getCaseId() != null
-        && !caseId.equals(requestBodyDTO.getCaseId())) {
-      throw new CTPException(Fault.BAD_REQUEST, "caseId in path and body must be identical");
-    }
-    @SuppressWarnings("unused")
+    log.with("caseId", caseId).debug("Entering reportRefusal");
+
+    // Parse uuid string, and allow 'unknown' to be used.
     UUID caseIdUUID = null;
     if (StringUtils.isBlank(caseId)) {
       throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID or \"UNKNOWN\"");
+    } else if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      throw new CTPException(Fault.BAD_REQUEST, "caseId in path and body must be identical");
     } else if (!caseId.toUpperCase().equals("UNKNOWN")) {
       try {
         caseIdUUID = UUID.fromString(caseId);
@@ -287,13 +286,10 @@ public class CaseEndpoint implements CTPEndpoint {
         throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID");
       }
     }
-    // caseIdUUID to be used as caseId from here on in - may be null if was "UNKNOWN"
-
-    // TODO Region validation
-
-    log.with("caseId", caseId).debug("Entering makeAppointment");
 
     ResponseDTO response = caseService.reportRefusal(caseIdUUID, requestBodyDTO);
+
+    log.with("caseId", caseId).debug("Exiting reportRefusal");
 
     return ResponseEntity.ok(response);
   }

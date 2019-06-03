@@ -21,6 +21,8 @@ import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
 import uk.gov.ons.ctp.common.event.model.Header;
+import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.event.model.RespondentRefusalEvent;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -31,12 +33,14 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.FulfilmentEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.RespondentRefusalEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
@@ -47,11 +51,15 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @Configuration
 public class CaseServiceImpl implements CaseService {
 
-  @Autowired private ContactCentreEventPublisher publisher;
+  @Autowired private FulfilmentEventPublisher fulfilmentPublisher;
+
+  @Autowired private RespondentRefusalEventPublisher respondentRefusalPublisher;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
   private static final String FULFILMENT_REQUESTED_TYPE = "FULFILMENT_REQUESTED";
+  private static final String REFUSAL_RECEIVED_TYPE = "REFUSAL_RECEIVED";
   private static final String CONTACT_CENTRE_SOURCE = "CONTACT_CENTRE_API";
+  private static final String RESPONDENT_REFUSAL_TYPE = "HARD_REFUSAL";
 
   @Autowired private AppConfig appConfig;
 
@@ -78,7 +86,7 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentEvent(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
 
-    publisher.sendEvent(fulfilmentRequestedEvent);
+    fulfilmentPublisher.sendEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -193,6 +201,28 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
+  @Override
+  public ResponseDTO reportRefusal(UUID caseId, RefusalRequestDTO requestBodyDTO)
+      throws CTPException {
+    log.debug("Processing refusal for case {}", caseId);
+
+    // Create and publish a respondent refusal event
+    RespondentRefusalEvent respondentRefusalEvent =
+        createRespondentRefusalEvent(caseId, requestBodyDTO);
+    respondentRefusalPublisher.sendEvent(respondentRefusalEvent);
+
+    // Build response
+    ResponseDTO response =
+        ResponseDTO.builder()
+            .id(caseId == null ? null : caseId.toString())
+            .dateTime(DateTimeUtil.nowUTC())
+            .build();
+
+    log.debug("Returning refusal response for case {}", caseId);
+
+    return response;
+  }
+
   private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {
     if (getCaseEvents) {
       // Only return whitelisted events
@@ -305,5 +335,43 @@ public class CaseServiceImpl implements CaseService {
     }
 
     return products.get(0);
+  }
+
+  /**
+   * Create a case refusal event.
+   *
+   * @param caseId is the UUID for the case, or null if the endpoint was invoked with a caseId of
+   *     'unknown'.
+   * @param refusalRequestDTO holds the details about the refusal.
+   * @return the request event to be delivered to the events exchange.
+   * @throws CTPException if there is a failure.
+   */
+  private RespondentRefusalEvent createRespondentRefusalEvent(
+      UUID caseId, RefusalRequestDTO refusalRequestDTO) throws CTPException {
+
+    RespondentRefusalEvent respondentRefusalEvent = new RespondentRefusalEvent();
+
+    // Create event header
+    Header header =
+        Header.builder()
+            .type(REFUSAL_RECEIVED_TYPE)
+            .source(CONTACT_CENTRE_SOURCE)
+            .channel(RequestChannel.CC.name())
+            .dateTime(DateTimeUtil.nowUTC())
+            .transactionId(UUID.randomUUID().toString())
+            .build();
+    respondentRefusalEvent.setEvent(header);
+
+    // Create message payload
+    RespondentRefusalDetails refusalDetails = respondentRefusalEvent.getPayload().getRefusal();
+    refusalDetails.setType(RESPONDENT_REFUSAL_TYPE);
+    refusalDetails.setReport(refusalRequestDTO.getNotes());
+    refusalDetails.getCollectionCase().setId(caseId);
+    refusalDetails.getContact().setTitle(refusalRequestDTO.getTitle());
+    refusalDetails.getContact().setForename(refusalRequestDTO.getForename());
+    refusalDetails.getContact().setSurname(refusalRequestDTO.getSurname());
+    refusalDetails.getContact().setTelNo(refusalRequestDTO.getTelNo());
+
+    return respondentRefusalEvent;
   }
 }

@@ -69,12 +69,8 @@ public interface CaseService {
     return fakeResponse;
   }
 
-  public default ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO) {
-    ResponseDTO fakeResponse =
-        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
-
-    return fakeResponse;
-  }
+  public ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO)
+      throws CTPException;
 
   private UUID createSemiRandomFakeUUID() {
     String randomUUID = UUID.randomUUID().toString();

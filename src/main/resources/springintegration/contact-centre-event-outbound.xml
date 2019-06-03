@@ -12,4 +12,9 @@
     <rabbit:template id="fulfilmentRequestRabbitTemplate" connection-factory="connectionFactory" exchange="events" routing-key="event.fulfilment.request"
                      message-converter="fulfilmentRequestJsonMessageConverter" channel-transacted="true"/>
 
+    <bean id="respondentRefusalJsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"/>
+
+    <rabbit:template id="respondentRefusalRabbitTemplate" connection-factory="connectionFactory" exchange="events" routing-key="event.respondent.refusal"
+                     message-converter="respondentRefusalJsonMessageConverter" channel-transacted="true"/>
+
 </beans>
