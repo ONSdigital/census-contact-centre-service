@@ -146,7 +146,7 @@ public class CaseServiceImplTest {
 
     try {
       // execution - call the unit under test
-      ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
+      target.fulfilmentRequestByPost(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
       assertEquals("Compatible product cannot be found", e.getMessage());
@@ -182,7 +182,7 @@ public class CaseServiceImplTest {
 
     try {
       // execution - call the unit under test
-      ResponseDTO responseDTOFixture = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+      target.fulfilmentRequestBySMS(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
       assertEquals("Compatible product cannot be found", e.getMessage());
@@ -561,21 +561,27 @@ public class CaseServiceImplTest {
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
     // execution - call the unit under test
+    long timeBeforeInvocation = System.currentTimeMillis();
     ResponseDTO responseDTOFixture = target.fulfilmentRequestByPost(requestBodyDTOFixture);
+    long timeAfterInvocation = System.currentTimeMillis();
 
+    // Validate the response
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), responseDTOFixture.getId());
+    verifyTimeInExpectedRange(
+        timeBeforeInvocation, timeAfterInvocation, responseDTOFixture.getDateTime());
+
+    // Grab the published event
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
     verify(fulfilmentPublisher).sendEvent(fulfilmentRequestedEventArg.capture());
 
     Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
-
     assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
     assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
     assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
 
     FulfilmentRequest actualFulfilmentRequest =
         fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
-
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
@@ -588,10 +594,11 @@ public class CaseServiceImplTest {
     }
 
     Contact actualContact = actualFulfilmentRequest.getContact();
-
     assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
+    assertEquals(null, actualContact.getEmail());
+    assertEquals(null, actualContact.getTelNo());
   }
 
   private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType) throws Exception {
@@ -615,21 +622,26 @@ public class CaseServiceImplTest {
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
     // execution - call the unit under test
-    ResponseDTO responseDTOFixture = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+    long timeBeforeInvocation = System.currentTimeMillis();
+    ResponseDTO response = target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+    long timeAfterInvocation = System.currentTimeMillis();
 
+    // Validate the response
+    assertEquals(requestBodyDTOFixture.getCaseId().toString(), response.getId());
+    verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, response.getDateTime());
+
+    // Grab the published event
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(publisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    verify(fulfilmentPublisher).sendEvent(fulfilmentRequestedEventArg.capture());
 
     Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
-
     assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
     assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
     assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
 
     FulfilmentRequest actualFulfilmentRequest =
         fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
-
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
@@ -642,7 +654,10 @@ public class CaseServiceImplTest {
     }
 
     Contact actualContact = actualFulfilmentRequest.getContact();
-
+    assertEquals(null, actualContact.getTitle());
+    assertEquals(null, actualContact.getForename());
+    assertEquals(null, actualContact.getSurname());
+    assertEquals(null, actualContact.getEmail());
     assertEquals(requestBodyDTOFixture.getTelNo(), actualContact.getTelNo());
   }
 }

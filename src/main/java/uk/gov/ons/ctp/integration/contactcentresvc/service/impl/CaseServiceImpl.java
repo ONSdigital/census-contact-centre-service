@@ -111,7 +111,7 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentEvent(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
 
-    publisher.sendEvent(fulfilmentRequestedEvent);
+    fulfilmentPublisher.sendEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
