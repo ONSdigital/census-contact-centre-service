@@ -204,7 +204,12 @@ public class CaseServiceImpl implements CaseService {
   @Override
   public ResponseDTO reportRefusal(UUID caseId, RefusalRequestDTO requestBodyDTO)
       throws CTPException {
-    log.debug("Processing refusal for case {}", caseId);
+    String reportedDateTime = "null";
+    if (requestBodyDTO.getDateTime() != null) {
+      reportedDateTime = DateTimeUtil.formatDate(requestBodyDTO.getDateTime());
+    }
+    log.debug(
+        "Processing refusal for case {} with reported dateTime of {}", caseId, reportedDateTime);
 
     // Create and publish a respondent refusal event
     RespondentRefusalEvent respondentRefusalEvent =
@@ -342,12 +347,12 @@ public class CaseServiceImpl implements CaseService {
    *
    * @param caseId is the UUID for the case, or null if the endpoint was invoked with a caseId of
    *     'unknown'.
-   * @param refusalRequestDTO holds the details about the refusal.
+   * @param refusalRequest holds the details about the refusal.
    * @return the request event to be delivered to the events exchange.
    * @throws CTPException if there is a failure.
    */
   private RespondentRefusalEvent createRespondentRefusalEvent(
-      UUID caseId, RefusalRequestDTO refusalRequestDTO) throws CTPException {
+      UUID caseId, RefusalRequestDTO refusalRequest) throws CTPException {
 
     RespondentRefusalEvent respondentRefusalEvent = new RespondentRefusalEvent();
 
@@ -363,14 +368,22 @@ public class CaseServiceImpl implements CaseService {
     respondentRefusalEvent.setEvent(header);
 
     // Create message payload
-    RespondentRefusalDetails refusalDetails = respondentRefusalEvent.getPayload().getRefusal();
-    refusalDetails.setType(RESPONDENT_REFUSAL_TYPE);
-    refusalDetails.setReport(refusalRequestDTO.getNotes());
-    refusalDetails.getCollectionCase().setId(caseId);
-    refusalDetails.getContact().setTitle(refusalRequestDTO.getTitle());
-    refusalDetails.getContact().setForename(refusalRequestDTO.getForename());
-    refusalDetails.getContact().setSurname(refusalRequestDTO.getSurname());
-    refusalDetails.getContact().setTelNo(refusalRequestDTO.getTelNo());
+    RespondentRefusalDetails refusal = respondentRefusalEvent.getPayload().getRefusal();
+    refusal.setType(RESPONDENT_REFUSAL_TYPE);
+    refusal.setReport(refusalRequest.getNotes());
+    refusal.getCollectionCase().setId(caseId);
+    // Contact
+    refusal.getContact().setTitle(refusalRequest.getTitle());
+    refusal.getContact().setForename(refusalRequest.getForename());
+    refusal.getContact().setSurname(refusalRequest.getSurname());
+    refusal.getContact().setTelNo(refusalRequest.getTelNo());
+    // Address
+    refusal.getAddress().setAddressLine1(refusalRequest.getAddressLine1());
+    refusal.getAddress().setAddressLine2(refusalRequest.getAddressLine2());
+    refusal.getAddress().setAddressLine3(refusalRequest.getAddressLine3());
+    refusal.getAddress().setTownName(refusalRequest.getTownName());
+    refusal.getAddress().setPostcode(refusalRequest.getPostcode());
+    refusal.getAddress().setRegion(refusalRequest.getRegion());
 
     return respondentRefusalEvent;
   }

@@ -36,7 +36,6 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
   private static final String ADDRESS_LINE_1 = "addressLine1";
   private static final String ADDRESS_LINE_2 = "addressLine2";
   private static final String ADDRESS_LINE_3 = "addressLine3";
-  private static final String ADDRESS_LINE_4 = "addressLine4";
   private static final String TOWN_NAME = "townName";
   private static final String REGION = "region";
   private static final String POSTCODE = "postcode";
@@ -164,22 +163,6 @@ public final class CaseEndpointUnresolvedFulfilmentPostTest {
   public void postUnresolvedFulfilmentAddressLine3TooLong() throws Exception {
     assertBadRequest(
         ADDRESS_LINE_3, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
-  }
-
-  @Test
-  public void postUnresolvedFulfilmentAddressLine4Null() throws Exception {
-    assertOk(ADDRESS_LINE_4, (String) null);
-  }
-
-  @Test
-  public void postUnresolvedFulfilmentAddressLine4Blank() throws Exception {
-    assertOk(ADDRESS_LINE_4, "");
-  }
-
-  @Test
-  public void postUnresolvedFulfilmentAddressLine4TooLong() throws Exception {
-    assertBadRequest(
-        ADDRESS_LINE_4, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
   }
 
   @Test

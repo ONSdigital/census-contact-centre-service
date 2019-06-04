@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
@@ -317,16 +318,22 @@ public class CaseServiceImplTest {
   @Test
   public void testRespondentRefusal_withUUID() throws Exception {
     UUID caseId = UUID.randomUUID();
-    doRespondentRefusalTest(caseId);
+    doRespondentRefusalTest(caseId, new Date());
+  }
+
+  @Test
+  public void testRespondentRefusal_withoutDateTime() throws Exception {
+    UUID caseId = UUID.randomUUID();
+    doRespondentRefusalTest(caseId, null);
   }
 
   @Test
   public void testRespondentRefusal_forUnknownUUID() throws Exception {
     UUID unknownCaseId = null;
-    doRespondentRefusalTest(unknownCaseId);
+    doRespondentRefusalTest(unknownCaseId, new Date());
   }
 
-  private void doRespondentRefusalTest(UUID caseId) throws Exception {
+  private void doRespondentRefusalTest(UUID caseId, Date dateTime) throws Exception {
     RefusalRequestDTO refusalPayload =
         RefusalRequestDTO.builder()
             .caseId(caseId == null ? null : caseId.toString())
@@ -335,6 +342,13 @@ public class CaseServiceImplTest {
             .forename("Steve")
             .surname("Jones")
             .telNo("+447890000000")
+            .addressLine1("1 High Street")
+            .addressLine2("Delph")
+            .addressLine3("Oldham")
+            .townName("Manchester")
+            .postcode("OL3 5DJ")
+            .region("E")
+            .dateTime(dateTime)
             .build();
 
     // report the refusal
@@ -368,12 +382,21 @@ public class CaseServiceImplTest {
     assertEquals("Description of refusal", refusal.getReport());
     assertNull(refusal.getAgentId());
     assertEquals(caseId, refusal.getCollectionCase().getId());
+    // Validate contact details
     Contact actualContact = refusal.getContact();
     assertEquals("Mr", actualContact.getTitle());
     assertEquals("Steve", actualContact.getForename());
     assertEquals("Jones", actualContact.getSurname());
     assertNull(actualContact.getEmail());
     assertEquals("+447890000000", actualContact.getTelNo());
+    // Validate address
+    AddressCompact address = refusal.getAddress();
+    assertEquals("1 High Street", address.getAddressLine1());
+    assertEquals("Delph", address.getAddressLine2());
+    assertEquals("Oldham", address.getAddressLine3());
+    assertEquals("Manchester", address.getTownName());
+    assertEquals("OL3 5DJ", address.getPostcode());
+    assertEquals("E", address.getRegion());
   }
 
   private void verifyTimeInExpectedRange(long minAllowed, long maxAllowed, Date dateTime) {
