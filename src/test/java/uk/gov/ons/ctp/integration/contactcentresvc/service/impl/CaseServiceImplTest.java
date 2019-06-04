@@ -46,8 +46,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServic
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.FulfilmentEventPublisher;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.RespondentRefusalEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
@@ -67,8 +66,7 @@ public class CaseServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
 
   @Mock ProductReference productReference;
-  @Mock FulfilmentEventPublisher fulfilmentPublisher;
-  @Mock RespondentRefusalEventPublisher respondentRefusalPublisher;
+  @Mock ContactCentreEventPublisher publisher;
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
@@ -374,7 +372,7 @@ public class CaseServiceImplTest {
     // Grab the published event
     ArgumentCaptor<RespondentRefusalEvent> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalEvent.class);
-    verify(respondentRefusalPublisher).sendEvent(refusalEventCaptor.capture());
+    verify(publisher).sendRefusalEvent(refusalEventCaptor.capture());
 
     // Validate the header of the published event
     RespondentRefusalEvent publishedMessage = refusalEventCaptor.getValue();
@@ -572,7 +570,7 @@ public class CaseServiceImplTest {
 
   private void doFulfilmentRequestByPostSuccess(
       Product.CaseType caseType, String title, String forename, String surname) throws Exception {
-    Mockito.clearInvocations(fulfilmentPublisher);
+    Mockito.clearInvocations(publisher);
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -606,7 +604,7 @@ public class CaseServiceImplTest {
     // Grab the published event
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(fulfilmentPublisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    verify(publisher).sendFulfilmentEvent(fulfilmentRequestedEventArg.capture());
 
     Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
     assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
@@ -666,7 +664,7 @@ public class CaseServiceImplTest {
     // Grab the published event
     ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
         ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(fulfilmentPublisher).sendEvent(fulfilmentRequestedEventArg.capture());
+    verify(publisher).sendFulfilmentEvent(fulfilmentRequestedEventArg.capture());
 
     Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
     assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());

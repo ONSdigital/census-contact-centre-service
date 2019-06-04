@@ -35,8 +35,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.FulfilmentEventPublisher;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.impl.RespondentRefusalEventPublisher;
+import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
@@ -53,9 +52,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @Configuration
 public class CaseServiceImpl implements CaseService {
 
-  @Autowired private FulfilmentEventPublisher fulfilmentPublisher;
-
-  @Autowired private RespondentRefusalEventPublisher respondentRefusalPublisher;
+  @Autowired private ContactCentreEventPublisher publisher;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
   private static final String FULFILMENT_REQUESTED_TYPE = "FULFILMENT_REQUESTED";
@@ -88,7 +85,7 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentEvent(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
 
-    fulfilmentPublisher.sendEvent(fulfilmentRequestedEvent);
+    publisher.sendFulfilmentEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -113,7 +110,7 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentEvent(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
 
-    fulfilmentPublisher.sendEvent(fulfilmentRequestedEvent);
+    publisher.sendFulfilmentEvent(fulfilmentRequestedEvent);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -217,7 +214,7 @@ public class CaseServiceImpl implements CaseService {
     UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
     RespondentRefusalEvent respondentRefusalEvent =
         createRespondentRefusalEvent(refusalCaseId, requestBodyDTO);
-    respondentRefusalPublisher.sendEvent(respondentRefusalEvent);
+    publisher.sendRefusalEvent(respondentRefusalEvent);
 
     // Build response
     ResponseDTO response =
