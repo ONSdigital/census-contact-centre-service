@@ -2,7 +2,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>contactcentresvc</artifactId>
-  <version>0.0.11</version>
+  <version>0.0.12-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <parent>
@@ -25,7 +25,7 @@
     <connection>scm:git:https://github.com/ONSdigital/census-contact-centre-service</connection>
     <developerConnection>scm:git:https://github.com/ONSdigital/census-contact-centre-service</developerConnection>
     <url>https://github.com/ONSdigital/census-contact-centre-service</url>
-    <tag>contactcentresvc-0.0.11</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <profiles>
