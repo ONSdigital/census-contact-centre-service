@@ -26,19 +26,19 @@
   "caseEvents": [
     {
       "id": "101",
-      "category": "CASE_CREATED",
+      "eventType": "CASE_CREATED",
       "description": "Initial creation of case",
       "createdDateTime": "2019-05-14T16:11:41.343+01:00"
     },
     {
       "id": "102",
-      "category": "X11",
+      "eventType": "X11",
       "description": "Should be filtered out",
       "createdDateTime": "2019-05-15T17:02:12.343+04:00"
     },
     {
       "id": "103",
-      "category": "CASE_UPDATED",
+      "eventType": "CASE_UPDATED",
       "description": "Create Household Visit",
       "createdDateTime": "2019-05-16T12:12:12.343Z"
     }
@@ -71,19 +71,19 @@
   "caseEvents": [
     {
       "id": "101",
-      "category": "CASE_CREATED",
+      "eventType": "CASE_CREATED",
       "description": "Initial creation of case",
       "createdDateTime": "2019-05-14T16:11:41.343+01:00"
     },
     {
       "id": "102",
-      "category": "X11",
+      "eventType": "X11",
       "description": "Should be filtered out",
       "createdDateTime": "2019-05-15T17:02:12.343+04:00"
     },
     {
       "id": "103",
-      "category": "CASE_UPDATED",
+      "eventType": "CASE_UPDATED",
       "description": "Create Household Visit",
       "createdDateTime": "2019-05-16T12:12:12.343Z"
     }

@@ -9,7 +9,9 @@ import ma.glasnost.orika.metadata.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.EventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 
 /** The bean mapper that maps to/from DTOs and JPA entity types. */
 @Component
@@ -31,6 +33,12 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .fieldMap("region", "region")
         .converter("regionConverter")
         .add()
+        .register();
+
+    factory
+        .classMap(EventDTO.class, CaseEventDTO.class)
+        .field("eventType", "category")
+        .byDefault()
         .register();
   }
 

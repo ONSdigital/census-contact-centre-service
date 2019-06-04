@@ -10,7 +10,7 @@ public class EventDTO {
 
   private String id;
 
-  private String category;
+  private String eventType;
 
   private String description;
 
