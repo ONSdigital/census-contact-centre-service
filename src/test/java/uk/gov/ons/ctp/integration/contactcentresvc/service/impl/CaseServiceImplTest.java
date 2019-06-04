@@ -317,23 +317,33 @@ public class CaseServiceImplTest {
 
   @Test
   public void testRespondentRefusal_withUUID() throws Exception {
+    Date dateTime = new Date();
     UUID caseId = UUID.randomUUID();
-    doRespondentRefusalTest(caseId, new Date());
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
   }
 
   @Test
   public void testRespondentRefusal_withoutDateTime() throws Exception {
+    Date dateTime = null;
     UUID caseId = UUID.randomUUID();
-    doRespondentRefusalTest(caseId, null);
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
   }
 
   @Test
   public void testRespondentRefusal_forUnknownUUID() throws Exception {
     UUID unknownCaseId = null;
-    doRespondentRefusalTest(unknownCaseId, new Date());
+    UUID expectedEventCaseId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    String expectedResponseCaseId = "unknown";
+    doRespondentRefusalTest(unknownCaseId, expectedEventCaseId, expectedResponseCaseId, new Date());
   }
 
-  private void doRespondentRefusalTest(UUID caseId, Date dateTime) throws Exception {
+  private void doRespondentRefusalTest(
+      UUID caseId, UUID expectedEventCaseId, String expectedResponseCaseId, Date dateTime)
+      throws Exception {
     RefusalRequestDTO refusalPayload =
         RefusalRequestDTO.builder()
             .caseId(caseId == null ? null : caseId.toString())
@@ -357,7 +367,7 @@ public class CaseServiceImplTest {
     long timeAfterInvocation = System.currentTimeMillis();
 
     // Validate the response to the refusal
-    assertEquals(caseId == null ? null : caseId.toString(), refusalResponse.getId());
+    assertEquals(expectedResponseCaseId, refusalResponse.getId());
     verifyTimeInExpectedRange(
         timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
 
@@ -381,7 +391,7 @@ public class CaseServiceImplTest {
     assertEquals("HARD_REFUSAL", refusal.getType());
     assertEquals("Description of refusal", refusal.getReport());
     assertNull(refusal.getAgentId());
-    assertEquals(caseId, refusal.getCollectionCase().getId());
+    assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
     // Validate contact details
     Contact actualContact = refusal.getContact();
     assertEquals("Mr", actualContact.getTitle());
