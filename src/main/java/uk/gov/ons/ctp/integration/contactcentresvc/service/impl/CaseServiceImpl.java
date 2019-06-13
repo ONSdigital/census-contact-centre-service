@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,23 +20,19 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
+import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
-import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
-import uk.gov.ons.ctp.common.event.model.Header;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
-import uk.gov.ons.ctp.common.event.model.RespondentRefusalEvent;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
-import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
@@ -52,12 +49,15 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @Configuration
 public class CaseServiceImpl implements CaseService {
 
-  @Autowired private ContactCentreEventPublisher publisher;
+  @Autowired private EventPublisher publisher;
+
+  @Value("${queueconfig.fulfilment-routing-key}")
+  private String fulfilmentRoutingKey;
+
+  @Value("${queueconfig.refusal-routing-key}")
+  private String refusalRoutingKey;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  private static final String FULFILMENT_REQUESTED_TYPE = "FULFILMENT_REQUESTED";
-  private static final String REFUSAL_RECEIVED_TYPE = "REFUSAL_RECEIVED";
-  private static final String CONTACT_CENTRE_SOURCE = "CONTACT_CENTRE_API";
   private static final String RESPONDENT_REFUSAL_TYPE = "HARD_REFUSAL";
 
   @Autowired private AppConfig appConfig;
@@ -81,11 +81,11 @@ public class CaseServiceImpl implements CaseService {
     contact.setForename(requestBodyDTO.getForename());
     contact.setSurname(requestBodyDTO.getSurname());
 
-    FulfilmentRequestedEvent fulfilmentRequestedEvent =
-        createFulfilmentEvent(
+    FulfilmentRequest fulfilmentRequestPayload =
+        createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
 
-    publisher.sendFulfilmentEvent(fulfilmentRequestedEvent);
+    publisher.sendEvent(fulfilmentRoutingKey, fulfilmentRequestPayload);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -106,11 +106,10 @@ public class CaseServiceImpl implements CaseService {
     Contact contact = new Contact();
     contact.setTelNo(requestBodyDTO.getTelNo());
 
-    FulfilmentRequestedEvent fulfilmentRequestedEvent =
-        createFulfilmentEvent(
+    FulfilmentRequest fulfilmentRequestedPayload =
+        createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
-
-    publisher.sendFulfilmentEvent(fulfilmentRequestedEvent);
+    publisher.sendEvent(fulfilmentRoutingKey, fulfilmentRequestedPayload);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -212,9 +211,9 @@ public class CaseServiceImpl implements CaseService {
 
     // Create and publish a respondent refusal event
     UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
-    RespondentRefusalEvent respondentRefusalEvent =
-        createRespondentRefusalEvent(refusalCaseId, requestBodyDTO);
-    publisher.sendRefusalEvent(respondentRefusalEvent);
+    RespondentRefusalDetails refusalPayload =
+        createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
+    publisher.sendEvent(refusalRoutingKey, refusalPayload);
 
     // Build response
     ResponseDTO response =
@@ -259,7 +258,7 @@ public class CaseServiceImpl implements CaseService {
    * @return the request event to be delivered to the events exchange
    * @throws CTPException the requested product is invalid for the parameters given
    */
-  private FulfilmentRequestedEvent createFulfilmentEvent(
+  private FulfilmentRequest createFulfilmentRequestPayload(
       String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
@@ -282,22 +281,8 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    FulfilmentRequestedEvent fulfilmentRequestedEvent = new FulfilmentRequestedEvent();
-
-    // Set up the event header
-    Header header =
-        Header.builder()
-            .type(FULFILMENT_REQUESTED_TYPE)
-            .source(CONTACT_CENTRE_SOURCE)
-            .channel(RequestChannel.CC.name())
-            .dateTime(DateTimeUtil.nowUTC())
-            .transactionId(UUID.randomUUID().toString())
-            .build();
-    fulfilmentRequestedEvent.setEvent(header);
-
     // Set up the event payload request
-    FulfilmentRequest fulfilmentRequest =
-        fulfilmentRequestedEvent.getPayload().getFulfilmentRequest();
+    FulfilmentRequest fulfilmentRequest = new FulfilmentRequest();
     if (product.getCaseType().equals(Product.CaseType.HI)) {
       fulfilmentRequest.setIndividualCaseId(UUID.randomUUID().toString());
     }
@@ -306,7 +291,7 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequest.setCaseId(caseId.toString());
     fulfilmentRequest.setContact(contact);
 
-    return fulfilmentRequestedEvent;
+    return fulfilmentRequest;
   }
 
   /**
@@ -351,33 +336,22 @@ public class CaseServiceImpl implements CaseService {
    * @return the request event to be delivered to the events exchange.
    * @throws CTPException if there is a failure.
    */
-  private RespondentRefusalEvent createRespondentRefusalEvent(
+  private RespondentRefusalDetails createRespondentRefusalPayload(
       UUID caseId, RefusalRequestDTO refusalRequest) throws CTPException {
 
-    RespondentRefusalEvent respondentRefusalEvent = new RespondentRefusalEvent();
-
-    // Create event header
-    Header header =
-        Header.builder()
-            .type(REFUSAL_RECEIVED_TYPE)
-            .source(CONTACT_CENTRE_SOURCE)
-            .channel(RequestChannel.CC.name())
-            .dateTime(DateTimeUtil.nowUTC())
-            .transactionId(UUID.randomUUID().toString())
-            .build();
-    respondentRefusalEvent.setEvent(header);
-
     // Create message payload
-    RespondentRefusalDetails refusal = respondentRefusalEvent.getPayload().getRefusal();
+    RespondentRefusalDetails refusal = new RespondentRefusalDetails();
     refusal.setType(RESPONDENT_REFUSAL_TYPE);
     refusal.setReport(refusalRequest.getNotes());
     refusal.getCollectionCase().setId(caseId);
-    // Contact
+
+    // Populate contact
     refusal.getContact().setTitle(refusalRequest.getTitle());
     refusal.getContact().setForename(refusalRequest.getForename());
     refusal.getContact().setSurname(refusalRequest.getSurname());
     refusal.getContact().setTelNo(refusalRequest.getTelNo());
-    // Address
+
+    // Populate address
     refusal.getAddress().setAddressLine1(refusalRequest.getAddressLine1());
     refusal.getAddress().setAddressLine2(refusalRequest.getAddressLine2());
     refusal.getAddress().setAddressLine3(refusalRequest.getAddressLine3());
@@ -385,6 +359,6 @@ public class CaseServiceImpl implements CaseService {
     refusal.getAddress().setPostcode(refusalRequest.getPostcode());
     refusal.getAddress().setRegion(refusalRequest.getRegion());
 
-    return respondentRefusalEvent;
+    return refusal;
   }
 }

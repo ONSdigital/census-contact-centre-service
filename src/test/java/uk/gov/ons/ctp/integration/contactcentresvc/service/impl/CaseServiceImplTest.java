@@ -2,7 +2,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -28,16 +27,16 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
-import uk.gov.ons.ctp.common.event.model.FulfilmentRequestedEvent;
-import uk.gov.ons.ctp.common.event.model.Header;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
-import uk.gov.ons.ctp.common.event.model.RespondentRefusalEvent;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -46,7 +45,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.CaseServic
 import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
-import uk.gov.ons.ctp.integration.contactcentresvc.event.ContactCentreEventPublisher;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
@@ -66,7 +64,9 @@ public class CaseServiceImplTest {
   @Mock AppConfig appConfig = new AppConfig();
 
   @Mock ProductReference productReference;
-  @Mock ContactCentreEventPublisher publisher;
+
+  @Mock EventPublisher publisher;
+
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
@@ -76,11 +76,22 @@ public class CaseServiceImplTest {
   private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
   private UUID uuid2 = UUID.fromString("b7565b5e-2222-2222-2222-918c0d3642ed");
 
+  private static final String FULFILMENT_ROUTING_KEY_FIELD_NAME = "fulfilmentRoutingKey";
+  private static final String FULFILMENT_ROUTING_KEY_FIELD_VALUE = "fulfilment.routing";
+
+  private static final String REFUSAL_ROUTING_KEY_FIELD_NAME = "refusalRoutingKey";
+  private static final String REFUSAL_ROUTING_KEY_FIELD_VALUE = "refusal.routing";
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
 
-    // Mock out a whitelist of allowable case events
+    ReflectionTestUtils.setField(
+        target, FULFILMENT_ROUTING_KEY_FIELD_NAME, FULFILMENT_ROUTING_KEY_FIELD_VALUE);
+    ReflectionTestUtils.setField(
+        target, REFUSAL_ROUTING_KEY_FIELD_NAME, REFUSAL_ROUTING_KEY_FIELD_VALUE);
+
+    // For case retrieval, mock out a whitelist of allowable case events
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
@@ -370,22 +381,17 @@ public class CaseServiceImplTest {
         timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<RespondentRefusalEvent> refusalEventCaptor =
-        ArgumentCaptor.forClass(RespondentRefusalEvent.class);
-    verify(publisher).sendRefusalEvent(refusalEventCaptor.capture());
+    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
+        ArgumentCaptor.forClass(RespondentRefusalDetails.class);
+    verify(publisher)
+        .sendEvent(routingKeyCaptor.capture(), (EventPayload) refusalEventCaptor.capture());
 
-    // Validate the header of the published event
-    RespondentRefusalEvent publishedMessage = refusalEventCaptor.getValue();
-    Header header = publishedMessage.getEvent();
-    assertEquals("REFUSAL_RECEIVED", header.getType());
-    assertEquals("CONTACT_CENTRE_API", header.getSource());
-    assertEquals(Product.RequestChannel.CC.name(), header.getChannel());
-    verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, header.getDateTime());
-    assertNotNull(UUID.fromString(header.getTransactionId()));
-    assertNotEquals(caseId, header.getTransactionId()); // Must be new transaction id
+    // Validate routing key
+    assertEquals(REFUSAL_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
 
     // Validate payload of published event
-    RespondentRefusalDetails refusal = publishedMessage.getPayload().getRefusal();
+    RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
     assertEquals("HARD_REFUSAL", refusal.getType());
     assertEquals("Description of refusal", refusal.getReport());
     assertNull(refusal.getAgentId());
@@ -602,17 +608,15 @@ public class CaseServiceImplTest {
         timeBeforeInvocation, timeAfterInvocation, responseDTOFixture.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
-        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(publisher).sendFulfilmentEvent(fulfilmentRequestedEventArg.capture());
+    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
+        ArgumentCaptor.forClass(FulfilmentRequest.class);
+    verify(publisher).sendEvent(routingKeyCaptor.capture(), fulfilmentRequestCaptor.capture());
 
-    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
-    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
-    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
-    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+    // Validate routing key
+    assertEquals(FULFILMENT_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
 
-    FulfilmentRequest actualFulfilmentRequest =
-        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+    FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
@@ -662,17 +666,15 @@ public class CaseServiceImplTest {
     verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, response.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<FulfilmentRequestedEvent> fulfilmentRequestedEventArg =
-        ArgumentCaptor.forClass(FulfilmentRequestedEvent.class);
-    verify(publisher).sendFulfilmentEvent(fulfilmentRequestedEventArg.capture());
+    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
+        ArgumentCaptor.forClass(FulfilmentRequest.class);
+    verify(publisher).sendEvent(routingKeyCaptor.capture(), fulfilmentRequestCaptor.capture());
 
-    Header actualHeader = fulfilmentRequestedEventArg.getValue().getEvent();
-    assertEquals("FULFILMENT_REQUESTED", actualHeader.getType());
-    assertEquals("CONTACT_CENTRE_API", actualHeader.getSource());
-    assertEquals(Product.RequestChannel.CC.name(), actualHeader.getChannel());
+    // Validate routing key
+    assertEquals(FULFILMENT_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
 
-    FulfilmentRequest actualFulfilmentRequest =
-        fulfilmentRequestedEventArg.getValue().getPayload().getFulfilmentRequest();
+    FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
