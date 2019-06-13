@@ -47,7 +47,7 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
       throws CTPException {
     log.with("caseType", requestDTO.getCaseType())
         .with("region", requestDTO.getRegion())
-        .debug("Entering getFulfilments");
+        .info("Entering GET getFulfilments");
     List<FulfilmentDTO> fulfilments =
         fulfilmentsService.getFulfilments(requestDTO.getCaseType(), requestDTO.getRegion());
 
