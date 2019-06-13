@@ -26,13 +26,13 @@
   "caseEvents": [
     {
       "id": "101",
-      "category": "CASE_CREATED",
+      "eventType": "CASE_CREATED",
       "description": "Initial creation of case",
       "createdDateTime": "2019-05-14T16:11:41.343Z"
     },
     {
       "id": "102",
-      "category": "CASE_UPDATED",
+      "eventType": "CASE_UPDATED",
       "description": "Create Household Visit",
       "createdDateTime": "2019-05-15T17:02:12.343+04:00"
     }
