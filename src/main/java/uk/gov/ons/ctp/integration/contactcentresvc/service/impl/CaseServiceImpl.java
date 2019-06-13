@@ -21,6 +21,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
+import uk.gov.ons.ctp.common.event.model.AddressCompact;
+import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
@@ -343,21 +345,26 @@ public class CaseServiceImpl implements CaseService {
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
     refusal.setType(RESPONDENT_REFUSAL_TYPE);
     refusal.setReport(refusalRequest.getNotes());
-    refusal.getCollectionCase().setId(caseId);
+    CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
+    refusal.setCollectionCase(collectionCase);
 
     // Populate contact
-    refusal.getContact().setTitle(refusalRequest.getTitle());
-    refusal.getContact().setForename(refusalRequest.getForename());
-    refusal.getContact().setSurname(refusalRequest.getSurname());
-    refusal.getContact().setTelNo(refusalRequest.getTelNo());
+    Contact contact = new Contact();
+    contact.setTitle(refusalRequest.getTitle());
+    contact.setForename(refusalRequest.getForename());
+    contact.setSurname(refusalRequest.getSurname());
+    contact.setTelNo(refusalRequest.getTelNo());
+    refusal.setContact(contact);
 
     // Populate address
-    refusal.getAddress().setAddressLine1(refusalRequest.getAddressLine1());
-    refusal.getAddress().setAddressLine2(refusalRequest.getAddressLine2());
-    refusal.getAddress().setAddressLine3(refusalRequest.getAddressLine3());
-    refusal.getAddress().setTownName(refusalRequest.getTownName());
-    refusal.getAddress().setPostcode(refusalRequest.getPostcode());
-    refusal.getAddress().setRegion(refusalRequest.getRegion());
+    AddressCompact address = new AddressCompact();
+    address.setAddressLine1(refusalRequest.getAddressLine1());
+    address.setAddressLine2(refusalRequest.getAddressLine2());
+    address.setAddressLine3(refusalRequest.getAddressLine3());
+    address.setTownName(refusalRequest.getTownName());
+    address.setPostcode(refusalRequest.getPostcode());
+    address.setRegion(refusalRequest.getRegion());
+    refusal.setAddress(address);
 
     return refusal;
   }
