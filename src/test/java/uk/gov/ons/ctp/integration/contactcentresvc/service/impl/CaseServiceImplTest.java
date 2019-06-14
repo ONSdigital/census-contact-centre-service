@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +75,6 @@ public class CaseServiceImplTest {
   @InjectMocks CaseService target = new CaseServiceImpl();
 
   private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
-  private UUID uuid2 = UUID.fromString("b7565b5e-2222-2222-2222-918c0d3642ed");
 
   private static final String FULFILMENT_ROUTING_KEY_FIELD_NAME = "fulfilmentRoutingKey";
   private static final String FULFILMENT_ROUTING_KEY_FIELD_VALUE = "fulfilment.routing";
@@ -250,7 +250,7 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByUprn_nonHouseholdCase_emptyResultSet() throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(1235532324343434L);
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
@@ -268,7 +268,7 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByUprn_nonHouseholdCase_mixed() throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(1235532324343434L);
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
@@ -278,9 +278,12 @@ public class CaseServiceImplTest {
         .thenReturn(caseFromCaseService);
 
     // Run the request
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(true));
+    boolean caseEvents = true;
+    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(1, results.size());
-    verifyCase(results.get(0), uuid2, CaseType.HH, true);
+
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
+    verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
@@ -430,11 +433,13 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(uuid, requestParams);
 
-    verifyCase(results, uuid, caseType, caseEvents);
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService, caseEvents);
+    verifyCase(results, expectedCaseResult, caseEvents);
+    assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
   }
 
   private void doTestGetCaseByUprn(boolean caseEvents) throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(1235532324343434L);
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
@@ -447,8 +452,12 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
-    verifyCase(results.get(0), uuid, CaseType.HH, caseEvents);
-    verifyCase(results.get(1), uuid2, CaseType.CE, caseEvents);
+    // Verify response
+    CaseDTO expectedCaseResult0 = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
+    verifyCase(results.get(0), expectedCaseResult0, caseEvents);
+
+    CaseDTO expectedCaseResult1 = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
+    verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
   private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {
@@ -464,16 +473,52 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
 
-    verifyCase(results, uuid, caseType, caseEvents);
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService, caseEvents);
+    verifyCase(results, expectedCaseResult, caseEvents);
   }
 
-  private void verifyCase(
-      CaseDTO results, UUID expectedUUID, CaseType expectedCaseType, boolean caseEventsExpected)
+  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
+    CaseDTO expectedCaseResult =
+        CaseDTO.builder()
+            .id(caseFromCaseService.getId())
+            .caseRef(caseFromCaseService.getCaseRef())
+            .caseType(caseFromCaseService.getCaseType())
+            .createdDateTime(caseFromCaseService.getCreatedDateTime())
+            .addressLine1(caseFromCaseService.getAddressLine1())
+            .addressLine2(caseFromCaseService.getAddressLine2())
+            .addressLine3(caseFromCaseService.getAddressLine3())
+            .townName(caseFromCaseService.getTownName())
+            .region(caseFromCaseService.getRegion().substring(0, 1))
+            .postcode(caseFromCaseService.getPostcode())
+            .uprn(new UniquePropertyReferenceNumber(caseFromCaseService.getUprn()))
+            .build();
+    if (caseEvents) {
+      List<CaseEventDTO> expectedCaseEvents =
+          caseFromCaseService
+              .getCaseEvents()
+              .stream()
+              .filter(e -> !e.getDescription().contains("Should be filtered out"))
+              .map(
+                  e -> {
+                    CaseEventDTO expectedEvent =
+                        CaseEventDTO.builder()
+                            .description(e.getDescription())
+                            .category(e.getEventType())
+                            .createdDateTime(e.getCreatedDateTime())
+                            .build();
+                    return expectedEvent;
+                  })
+              .collect(Collectors.toList());
+      expectedCaseResult.setCaseEvents(expectedCaseEvents);
+    }
+    return expectedCaseResult;
+  }
+
+  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected)
       throws ParseException {
-    assertEquals(expectedUUID, results.getId());
-    assertEquals("1000000000000001", results.getCaseRef());
-    assertEquals(expectedCaseType.name(), results.getCaseType());
-    assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
+    assertEquals(expectedCaseResult.getId(), results.getId());
+    assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
+    assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
 
     if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
@@ -490,6 +535,8 @@ public class CaseServiceImplTest {
     } else {
       assertNull(results.getCaseEvents());
     }
+
+    assertEquals(expectedCaseResult, results);
   }
 
   private long asMillis(String datetime) throws ParseException {
