@@ -85,7 +85,7 @@ public final class AddressEndpoint implements CTPEndpoint {
   public VersionResponseDTO getVersion() {
     log.info("Entering GET getVersion");
     VersionResponseDTO fakeVersion =
-        VersionResponseDTO.builder().apiVersion("3.0.0").dataVersion("60").build();
+        VersionResponseDTO.builder().apiVersion("4.0.2").dataVersion("60").build();
     return fakeVersion;
   }
 }
