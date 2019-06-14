@@ -41,7 +41,6 @@ public final class CaseEndpointRefusalTest {
   private static final String ADDRESS_LINE_1 = "addressLine1";
   private static final String ADDRESS_LINE_2 = "addressLine2";
   private static final String ADDRESS_LINE_3 = "addressLine3";
-  private static final String ADDRESS_LINE_4 = "addressLine4";
   private static final String TOWN_NAME = "townName";
   private static final String REGION = "region";
   private static final String POSTCODE = "postcode";
@@ -94,6 +93,16 @@ public final class CaseEndpointRefusalTest {
     json.put(CASE_ID, "unknown");
     ResultActions actions = mockMvc.perform(postJson("/cases/unknown/refusal", json.toString()));
     actions.andExpect(status().isOk());
+  }
+
+  @Test
+  public void refusalBlankUUID() throws Exception {
+    ObjectNode json = FixtureHelper.loadClassObjectNode();
+    String uuid = "  ";
+    json.put(CASE_ID, uuid);
+    ResultActions actions =
+        mockMvc.perform(postJson("/cases/" + uuid + "/refusal", json.toString()));
+    actions.andExpect(status().isBadRequest());
   }
 
   @Test
@@ -240,22 +249,6 @@ public final class CaseEndpointRefusalTest {
   public void refusalAddressLine3TooLong() throws Exception {
     assertBadRequest(
         ADDRESS_LINE_3, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
-  }
-
-  @Test
-  public void refusalAddressLine4Null() throws Exception {
-    assertOk(ADDRESS_LINE_4, (String) null);
-  }
-
-  @Test
-  public void refusalAddressLine4Blank() throws Exception {
-    assertOk(ADDRESS_LINE_4, "");
-  }
-
-  @Test
-  public void refusalAddressLine4TooLong() throws Exception {
-    assertBadRequest(
-        ADDRESS_LINE_4, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
   }
 
   @Test

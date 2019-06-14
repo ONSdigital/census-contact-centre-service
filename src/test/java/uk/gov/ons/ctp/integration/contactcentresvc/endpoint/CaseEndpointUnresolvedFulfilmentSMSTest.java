@@ -34,7 +34,6 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
   private static final String ADDRESS_LINE_1 = "addressLine1";
   private static final String ADDRESS_LINE_2 = "addressLine2";
   private static final String ADDRESS_LINE_3 = "addressLine3";
-  private static final String ADDRESS_LINE_4 = "addressLine4";
   private static final String TOWN_NAME = "townName";
   private static final String REGION = "region";
   private static final String POSTCODE = "postcode";
@@ -152,27 +151,6 @@ public final class CaseEndpointUnresolvedFulfilmentSMSTest {
   public void smsUnresolvedFulfilmentAddressLine3TooLong() throws Exception {
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     json.put(ADDRESS_LINE_3, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
-    assertBadRequest(json);
-  }
-
-  @Test
-  public void smsUnresolvedFulfilmentAddressLine4Null() throws Exception {
-    ObjectNode json = FixtureHelper.loadClassObjectNode();
-    json.put(ADDRESS_LINE_4, (String) null);
-    assertOk(json);
-  }
-
-  @Test
-  public void smsUnresolvedFulfilmentAddressLine4Blank() throws Exception {
-    ObjectNode json = FixtureHelper.loadClassObjectNode();
-    json.put(ADDRESS_LINE_4, "");
-    assertOk(json);
-  }
-
-  @Test
-  public void smsUnresolvedFulfilmentAddressLine4TooLong() throws Exception {
-    ObjectNode json = FixtureHelper.loadClassObjectNode();
-    json.put(ADDRESS_LINE_4, "Addressssssssssssssssssssssssssssssssssssssssssssssssssssssss");
     assertBadRequest(json);
   }
 

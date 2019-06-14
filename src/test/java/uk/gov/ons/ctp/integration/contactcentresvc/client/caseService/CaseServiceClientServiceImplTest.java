@@ -98,7 +98,7 @@ public class CaseServiceClientServiceImplTest {
   private void doTestGetCaseByUprn(boolean requireCaseEvents) throws Exception {
     String caseId1 = "b7565b5e-1396-4965-91a2-918c0d3642ed";
     String caseId2 = "b7565b5e-2222-2222-2222-918c0d3642ed";
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(1235532324343434L);
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned by the case service
     List<CaseContainerDTO> caseData = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
