@@ -19,6 +19,8 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.event.EventPublisher;
+import uk.gov.ons.ctp.common.event.EventSender;
+import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
@@ -132,9 +134,10 @@ public class ContactCentreSvcApplication {
   public EventPublisher eventPublisher(final ConnectionFactory connectionFactory) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
-    template.setExchange(eventExchange);
+    template.setExchange("events");
     template.setChannelTransacted(true);
 
-    return new EventPublisher(template);
+    EventSender sender = new SpringRabbitEventSender(template);
+    return new EventPublisher(sender);
   }
 }

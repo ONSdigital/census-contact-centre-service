@@ -28,14 +28,15 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher;
+import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
+import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
+import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
-import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
@@ -76,20 +77,17 @@ public class CaseServiceImplTest {
 
   private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
 
-  private static final String FULFILMENT_ROUTING_KEY_FIELD_NAME = "fulfilmentRoutingKey";
-  private static final String FULFILMENT_ROUTING_KEY_FIELD_VALUE = "fulfilment.routing";
+  private static final EventType REFUSAL_EVENT_TYPE_FIELD_VALUE = EventType.REFUSAL_RECEIVED;
+  private static final Source REFUSAL_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
+  private static final Channel REFUSAL_CHANNEL_FIELD_VALUE = Channel.CC;
 
-  private static final String REFUSAL_ROUTING_KEY_FIELD_NAME = "refusalRoutingKey";
-  private static final String REFUSAL_ROUTING_KEY_FIELD_VALUE = "refusal.routing";
+  private static final EventType FULFILMENT_EVENT_TYPE_FIELD_VALUE = EventType.FULFILMENT_REQUESTED;
+  private static final Source FULFILMENT_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
+  private static final Channel FULFILMENT_CHANNEL_FIELD_VALUE = Channel.CC;
 
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
-
-    ReflectionTestUtils.setField(
-        target, FULFILMENT_ROUTING_KEY_FIELD_NAME, FULFILMENT_ROUTING_KEY_FIELD_VALUE);
-    ReflectionTestUtils.setField(
-        target, REFUSAL_ROUTING_KEY_FIELD_NAME, REFUSAL_ROUTING_KEY_FIELD_VALUE);
 
     // For case retrieval, mock out a whitelist of allowable case events
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
@@ -384,14 +382,21 @@ public class CaseServiceImplTest {
         timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
+    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
+    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalDetails.class);
     verify(publisher)
-        .sendEvent(routingKeyCaptor.capture(), (EventPayload) refusalEventCaptor.capture());
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            refusalEventCaptor.capture());
 
-    // Validate routing key
-    assertEquals(REFUSAL_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
+    assertEquals(REFUSAL_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
+    assertEquals(REFUSAL_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
+    assertEquals(REFUSAL_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
 
     // Validate payload of published event
     RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
@@ -655,14 +660,21 @@ public class CaseServiceImplTest {
         timeBeforeInvocation, timeAfterInvocation, responseDTOFixture.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
+    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
+    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher).sendEvent(routingKeyCaptor.capture(), fulfilmentRequestCaptor.capture());
+    verify(publisher)
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            fulfilmentRequestCaptor.capture());
 
-    // Validate routing key
-    assertEquals(FULFILMENT_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
-
+    assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
+    assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
+    assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
     FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
@@ -713,13 +725,21 @@ public class CaseServiceImplTest {
     verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, response.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<String> routingKeyCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
+    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
+    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher).sendEvent(routingKeyCaptor.capture(), fulfilmentRequestCaptor.capture());
+    verify(publisher)
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            fulfilmentRequestCaptor.capture());
 
-    // Validate routing key
-    assertEquals(FULFILMENT_ROUTING_KEY_FIELD_VALUE, routingKeyCaptor.getValue());
+    assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
+    assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
+    assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
 
     FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
     assertEquals(
