@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
+import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
+import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
+import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
@@ -53,12 +55,6 @@ public class CaseServiceImpl implements CaseService {
 
   @Autowired private EventPublisher publisher;
 
-  @Value("${queueconfig.fulfilment-routing-key}")
-  private String fulfilmentRoutingKey;
-
-  @Value("${queueconfig.refusal-routing-key}")
-  private String refusalRoutingKey;
-
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
   private static final String RESPONDENT_REFUSAL_TYPE = "HARD_REFUSAL";
 
@@ -87,7 +83,11 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
 
-    publisher.sendEvent(fulfilmentRoutingKey, fulfilmentRequestPayload);
+    publisher.sendEvent(
+        EventType.FULFILMENT_REQUESTED,
+        Source.CONTACT_CENTRE_API,
+        Channel.CC,
+        fulfilmentRequestPayload);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -111,7 +111,11 @@ public class CaseServiceImpl implements CaseService {
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
-    publisher.sendEvent(fulfilmentRoutingKey, fulfilmentRequestedPayload);
+    publisher.sendEvent(
+        EventType.FULFILMENT_REQUESTED,
+        Source.CONTACT_CENTRE_API,
+        Channel.CC,
+        fulfilmentRequestedPayload);
 
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -215,7 +219,9 @@ public class CaseServiceImpl implements CaseService {
     UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
     RespondentRefusalDetails refusalPayload =
         createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
-    publisher.sendEvent(refusalRoutingKey, refusalPayload);
+
+    publisher.sendEvent(
+        EventType.REFUSAL_RECEIVED, Source.CONTACT_CENTRE_API, Channel.CC, refusalPayload);
 
     // Build response
     ResponseDTO response =

@@ -101,8 +101,6 @@ rabbitmq:
 queueconfig:
   event-exchange: events
   dead-letter-exchange: events.deadletter.exchange
-  fulfilment-routing-key: event.fulfilment.request
-  refusal-routing-key: event.respondent.refusal
   
 report-settings:
   cron-expression: "0 * * * * *"
