@@ -148,7 +148,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>product-reference</artifactId>
-      <version>0.0.10</version>
+      <version>0.0.14</version>
     </dependency>
     <!-- ONS END -->
 
