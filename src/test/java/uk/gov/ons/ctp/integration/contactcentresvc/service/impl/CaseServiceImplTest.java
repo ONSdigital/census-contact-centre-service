@@ -405,12 +405,14 @@ public class CaseServiceImplTest {
     assertNull(refusal.getAgentId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
     // Validate contact details
-    Contact actualContact = refusal.getContact();
-    assertEquals("Mr", actualContact.getTitle());
-    assertEquals("Steve", actualContact.getForename());
-    assertEquals("Jones", actualContact.getSurname());
-    assertNull(actualContact.getEmail());
-    assertEquals("+447890000000", actualContact.getTelNo());
+    // --- Start of code commented out for 2019 rehearsal. CR-416. ---
+    // Contact actualContact = refusal.getContact();
+    // assertEquals("Mr", actualContact.getTitle());
+    // assertEquals("Steve", actualContact.getForename());
+    // assertEquals("Jones", actualContact.getSurname());
+    // assertNull(actualContact.getEmail());
+    // assertEquals("+447890000000", actualContact.getTelNo());
+    // --- End of code commented out for 2019 rehearsal. CR-416. ---
     // Validate address
     AddressCompact address = refusal.getAddress();
     assertEquals("1 High Street", address.getAddressLine1());

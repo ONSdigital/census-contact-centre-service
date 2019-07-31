@@ -356,10 +356,12 @@ public class CaseServiceImpl implements CaseService {
 
     // Populate contact
     Contact contact = new Contact();
-    contact.setTitle(refusalRequest.getTitle());
-    contact.setForename(refusalRequest.getForename());
-    contact.setSurname(refusalRequest.getSurname());
-    contact.setTelNo(refusalRequest.getTelNo());
+    // --- Start of code commented out for 2019 rehearsal. CR-416. ---
+    // contact.setTitle(refusalRequest.getTitle());
+    // contact.setForename(refusalRequest.getForename());
+    // contact.setSurname(refusalRequest.getSurname());
+    // contact.setTelNo(refusalRequest.getTelNo());
+    // --- End of code commented out for 2019 rehearsal. CR-416. ---
     refusal.setContact(contact);
 
     // Populate address
