@@ -1,6 +1,6 @@
 FROM openjdk:11-jre-slim
 
-ARG JAR
+ARG jar
 RUN apt-get update
 RUN apt-get -yq clean
 RUN groupadd -g 983 concensvc && \
