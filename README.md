@@ -7,7 +7,6 @@
 This repository contains the Contact Centre Data service. This microservice is a RESTful web service implemented using [Spring Boot](http://projects.spring.io/spring-boot/). It manages contact centre data, where a Contact Centre Data object represents an expected response from the Contact Centre Data service, which provides all the data that is required by Contact Centre in order for it to verify the contact centre's UAC code and connect them to the relevant EQ questionnaire.
 
 ## Set Up
-
 Do the following steps to set up the code to run locally:
 * Install Java 11 locally
 * Make sure that you have a suitable settings.xml file in your local .m2 directory
