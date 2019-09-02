@@ -1,0 +1,7 @@
+logging:
+  level:
+    uk.gov.ons.ctp.integration.contactcentresvc: INFO
+    uk.gov.ons.ctp.common: INFO
+    org.springframework: OFF
+  profile: CLOUD
+  useJson: true

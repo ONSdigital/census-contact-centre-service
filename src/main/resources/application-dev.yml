@@ -1,0 +1,7 @@
+logging:
+  level:
+    uk.gov.ons.ctp.integration.contactcentresvc: DEBUG
+    uk.gov.ons.ctp.common: DEBUG
+    org.springframework: WARN
+  profile: CLOUD
+  useJson: true

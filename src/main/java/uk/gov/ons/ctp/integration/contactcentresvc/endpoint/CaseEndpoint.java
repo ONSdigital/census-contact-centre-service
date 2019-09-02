@@ -71,8 +71,8 @@ public class CaseEndpoint implements CTPEndpoint {
   public ResponseEntity<CaseDTO> getCaseById(
       @PathVariable("caseId") final UUID caseId, @Valid CaseRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("case_id", caseId)
-        .with("caseEvents", requestParamsDTO.getCaseEvents())
+    log.with("pathParam", caseId)
+        .with("requestParams", requestParamsDTO)
         .info("Entering GET getCaseById");
 
     CaseDTO result = caseService.getCaseById(caseId, requestParamsDTO);
@@ -93,8 +93,8 @@ public class CaseEndpoint implements CTPEndpoint {
       @PathVariable(value = "uprn") final UniquePropertyReferenceNumber uprn,
       @Valid CaseRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("uprn", uprn)
-        .with("caseEvents", requestParamsDTO.getCaseEvents())
+    log.with("pathParam", uprn)
+        .with("requestParams", requestParamsDTO)
         .info("Entering GET getCaseByUPRN");
 
     List<CaseDTO> results = caseService.getCaseByUPRN(uprn, requestParamsDTO);
@@ -114,8 +114,8 @@ public class CaseEndpoint implements CTPEndpoint {
   public ResponseEntity<CaseDTO> getCaseByCaseReference(
       @PathVariable(value = "ref") final long ref, @Valid CaseRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("ref", ref)
-        .with("caseEvents", requestParamsDTO.getCaseEvents())
+    log.with("pathParam", ref)
+        .with("requestParams", requestParamsDTO)
         .info("Entering GET getCaseByCaseReference");
 
     CaseDTO result = caseService.getCaseByCaseReference(ref, requestParamsDTO);
@@ -136,8 +136,8 @@ public class CaseEndpoint implements CTPEndpoint {
       @PathVariable(value = "caseId") final UUID caseId, @Valid LaunchRequestDTO requestParamsDTO)
       throws CTPException {
     // INFO because we need to log agent-id
-    log.with("caseId", caseId)
-        .with("agentId", requestParamsDTO.getAgentId())
+    log.with("pathParam", caseId)
+        .with("requestParams", requestParamsDTO)
         .info("Entering GET getLaunchURLForCaseId");
 
     String launchURL = caseService.getLaunchURLForCaseId(caseId, requestParamsDTO);
@@ -159,10 +159,16 @@ public class CaseEndpoint implements CTPEndpoint {
       @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("caseId", caseId).info("Entering POST fulfilmentRequestByPost");
+
+    log.with("pathParam", caseId)
+        .with("requestBody", requestBodyDTO)
+        .info("Entering POST fulfilmentRequestByPost");
 
     if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId).warn("The caseid in the URL does not match the caseid in the request body");
+      log.with(caseId)
+          .warn(
+              "The caseid in the URL does not match the caseid "
+                  + "in the fulfilmentRequestByPost request body");
       throw new CTPException(
           Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
     }
@@ -186,10 +192,16 @@ public class CaseEndpoint implements CTPEndpoint {
       @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("caseId", caseId).info("Entering POST fulfilmentRequestBySMS");
+
+    log.with("pathParam", caseId)
+        .with("requestBody", requestBodyDTO)
+        .info("Entering POST fulfilmentRequestBySMS");
 
     if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId).warn("The caseid in the URL does not match the caseid in the request body");
+      log.with(caseId)
+          .warn(
+              "The caseid in the URL does not match the caseid "
+                  + "in the fulfilmentRequestBySMS request body");
       throw new CTPException(
           Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
     }
@@ -210,8 +222,8 @@ public class CaseEndpoint implements CTPEndpoint {
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestByPost(
       @Valid @RequestBody PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
-    log.info("Entering POST fulfilmentUnresolvedRequestByPost");
 
+    log.with("requestBody", requestBodyDTO).info("Entering POST fulfilmentUnresolvedRequestByPost");
     ResponseDTO response = caseService.fulfilmentUnresolvedRequestByPost(requestBodyDTO);
 
     return ResponseEntity.ok(response);
@@ -228,7 +240,8 @@ public class CaseEndpoint implements CTPEndpoint {
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestBySMS(
       @Valid @RequestBody SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
-    log.info("Entering POST fulfilmentUnresolvedRequestBySMS");
+
+    log.with("requestBody", requestBodyDTO).info("Entering POST fulfilmentUnresolvedRequestBySMS");
 
     ResponseDTO response = caseService.fulfilmentUnresolvedRequestBySMS(requestBodyDTO);
 
@@ -249,8 +262,10 @@ public class CaseEndpoint implements CTPEndpoint {
       @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody AppointmentRequestDTO requestBodyDTO)
       throws CTPException {
-    log.with("caseId", caseId).info("Entering POST makeAppointment");
 
+    log.with("pathParam", caseId)
+        .with("requestBody", requestBodyDTO)
+        .info("Entering POST makeAppointment");
     ResponseDTO response = caseService.makeAppointment(caseId, requestBodyDTO);
 
     return ResponseEntity.ok(response);
@@ -271,17 +286,23 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody RefusalRequestDTO requestBodyDTO)
       throws CTPException {
 
-    log.with("caseId", caseId).info("Entering POST reportRefusal");
+    log.with("pathParam", caseId)
+        .with("requestBody", requestBodyDTO)
+        .info("Entering POST reportRefusal");
 
     UUID caseIdUUID = null;
     if (StringUtils.isBlank(caseId)) {
+      log.with("caseId", caseId).warn("reportRefusal caseId must be a valid UUID or \"UNKNOWN\"");
       throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID or \"UNKNOWN\"");
     } else if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      throw new CTPException(Fault.BAD_REQUEST, "caseId in path and body must be identical");
+      log.with("caseId", caseId).warn("reportRefusal caseId in path and body must be identical");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "reportRefusal caseId in path and body must be identical");
     } else if (!caseId.toUpperCase().equals("UNKNOWN")) {
       try {
         caseIdUUID = UUID.fromString(caseId);
       } catch (IllegalArgumentException e) {
+        log.with("caseId", caseId).warn("reportRefusal caseId must be a valid UUID");
         throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID");
       }
     }

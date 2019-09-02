@@ -45,12 +45,9 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
-    log.debug(
-        "AddressQuery. Response status: "
-            + addressIndexResponse.getStatus().getCode()
-            + " Found: "
-            + addressIndexResponse.getResponse().getAddresses().size()
-            + " addresses");
+    log.with("status", addressIndexResponse.getStatus().getCode())
+        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+        .debug("AddressQuery response received");
 
     return addressIndexResponse;
   }
@@ -73,12 +70,9 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.debug(
-        "PostcodeQuery. Response status: "
-            + addressIndexResponse.getStatus().getCode()
-            + " Found: "
-            + addressIndexResponse.getResponse().getAddresses().size()
-            + " addresses");
+    log.with("status", addressIndexResponse.getStatus().getCode())
+        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+        .debug("PostcodeQuery response received");
 
     return addressIndexResponse;
   }
