@@ -45,9 +45,7 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/fulfilments", method = RequestMethod.GET)
   public ResponseEntity<List<FulfilmentDTO>> getFulfilments(@Valid FulfilmentsRequestDTO requestDTO)
       throws CTPException {
-    log.with("caseType", requestDTO.getCaseType())
-        .with("region", requestDTO.getRegion())
-        .info("Entering GET getFulfilments");
+    log.with("requestParams", requestDTO).info("Entering GET getFulfilments");
     List<FulfilmentDTO> fulfilments =
         fulfilmentsService.getFulfilments(requestDTO.getCaseType(), requestDTO.getRegion());
 

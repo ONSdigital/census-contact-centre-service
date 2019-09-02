@@ -70,7 +70,7 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
 
     log.with(requestBodyDTO)
-        .info("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
+        .debug("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
 
     UUID caseId = requestBodyDTO.getCaseId();
 
@@ -93,7 +93,7 @@ public class CaseServiceImpl implements CaseService {
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     log.with(response)
-        .info("Now returning from the fulfilmentRequestByPost method in class CaseServiceImpl.");
+        .debug("Now returning from the fulfilmentRequestByPost method in class CaseServiceImpl.");
 
     return response;
   }
@@ -101,7 +101,7 @@ public class CaseServiceImpl implements CaseService {
   public ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
     log.with(requestBodyDTO)
-        .info("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");
+        .debug("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");
 
     UUID caseId = requestBodyDTO.getCaseId();
 
@@ -121,7 +121,7 @@ public class CaseServiceImpl implements CaseService {
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     log.with(response)
-        .info("Now returning from the fulfilmentRequestBySMS method in class CaseServiceImpl.");
+        .debug("Now returning from the fulfilmentRequestBySMS method in class CaseServiceImpl.");
 
     return response;
   }
@@ -145,7 +145,7 @@ public class CaseServiceImpl implements CaseService {
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
-    log.debug("Returning case details for caseId: {}", caseId);
+    log.with("caseId", caseId).debug("Returning case details for caseId");
 
     return caseServiceResponse;
   }
@@ -153,7 +153,7 @@ public class CaseServiceImpl implements CaseService {
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
-    log.debug("Fetching case details by UPRN: {}", uprn);
+    log.with("uprn", uprn).debug("Fetching case details by UPRN");
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
@@ -173,17 +173,16 @@ public class CaseServiceImpl implements CaseService {
     // Clean up the events before returning them
     caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, getCaseEvents));
 
-    log.debug(
-        "Returning case details for UPRN: {}. Result set size: {}",
-        uprn,
-        caseServiceResponse.size());
+    log.with("uprn", uprn)
+        .with("cases", caseServiceResponse.size())
+        .debug("Returning case details for UPRN");
 
     return caseServiceResponse;
   }
 
   @Override
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
-    log.debug("Fetching case details by case reference: {}", caseRef);
+    log.with("caseRef", caseRef).debug("Fetching case details by case reference");
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
@@ -191,6 +190,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Only return Household cases
     if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
+      log.warn("Case is a not a household or communal case");
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
     }
@@ -200,7 +200,7 @@ public class CaseServiceImpl implements CaseService {
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
-    log.debug("Returning case details for case reference: {}", caseRef);
+    log.with("caseRef", caseRef).debug("Returning case details for case reference");
 
     return caseServiceResponse;
   }
@@ -212,8 +212,9 @@ public class CaseServiceImpl implements CaseService {
     if (requestBodyDTO.getDateTime() != null) {
       reportedDateTime = DateTimeUtil.formatDate(requestBodyDTO.getDateTime());
     }
-    log.debug(
-        "Processing refusal for case {} with reported dateTime of {}", caseId, reportedDateTime);
+    log.with("caseId", caseId)
+        .with("reportedDateTime", reportedDateTime)
+        .debug("Processing refusal for case with reported dateTime");
 
     // Create and publish a respondent refusal event
     UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
@@ -230,7 +231,7 @@ public class CaseServiceImpl implements CaseService {
             .dateTime(DateTimeUtil.nowUTC())
             .build();
 
-    log.debug("Returning refusal response for case {}", caseId);
+    log.with("caseId", caseId).debug("Returning refusal response for case");
 
     return response;
   }
@@ -270,7 +271,7 @@ public class CaseServiceImpl implements CaseService {
       String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
-        .debug("Entering createFulfilmentEvent method in class CaseServiceImpl.");
+        .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
     Region region =
         Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
@@ -281,6 +282,8 @@ public class CaseServiceImpl implements CaseService {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
             || StringUtils.isBlank(contact.getSurname())) {
+
+          log.warn("Individual fields are required for the requested fulfilment");
           throw new CTPException(
               Fault.BAD_REQUEST,
               "The fulfilment is for an individual so none of the following fields can be empty: "
@@ -328,7 +331,7 @@ public class CaseServiceImpl implements CaseService {
             .build();
     List<Product> products = productReference.searchProducts(searchCriteria);
     if (products.size() == 0) {
-      log.with(products).warn("Compatible product cannot be found");
+      log.with("searchCriteria", searchCriteria).warn("Compatible product cannot be found");
       throw new CTPException(Fault.BAD_REQUEST, "Compatible product cannot be found");
     }
 

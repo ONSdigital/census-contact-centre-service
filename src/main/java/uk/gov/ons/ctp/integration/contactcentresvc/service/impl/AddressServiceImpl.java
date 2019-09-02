@@ -29,7 +29,7 @@ public class AddressServiceImpl implements AddressService {
 
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
-    log.debug("Running search by address. {}", addressQueryRequest);
+    log.with("addressQueryRequest", addressQueryRequest).debug("Running search by address");
 
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
@@ -39,13 +39,14 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO results =
         convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
 
-    log.debug("Postcode search is returning {} addresses", results.getAddresses().size());
+    log.with("addresses", results.getAddresses().size())
+        .debug("Address search is returning addresses");
     return results;
   }
 
   @Override
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
-    log.debug("Running search by postcode. {}", postcodeQueryRequest);
+    log.with("postcodeQueryRequest", postcodeQueryRequest).debug("Running search by postcode");
 
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
@@ -55,7 +56,8 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO results =
         convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
 
-    log.debug("Postcode search is returning {} addresses", results.getAddresses().size());
+    log.with("addresses", results.getAddresses().size())
+        .debug("Postcode search is returning addresses");
     return results;
   }
 
