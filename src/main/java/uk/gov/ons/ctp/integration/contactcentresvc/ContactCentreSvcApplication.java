@@ -1,6 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
+import com.godaddy.logging.LoggingConfigs;
 import java.util.HashMap;
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -139,5 +141,15 @@ public class ContactCentreSvcApplication {
 
     EventSender sender = new SpringRabbitEventSender(template);
     return new EventPublisher(sender);
+  }
+
+  @Value("#{new Boolean('${logging.useJson}')}")
+  private boolean useJsonLogging;
+
+  @PostConstruct
+  public void initJsonLogging() {
+    if (useJsonLogging) {
+      LoggingConfigs.setCurrent(LoggingConfigs.getCurrent().useJson());
+    }
   }
 }

@@ -46,10 +46,7 @@ public final class AddressEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/addresses", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesBySearchQuery(
       @Valid AddressQueryRequestDTO addressQueryRequest) {
-    log.with("input", addressQueryRequest.getInput())
-        .with("limit", addressQueryRequest.getLimit())
-        .with("offset", addressQueryRequest.getOffset())
-        .info("Entering GET getAddressesBySearchQuery");
+    log.with("requestParams", addressQueryRequest).info("Entering GET getAddressesBySearchQuery");
     return addressService.addressQuery(addressQueryRequest);
   }
 
@@ -62,17 +59,14 @@ public final class AddressEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/addresses/postcode", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesByPostcode(
       @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
-    log.with("postcode", postcodeQueryRequest.getPostcode())
-        .with("limit", postcodeQueryRequest.getLimit())
-        .with("offset", postcodeQueryRequest.getOffset())
-        .info("Entering GET getAddressesByPostcode");
+    log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
     return addressService.postcodeQuery(postcodeQueryRequest);
   }
 
   @RequestMapping(value = "/addresses/{uprn}", method = RequestMethod.POST)
   public ResponseDTO updateAddress(
       String uprn, @Valid @RequestBody AddressUpdateRequestDTO addressUpdateRequestDTO) {
-    log.with("postcode", addressUpdateRequestDTO.getPostcode()).info("Entering POST updateAddress");
+    log.with("requestBody", addressUpdateRequestDTO).info("Entering POST updateAddress");
     return addressService.addressChange(addressUpdateRequestDTO);
   }
 

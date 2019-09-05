@@ -28,7 +28,8 @@ public class CaseServiceClientServiceImpl {
   private RestClient caseServiceClient;
 
   public CaseContainerDTO getCaseById(UUID caseId, Boolean listCaseEvents) {
-    log.debug("getCaseById. Calling Case Service to find case details by ID: " + caseId);
+    log.with("caseId", caseId)
+        .debug("getCaseById() calling Case Service to find case details by ID");
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -39,13 +40,14 @@ public class CaseServiceClientServiceImpl {
     CaseContainerDTO caseDetails =
         caseServiceClient.getResource(
             path, CaseContainerDTO.class, null, queryParams, caseId.toString());
-    log.debug("getCaseById. Found details for case: " + caseId);
+    log.with("caseId", caseId).debug("getCaseById() found case details for case ID");
 
     return caseDetails;
   }
 
   public List<CaseContainerDTO> getCaseByUprn(Long uprn, Boolean listCaseEvents) {
-    log.debug("getCaseByUprn. Calling Case Service to find case details by Uprn: " + uprn);
+    log.with("uprn", uprn)
+        .debug("getCaseByUprn() calling Case Service to find case details by Uprn");
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -57,15 +59,15 @@ public class CaseServiceClientServiceImpl {
         caseServiceClient.getResources(
             path, CaseContainerDTO[].class, null, queryParams, Long.toString(uprn));
 
-    log.debug("getCaseByUprn. Found details for Uprn" + uprn);
+    log.with("uprn", uprn).debug("getCaseByUprn() found case details by Uprn");
 
     return cases;
   }
 
   public CaseContainerDTO getCaseByCaseRef(Long caseReference, Boolean listCaseEvents) {
-    log.debug(
-        "getCaseByCaseReference. Calling Case Service to find case details by case reference: "
-            + caseReference);
+    log.with("caseReference", caseReference)
+        .debug(
+            "getCaseByCaseReference() calling Case Service to find case details by case reference");
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -77,7 +79,8 @@ public class CaseServiceClientServiceImpl {
         caseServiceClient.getResource(
             path, CaseContainerDTO.class, null, queryParams, caseReference);
 
-    log.debug("getCaseByCaseReference. Found details for case reference: " + caseReference);
+    log.with("caseReference", caseReference)
+        .debug("getCaseByCaseReference() found case details by case reference");
 
     return caseDetails;
   }
