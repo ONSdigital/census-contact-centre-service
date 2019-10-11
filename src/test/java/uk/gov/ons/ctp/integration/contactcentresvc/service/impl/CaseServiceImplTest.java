@@ -1,7 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -39,6 +39,7 @@ import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -55,7 +56,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilme
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -684,7 +684,7 @@ public class CaseServiceImplTest {
 
     // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
     if (caseType == Product.CaseType.HI) {
-      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+      assertNotNull(actualFulfilmentRequest.getIndividualCaseId());
     } else {
       assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
     }
@@ -750,7 +750,7 @@ public class CaseServiceImplTest {
 
     // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
     if (caseType == Product.CaseType.HI) {
-      assertNotEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+      assertNotNull(actualFulfilmentRequest.getIndividualCaseId());
     } else {
       assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
     }

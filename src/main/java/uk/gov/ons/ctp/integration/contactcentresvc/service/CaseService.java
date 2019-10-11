@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -15,7 +16,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequest
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSUnresolvedFulfilmentRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.model.UniquePropertyReferenceNumber;
 
 public interface CaseService {
 
