@@ -12,7 +12,6 @@ Do the following steps to set up the code to run locally:
 * Clone the census-contact-centre locally
 
 ## Running
-
 There are two ways of running this service
 
 * The first way is from the command line after moving into the same directory as the pom.xml:
