@@ -55,7 +55,8 @@ public class CaseEndpointCaseLaunchTest {
     String fakeResponse = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
     Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345"));
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=true"));
     actions.andExpect(status().isOk());
     actions.andDo(MockMvcResultHandlers.print());
 
@@ -68,19 +69,34 @@ public class CaseEndpointCaseLaunchTest {
 
   @Test
   public void getCaseById_BadId() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/123456789/launch?agentId=12345"));
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/123456789/launch?agentId=12345&individual=true"));
     actions.andExpect(status().isBadRequest());
   }
 
   @Test
   public void getCaseById_GoodIdMissingAgentTest() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch"));
+    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?individual=true"));
     actions.andExpect(status().isBadRequest());
   }
 
   @Test
-  public void getCaseByIdGoodIdBadAgent() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=ABC45"));
+  public void getCaseById_GoodIdBadAgent() throws Exception {
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=ABC45&individual=true"));
+    actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void getCaseById_GoodIdGoodAgentMissingIndividual() throws Exception {
+    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=123"));
+    actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void getCaseById_GoodIdGoodAgentBadIndividual() throws Exception {
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=123&individual=x"));
     actions.andExpect(status().isBadRequest());
   }
 }
