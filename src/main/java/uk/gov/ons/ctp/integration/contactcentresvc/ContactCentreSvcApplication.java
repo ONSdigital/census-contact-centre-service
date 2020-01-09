@@ -26,6 +26,7 @@ import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
+import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
@@ -79,10 +80,11 @@ public class ContactCentreSvcApplication {
 
   @Bean
   @Qualifier("caseServiceClient")
-  public RestClient caseServiceClient() {
+  public CaseServiceClientServiceImpl caseServiceClient() {
     RestClientConfig clientConfig = appConfig.getCaseServiceSettings().getRestClientConfig();
     RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
-    return restHelper;
+    CaseServiceClientServiceImpl csClientServiceImpl = new CaseServiceClientServiceImpl(restHelper);
+    return csClientServiceImpl;
   }
 
   /**

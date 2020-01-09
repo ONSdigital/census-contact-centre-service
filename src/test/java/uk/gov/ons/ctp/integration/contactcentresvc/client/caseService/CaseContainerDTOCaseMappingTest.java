@@ -3,8 +3,8 @@ package uk.gov.ons.ctp.integration.contactcentresvc.client.caseService;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 
 public class CaseContainerDTOCaseMappingTest {

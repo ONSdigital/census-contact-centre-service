@@ -142,7 +142,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.50</version>
+      <version>0.0.51</version>
     </dependency>
 
     <dependency>
@@ -150,6 +150,13 @@
       <artifactId>product-reference</artifactId>
       <version>0.0.18</version>
     </dependency>
+
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>census-int-case-api-client</artifactId>
+      <version>0.0.3</version>
+    </dependency>
+
     <!-- ONS END -->
 
     <!-- third party libraries -->
