@@ -55,7 +55,8 @@ public class CaseEndpointCaseLaunchTest {
     String fakeResponse = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
     Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
     actions.andExpect(status().isOk());
     actions.andDo(MockMvcResultHandlers.print());
 
