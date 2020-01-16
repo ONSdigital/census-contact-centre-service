@@ -8,7 +8,7 @@
   <parent>
     <groupId>uk.gov.ons.ctp.integration</groupId>
     <artifactId>census-int-common-config</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.14-SNAPSHOT</version>
   </parent>
 
   <name>Census Integration ContactCentre Service</name>
