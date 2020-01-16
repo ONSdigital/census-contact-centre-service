@@ -149,6 +149,7 @@ public class ContactCentreSvcApplication {
 
   /**
    * Bean to allow CC service to call the eqlauncher.
+   *
    * @return a EqLauncherServer instance.
    */
   @Bean
