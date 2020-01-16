@@ -56,7 +56,7 @@ public class CaseEndpointCaseLaunchTest {
     Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
     ResultActions actions =
-        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=true"));
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
     actions.andExpect(status().isOk());
     actions.andDo(MockMvcResultHandlers.print());
 
