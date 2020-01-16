@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -29,7 +31,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher;
@@ -359,7 +360,7 @@ public class CaseServiceImplTest {
     String expectedResponseCaseId = "unknown";
     doRespondentRefusalTest(unknownCaseId, expectedEventCaseId, expectedResponseCaseId, new Date());
   }
-  
+
   @Test
   public void testLaunchCECase() throws Exception {
     doLaunchTest(uuid, "CE", false);
@@ -369,7 +370,7 @@ public class CaseServiceImplTest {
   public void testLaunchCECaseForIndividual() throws Exception {
     doLaunchTest(uuid, "CE", true);
   }
-  
+
   @Test
   public void testLaunchCICase() throws Exception {
     try {
@@ -379,12 +380,12 @@ public class CaseServiceImplTest {
       assertTrue(e.getMessage(), e.getMessage().contains("must be CE or HH"));
     }
   }
-  
+
   @Test
   public void testLaunchHHCase() throws Exception {
     doLaunchTest(uuid, "HH", false);
   }
-  
+
   @Test
   public void testLaunchHHCaseForIndividual() throws Exception {
     doLaunchTest(uuid, "HH", true);
@@ -399,7 +400,6 @@ public class CaseServiceImplTest {
       assertTrue(e.getMessage(), e.getMessage().contains("must be CE or HH"));
     }
   }
-  
 
   private void doLaunchTest(UUID caseId, String caseType, boolean individual) throws Exception {
     // Build case details to be returned from case search
@@ -407,63 +407,67 @@ public class CaseServiceImplTest {
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType);
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
-    
+
     // Fake RM response for creating questionnaire ID
     String questionnaireId = "566786126";
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();
     newQuestionnaireIdDto.setQuestionnaireId(questionnaireId);
-    Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(uuid), eq(individual), any())).thenReturn(newQuestionnaireIdDto);
+    Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(uuid), eq(individual), any()))
+        .thenReturn(newQuestionnaireIdDto);
 
     // Mock appConfig data
     EqConfig eqConfig = new EqConfig();
     eqConfig.setHost("localhost");
     Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
     Mockito.when(appConfig.getDomain()).thenReturn("localhost");
-    
+
     // Mock out building of launch payload
-    Mockito.when(eqLaunchService.getEqLaunchJwe(
-        eq(Language.ENGLISH), 
-        eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API), 
-        eq(uk.gov.ons.ctp.common.model.Channel.CC), 
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        isNull())) // keystore
-      .thenReturn("simulated-encrypted-payload");
-    
+    Mockito.when(
+            eqLaunchService.getEqLaunchJwe(
+                eq(Language.ENGLISH),
+                eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
+                eq(uk.gov.ons.ctp.common.model.Channel.CC),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                isNull())) // keystore
+        .thenReturn("simulated-encrypted-payload");
+
     // Build DTO for launch request
     LaunchRequestDTO launchRequestDTO = new LaunchRequestDTO();
     launchRequestDTO.setAgentId("1234");
     launchRequestDTO.setIndividual(individual);
-    
+
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(caseId, launchRequestDTO);
     assertEquals("https://localhost/session?token=simulated-encrypted-payload", launchUrl);
 
     // Verify call to RM to get qid is using the correct individual case id
     ArgumentCaptor<UUID> individualCaseIdCaptor = ArgumentCaptor.forClass(UUID.class);
-    Mockito.verify(caseServiceClient).getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
+    Mockito.verify(caseServiceClient)
+        .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
     if (caseType.equals("HH") && individual) {
       assertNotEquals(uuid, individualCaseIdCaptor.getValue()); // newly allocated uuid
     } else {
       assertNull(individualCaseIdCaptor.getValue());
     }
-    
+
     // Verify correct data passed to eqLauncher
-    ArgumentCaptor<CaseContainerDTO> caseCaptor = ArgumentCaptor.forClass(CaseContainerDTO.class); 
-    Mockito.verify(eqLaunchService).getEqLaunchJwe(
-        eq(Language.ENGLISH), 
-        eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API), 
-        eq(uk.gov.ons.ctp.common.model.Channel.CC),
-        caseCaptor.capture(),
-        eq("1234"), // agent
-        eq(questionnaireId),
-        isNull(), // accountServiceUrl
-        eq("https://localhost/questionnaireSaved"),
-        any()); // keystore
-    
+    ArgumentCaptor<CaseContainerDTO> caseCaptor = ArgumentCaptor.forClass(CaseContainerDTO.class);
+    Mockito.verify(eqLaunchService)
+        .getEqLaunchJwe(
+            eq(Language.ENGLISH),
+            eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
+            eq(uk.gov.ons.ctp.common.model.Channel.CC),
+            caseCaptor.capture(),
+            eq("1234"), // agent
+            eq(questionnaireId),
+            isNull(), // accountServiceUrl
+            eq("https://localhost/questionnaireSaved"),
+            any()); // keystore
+
     // Verify case details passed to eqLauncher
     CaseContainerDTO capturedCase = caseCaptor.getValue();
     if (caseType.equals("HH") && individual) {
@@ -473,7 +477,7 @@ public class CaseServiceImplTest {
       assertEquals(uuid.toString(), capturedCase.getId().toString());
     }
   }
-  
+
   private void doRespondentRefusalTest(
       UUID caseId, UUID expectedEventCaseId, String expectedResponseCaseId, Date dateTime)
       throws Exception {
