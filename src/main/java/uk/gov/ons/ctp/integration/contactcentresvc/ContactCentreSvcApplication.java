@@ -28,6 +28,8 @@ import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
+import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
 @SpringBootApplication
@@ -143,6 +145,15 @@ public class ContactCentreSvcApplication {
 
     EventSender sender = new SpringRabbitEventSender(template);
     return new EventPublisher(sender);
+  }
+
+  /**
+   * Bean to allow CC service to call the eqlauncher.
+   * @return a EqLauncherServer instance.
+   */
+  @Bean
+  public EqLaunchService eqLaunchService() {
+    return new EqLaunchServiceImpl();
   }
 
   @Value("#{new Boolean('${logging.useJson}')}")
