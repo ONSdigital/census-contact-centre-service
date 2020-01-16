@@ -1,15 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
-
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
@@ -28,10 +27,12 @@ import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.model.Language;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
@@ -42,11 +43,13 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
 @Service
 @Validated()
@@ -65,6 +68,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private ProductReference productReference;
 
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
+
+  @Autowired private EqLaunchService eqLaunchService;
 
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
@@ -234,6 +239,63 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId).debug("Returning refusal response for case");
 
     return response;
+  }
+
+  @Override
+  public String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
+      throws CTPException {
+    log.with("caseId", caseId)
+        .with("request", requestParamsDTO)
+        .debug("Processing request to create launch URL");
+
+    // Validate case known and is for CE or HH
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+    CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
+    if (!(caseType == CaseType.CE || caseType == CaseType.HH)) {
+      throw new CTPException(Fault.BAD_REQUEST, "Case type must be CE or HH");
+    }
+
+    // Create a new case if for a HH individual
+    boolean individual = requestParamsDTO.getIndividual();
+    UUID individualCaseId = null;
+    if (caseType == CaseType.HH && individual == true) {
+      individualCaseId = UUID.randomUUID();
+      caseDetails.setId(individualCaseId);
+      log.with("individualCaseId", individualCaseId).info("Creating new HI case");
+    }
+
+    // Get RM to allocate a new questionnaire ID
+    log.info("Before new QID");
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
+        caseServiceClient.getSingleUseQuestionnaireId(caseId, individual, individualCaseId);
+    log.with("newQuestionnaireID", newQuestionnaireIdDto.getQuestionnaireId())
+        .info("Have generated new questionnaireId");
+
+    // Finally, build the url needed to launch the survey
+    String encryptedPayload = "";
+    try {
+      String accountServiceUrl = null;
+      String accountServiceLogoutUrl = "https://" + appConfig.getDomain() + "/questionnaireSaved";
+      encryptedPayload =
+          eqLaunchService.getEqLaunchJwe(
+              Language.ENGLISH,
+              uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API,
+              uk.gov.ons.ctp.common.model.Channel.CC,
+              caseDetails,
+              requestParamsDTO.getAgentId(),
+              newQuestionnaireIdDto.getQuestionnaireId(),
+              accountServiceUrl,
+              accountServiceLogoutUrl,
+              appConfig.getKeystore());
+    } catch (CTPException e) {
+      log.with(e).error("Failed to create JWE payload for eq launch");
+      throw e;
+    }
+
+    String eqUrl = "https://" + appConfig.getEq().getHost() + "/session?token=" + encryptedPayload;
+    log.with("launchURL", eqUrl).debug("Have created launch URL");
+
+    return eqUrl;
   }
 
   private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {

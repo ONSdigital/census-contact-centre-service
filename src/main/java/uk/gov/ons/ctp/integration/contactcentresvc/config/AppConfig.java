@@ -1,9 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.config;
 
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;
+import uk.gov.ons.ctp.integration.eqlaunch.crypto.KeyStore;
 
 /** Application Config bean */
 @EnableRetry
@@ -15,5 +17,8 @@ public class AppConfig {
   // private Rabbitmq rabbitmq;
   private AddressIndexSettings addressIndexSettings;
   private CaseServiceSettings caseServiceSettings;
+  @NotBlank private String domain;
+  private KeyStore keystore;
+  private EqConfig eq;
   private Logging logging;
 }
