@@ -143,8 +143,6 @@ queueconfig:
   event-exchange: events
   dead-letter-exchange: events.deadletter.exchange
   
-domain: localhost
-
 keystore: '{
   "keys": {
     "fdc4d96ce6a8fac00d3eba192af1574ffda1c7f0": {

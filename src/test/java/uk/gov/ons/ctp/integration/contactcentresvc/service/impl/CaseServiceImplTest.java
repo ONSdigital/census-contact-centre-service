@@ -419,7 +419,6 @@ public class CaseServiceImplTest {
     EqConfig eqConfig = new EqConfig();
     eqConfig.setHost("localhost");
     Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
-    Mockito.when(appConfig.getDomain()).thenReturn("localhost");
 
     // Mock out building of launch payload
     Mockito.when(
@@ -465,7 +464,7 @@ public class CaseServiceImplTest {
             eq("1234"), // agent
             eq(questionnaireId),
             isNull(), // accountServiceUrl
-            eq("https://localhost/questionnaireSaved"),
+            isNull(),
             any()); // keystore
 
     // Verify case details passed to eqLauncher

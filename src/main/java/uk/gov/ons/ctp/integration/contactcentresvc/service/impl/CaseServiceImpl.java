@@ -275,8 +275,6 @@ public class CaseServiceImpl implements CaseService {
     // Finally, build the url needed to launch the survey
     String encryptedPayload = "";
     try {
-      String accountServiceUrl = null;
-      String accountServiceLogoutUrl = "https://" + appConfig.getDomain() + "/questionnaireSaved";
       encryptedPayload =
           eqLaunchService.getEqLaunchJwe(
               Language.ENGLISH,
@@ -285,8 +283,8 @@ public class CaseServiceImpl implements CaseService {
               caseDetails,
               requestParamsDTO.getAgentId(),
               newQuestionnaireIdDto.getQuestionnaireId(),
-              accountServiceUrl,
-              accountServiceLogoutUrl,
+              null,
+              null,
               appConfig.getKeystore());
     } catch (CTPException e) {
       log.with(e).error("Failed to create JWE payload for eq launch");

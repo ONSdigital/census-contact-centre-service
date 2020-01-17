@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.config;
 
-import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +16,6 @@ public class AppConfig {
   // private Rabbitmq rabbitmq;
   private AddressIndexSettings addressIndexSettings;
   private CaseServiceSettings caseServiceSettings;
-  @NotBlank private String domain;
   private KeyStore keystore;
   private EqConfig eq;
   private Logging logging;
