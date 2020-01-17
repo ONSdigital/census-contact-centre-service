@@ -8,7 +8,7 @@
   <parent>
     <groupId>uk.gov.ons.ctp.integration</groupId>
     <artifactId>census-int-common-config</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.14</version>
   </parent>
 
   <name>Census Integration ContactCentre Service</name>
@@ -117,7 +117,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.53</version>
+      <version>0.0.54</version>
     </dependency>
 
     <dependency>
@@ -125,6 +125,19 @@
       <artifactId>product-reference</artifactId>
       <version>0.0.21</version>
     </dependency>
+
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>census-int-case-api-client</artifactId>
+      <version>0.0.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>uk.gov.ons.ctp.integration.common</groupId>
+      <artifactId>eq-launcher</artifactId>
+      <version>0.0.19</version>
+    </dependency>
+
     <!-- ONS END -->
 
     <!-- third party libraries -->

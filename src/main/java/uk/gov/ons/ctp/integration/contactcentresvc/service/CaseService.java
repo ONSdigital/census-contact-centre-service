@@ -26,13 +26,8 @@ public interface CaseService {
 
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO);
 
-  public default String getLaunchURLForCaseId(
-      final UUID caseId, LaunchRequestDTO requestParamsDTO) {
-    return "{\"url\": \"https://www.google.co.uk/search?q=FAKE+"
-        + (caseId.hashCode() & 0xFF)
-        + (requestParamsDTO.getAgentId().hashCode() & 0xFF)
-        + "\"}\n";
-  }
+  public String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
+      throws CTPException;
 
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;

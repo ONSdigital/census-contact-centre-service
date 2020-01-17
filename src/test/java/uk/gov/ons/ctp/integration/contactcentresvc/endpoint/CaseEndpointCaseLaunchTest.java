@@ -51,7 +51,7 @@ public class CaseEndpointCaseLaunchTest {
   }
 
   @Test
-  public void getCaseById_GoodId() throws Exception {
+  public void getLaunchURL_ValidInvocation() throws Exception {
     String fakeResponse = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
     Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
@@ -68,20 +68,35 @@ public class CaseEndpointCaseLaunchTest {
   }
 
   @Test
-  public void getCaseById_BadId() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/123456789/launch?agentId=12345"));
+  public void getLaunchURL_BadCaseId() throws Exception {
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/123456789/launch?agentId=12345&individual=true"));
     actions.andExpect(status().isBadRequest());
   }
 
   @Test
-  public void getCaseById_GoodIdMissingAgentTest() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch"));
+  public void getLaunchURL_GoodCaseIdMissingAgentTest() throws Exception {
+    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?individual=true"));
     actions.andExpect(status().isBadRequest());
   }
 
   @Test
-  public void getCaseByIdGoodIdBadAgent() throws Exception {
-    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=ABC45"));
+  public void getLaunchURL_GoodCaseIdBadAgent() throws Exception {
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=ABC45&individual=true"));
+    actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void getLaunchURL_GoodCaseIdGoodAgentMissingIndividual() throws Exception {
+    ResultActions actions = mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=123"));
+    actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void getLaunchURL_GoodCaseIdGoodAgentBadIndividual() throws Exception {
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=123&individual=x"));
     actions.andExpect(status().isBadRequest());
   }
 }
