@@ -92,13 +92,6 @@ public final class CaseEndpointAppointmentTest {
   }
 
   @Test
-  public void appointmentTelNoTooLong() throws Exception {
-    ObjectNode json = FixtureHelper.loadClassObjectNode();
-    json.put(TEL_NO, "07968583119119119119119");
-    assertBadRequest(json);
-  }
-
-  @Test
   public void appointmentTypeNull() throws Exception {
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     json.put(APPOINTMENT_TYPE, (String) null);

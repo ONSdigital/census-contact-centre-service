@@ -124,11 +124,6 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
-  public void refusalTelNoTooLong() throws Exception {
-    assertBadRequest(TEL_NO, "07968583119119119119119");
-  }
-
-  @Test
   public void refusalTitleNull() throws Exception {
     assertOk(TITLE, (String) null);
   }
