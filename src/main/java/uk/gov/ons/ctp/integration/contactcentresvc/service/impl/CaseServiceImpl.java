@@ -262,6 +262,7 @@ public class CaseServiceImpl implements CaseService {
     if (caseType == CaseType.HH && individual == true) {
       individualCaseId = UUID.randomUUID();
       caseDetails.setId(individualCaseId);
+      caseDetails.setCaseType(CaseType.HI.name());
       log.with("individualCaseId", individualCaseId).info("Creating new HI case");
     }
 
