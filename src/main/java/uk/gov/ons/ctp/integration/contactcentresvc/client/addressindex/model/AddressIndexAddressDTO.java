@@ -9,6 +9,12 @@ public class AddressIndexAddressDTO {
 
   private String uprn;
 
+  private String countryCode;
+
+  private String addressType;
+
+  private String estabType;
+
   private String formattedAddress;
 
   private String formattedAddressNag;

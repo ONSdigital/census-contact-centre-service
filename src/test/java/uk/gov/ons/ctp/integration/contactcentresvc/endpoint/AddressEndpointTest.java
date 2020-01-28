@@ -39,6 +39,10 @@ public final class AddressEndpointTest {
   private static final String FORMATTED_ADDRESS2 = "15 Smiths Court, Exeter, EX2 8EB";
   private static final String WELSH_FORMATTED_ADDRESS2 = "15w Smiths Court, Exeter, EX2 8EB";
 
+  private static final String COUNTRY_CODE = "E";
+  private static final String ADDRESS_TYPE = "HH";
+  private static final String ESTAB_TYPE = "Household";
+
   @InjectMocks private AddressEndpoint addressEndpoint;
 
   @Mock AddressService addressService;
@@ -200,11 +204,17 @@ public final class AddressEndpointTest {
     address1.setUprn(UPRN1);
     address1.setFormattedAddress(FORMATTED_ADDRESS1);
     address1.setWelshFormattedAddress(WELSH_FORMATTED_ADDRESS1);
+    address1.setCountryCode(COUNTRY_CODE);
+    address1.setAddressType(ADDRESS_TYPE);
+    address1.setEstabType(ESTAB_TYPE);
 
     AddressDTO address2 = new AddressDTO();
     address2.setUprn(UPRN2);
     address2.setFormattedAddress(FORMATTED_ADDRESS2);
     address2.setWelshFormattedAddress(WELSH_FORMATTED_ADDRESS2);
+    address2.setCountryCode(COUNTRY_CODE);
+    address2.setAddressType(ADDRESS_TYPE);
+    address2.setEstabType(ESTAB_TYPE);
 
     AddressQueryResponseDTO addresses = new AddressQueryResponseDTO();
     addresses.setDataVersion(DATA_VERSION);
@@ -220,10 +230,16 @@ public final class AddressEndpointTest {
     actions.andExpect(jsonPath("$.addresses[0].formattedAddress", is(FORMATTED_ADDRESS1)));
     actions.andExpect(
         jsonPath("$.addresses[0].welshFormattedAddress", is(WELSH_FORMATTED_ADDRESS1)));
+    actions.andExpect(jsonPath("$.addresses[0].countryCode", is(COUNTRY_CODE)));
+    actions.andExpect(jsonPath("$.addresses[0].addressType", is(ADDRESS_TYPE)));
+    actions.andExpect(jsonPath("$.addresses[0].estabType", is(ESTAB_TYPE)));
     actions.andExpect(jsonPath("$.addresses[1].uprn", is(UPRN2)));
     actions.andExpect(jsonPath("$.addresses[1].formattedAddress", is(FORMATTED_ADDRESS2)));
     actions.andExpect(
         jsonPath("$.addresses[1].welshFormattedAddress", is(WELSH_FORMATTED_ADDRESS2)));
+    actions.andExpect(jsonPath("$.addresses[1].countryCode", is(COUNTRY_CODE)));
+    actions.andExpect(jsonPath("$.addresses[1].addressType", is(ADDRESS_TYPE)));
+    actions.andExpect(jsonPath("$.addresses[1].estabType", is(ESTAB_TYPE)));
     actions.andExpect(jsonPath("$.total", is(2)));
   }
 }

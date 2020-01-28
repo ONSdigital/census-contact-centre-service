@@ -9,7 +9,10 @@
     "addresses": [
       {
         "uprn": "100041045018",
-        "parentUprn": "0",
+        "parentUprn": "0",    
+        "countryCode": "E",
+        "addressType":"HH",
+        "estabType":"Household",       
         "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
@@ -29,6 +32,9 @@
       {
         "uprn": "100041045021",
         "parentUprn": "0",
+        "countryCode": "E",
+        "addressType":"CE",
+        "estabType":"Care Home",
         "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressPaf": "",
@@ -48,6 +54,9 @@
       {
         "uprn": "100041045024",
         "parentUprn": "0",
+        "countryCode": "E",
+        "addressType":"SPG",
+        "estabType":"Prison",
         "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "",
         "formattedAddressPaf": "",
@@ -67,6 +76,9 @@
       {
         "uprn": "100041133344",
         "parentUprn": "0",
+        "countryCode": "E",
+        "addressType":"HH",
+        "estabType":"Household",      
         "formattedAddress": "",
         "formattedAddressNag": "",
         "formattedAddressPaf": "",
