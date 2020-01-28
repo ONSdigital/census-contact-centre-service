@@ -73,7 +73,7 @@ public class AddressServiceImpl implements AddressService {
 
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
-      addressSummary.setCountryCode(fullAddress.getCountryCode());
+      addressSummary.setRegion(fullAddress.getCountryCode());
       addressSummary.setAddressType(fullAddress.getAddressType());
       addressSummary.setEstabType(fullAddress.getEstabType());
       addressSummary.setFormattedAddress(

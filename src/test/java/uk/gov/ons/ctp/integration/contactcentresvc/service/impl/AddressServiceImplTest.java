@@ -77,7 +77,7 @@ public class AddressServiceImplTest {
     assertThat(addresses.get(0).getFormattedAddress(), startsWith("Unit 11p,"));
     assertThat(addresses.get(0).getWelshFormattedAddress(), startsWith("Unit 11wp,"));
     assertEquals("100041045018", addresses.get(0).getUprn());
-    assertEquals("E", addresses.get(0).getCountryCode());
+    assertEquals("E", addresses.get(0).getRegion());
     assertEquals("HH", addresses.get(0).getAddressType());
     assertEquals("Household", addresses.get(0).getEstabType());
 
@@ -85,7 +85,7 @@ public class AddressServiceImplTest {
     assertThat(addresses.get(1).getFormattedAddress(), startsWith("Unit 14n,"));
     assertThat(addresses.get(1).getWelshFormattedAddress(), startsWith("Unit 14wn,"));
     assertEquals("100041045021", addresses.get(1).getUprn());
-    assertEquals("E", addresses.get(1).getCountryCode());
+    assertEquals("E", addresses.get(1).getRegion());
     assertEquals("CE", addresses.get(1).getAddressType());
     assertEquals("Care Home", addresses.get(1).getEstabType());
 
@@ -93,7 +93,7 @@ public class AddressServiceImplTest {
     assertThat(addresses.get(2).getFormattedAddress(), startsWith("Unit 19f,"));
     assertThat(addresses.get(2).getWelshFormattedAddress(), startsWith("Unit 19f,"));
     assertEquals("100041045024", addresses.get(2).getUprn());
-    assertEquals("E", addresses.get(2).getCountryCode());
+    assertEquals("E", addresses.get(2).getRegion());
     assertEquals("SPG", addresses.get(2).getAddressType());
     assertEquals("Prison", addresses.get(2).getEstabType());
 
@@ -101,7 +101,7 @@ public class AddressServiceImplTest {
     assertEquals("", addresses.get(3).getFormattedAddress());
     assertEquals("", addresses.get(3).getWelshFormattedAddress());
     assertEquals("100041133344", addresses.get(3).getUprn());
-    assertEquals("E", addresses.get(3).getCountryCode());
+    assertEquals("E", addresses.get(3).getRegion());
     assertEquals("HH", addresses.get(3).getAddressType());
     assertEquals("Household", addresses.get(3).getEstabType());
   }
