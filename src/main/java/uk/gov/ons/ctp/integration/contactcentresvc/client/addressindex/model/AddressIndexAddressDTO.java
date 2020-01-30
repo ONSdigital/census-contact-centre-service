@@ -11,9 +11,9 @@ public class AddressIndexAddressDTO {
 
   private String countryCode;
 
-  private String addressType;
+  private String censusAddressType;
 
-  private String estabType;
+  private String censusEstabType;
 
   private String formattedAddress;
 

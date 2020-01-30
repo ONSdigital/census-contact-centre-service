@@ -74,8 +74,8 @@ public class AddressServiceImpl implements AddressService {
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
       addressSummary.setRegion(fullAddress.getCountryCode());
-      addressSummary.setAddressType(fullAddress.getAddressType());
-      addressSummary.setEstabType(fullAddress.getEstabType());
+      addressSummary.setAddressType(fullAddress.getCensusAddressType());
+      addressSummary.setEstabType(fullAddress.getCensusEstabType());
       addressSummary.setFormattedAddress(
           StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
       addressSummary.setWelshFormattedAddress(
