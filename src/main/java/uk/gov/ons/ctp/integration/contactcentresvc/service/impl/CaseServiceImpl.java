@@ -252,8 +252,8 @@ public class CaseServiceImpl implements CaseService {
     // Validate case known and is for CE or HH
     CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
     CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
-    if (!(caseType == CaseType.CE || caseType == CaseType.HH)) {
-      throw new CTPException(Fault.BAD_REQUEST, "Case type must be CE or HH");
+    if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
+      throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
 
     // Create a new case if for a HH individual
