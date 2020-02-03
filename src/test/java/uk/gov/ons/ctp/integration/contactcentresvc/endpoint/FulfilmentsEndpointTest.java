@@ -103,7 +103,7 @@ public final class FulfilmentsEndpointTest {
             .fulfilmentCode(FULFILMENT_CODE_1)
             .language(LANGUAGE_1)
             .description(DESCRIPTION_1)
-            .deliveryChannel(DeliveryChannel.EMAIL)
+            .deliveryChannel(DeliveryChannel.SMS)
             .build();
 
     FulfilmentDTO fulfilmentsDTO2 =
@@ -122,7 +122,7 @@ public final class FulfilmentsEndpointTest {
     actions.andExpect(jsonPath("$.[0].fulfilmentCode", is(FULFILMENT_CODE_1)));
     actions.andExpect(jsonPath("$.[0].language", is(LANGUAGE_1)));
     actions.andExpect(jsonPath("$.[0].description", is(DESCRIPTION_1)));
-    actions.andExpect(jsonPath("$.[0].deliveryChannel", is(DeliveryChannel.EMAIL.toString())));
+    actions.andExpect(jsonPath("$.[0].deliveryChannel", is(DeliveryChannel.SMS.toString())));
 
     actions.andExpect(jsonPath("$.[1].fulfilmentCode", is(FULFILMENT_CODE_2)));
     actions.andExpect(jsonPath("$.[1].language", is(LANGUAGE_2)));
