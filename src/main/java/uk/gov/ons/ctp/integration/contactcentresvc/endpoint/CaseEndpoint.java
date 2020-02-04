@@ -22,16 +22,13 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.model.editor.UniquePropertyReferenceNumberEditor;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.AppointmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalUnresolvedFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSUnresolvedFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /** The REST controller for ContactCentreSvc find cases end points */
@@ -207,66 +204,6 @@ public class CaseEndpoint implements CTPEndpoint {
     }
 
     ResponseDTO response = caseService.fulfilmentRequestBySMS(requestBodyDTO);
-
-    return ResponseEntity.ok(response);
-  }
-
-  /**
-   * the POST end point to request a postal fulfilment for an unresolved case
-   *
-   * @param requestBodyDTO the request body
-   * @return response entity
-   * @throws CTPException something went wrong
-   */
-  @RequestMapping(value = "/unresolved/fulfilment/post", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestByPost(
-      @Valid @RequestBody PostalUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
-
-    log.with("requestBody", requestBodyDTO).info("Entering POST fulfilmentUnresolvedRequestByPost");
-    ResponseDTO response = caseService.fulfilmentUnresolvedRequestByPost(requestBodyDTO);
-
-    return ResponseEntity.ok(response);
-  }
-
-  /**
-   * the POST end point to request an SMS fulfilment for an unresolved case
-   *
-   * @param requestBodyDTO the request body
-   * @return response entity
-   * @throws CTPException something went wrong
-   */
-  @RequestMapping(value = "/unresolved/fulfilment/sms", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<ResponseDTO> fulfilmentUnresolvedRequestBySMS(
-      @Valid @RequestBody SMSUnresolvedFulfilmentRequestDTO requestBodyDTO) throws CTPException {
-
-    log.with("requestBody", requestBodyDTO).info("Entering POST fulfilmentUnresolvedRequestBySMS");
-
-    ResponseDTO response = caseService.fulfilmentUnresolvedRequestBySMS(requestBodyDTO);
-
-    return ResponseEntity.ok(response);
-  }
-
-  /**
-   * the POST end point to request an appointment
-   *
-   * @param caseId is the case to schedule an appointment for.
-   * @param requestBodyDTO the request body
-   * @return response entity
-   * @throws CTPException something went wrong
-   */
-  @RequestMapping(value = "/{caseId}/appointment", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<ResponseDTO> makeAppointment(
-      @PathVariable(value = "caseId") final UUID caseId,
-      @Valid @RequestBody AppointmentRequestDTO requestBodyDTO)
-      throws CTPException {
-
-    log.with("pathParam", caseId)
-        .with("requestBody", requestBodyDTO)
-        .info("Entering POST makeAppointment");
-    ResponseDTO response = caseService.makeAppointment(caseId, requestBodyDTO);
 
     return ResponseEntity.ok(response);
   }

@@ -372,18 +372,18 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testLaunchCICase() throws Exception {
-    try {
-      doLaunchTest(uuid, "CI", false);
-      fail();
-    } catch (Exception e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("must be CE or HH"));
-    }
+  public void testLaunchHHCase() throws Exception {
+    doLaunchTest(uuid, "HH", false);
   }
 
   @Test
-  public void testLaunchHHCase() throws Exception {
-    doLaunchTest(uuid, "HH", false);
+  public void testLaunchSPGCase() throws Exception {
+    doLaunchTest(uuid, "SPG", false);
+  }
+
+  @Test
+  public void testLaunchSPGCaseForIndividual() throws Exception {
+    doLaunchTest(uuid, "SPG", true);
   }
 
   @Test
@@ -397,7 +397,7 @@ public class CaseServiceImplTest {
       doLaunchTest(uuid, "HI", false);
       fail();
     } catch (Exception e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("must be CE or HH"));
+      assertTrue(e.getMessage(), e.getMessage().contains("must be SPG, CE or HH"));
     }
   }
 
