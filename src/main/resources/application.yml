@@ -101,6 +101,7 @@ spring:
 address-index-settings:
   address-query-path: /addresses
   postcode-lookup-path: /addresses/postcode/{postcode}
+  uprn-lookup-path: /addresses/uprn/{uprn}
   rest-client-config:
     scheme: http
     host: addressindex-api-beta.apps.devtest.onsclofo.uk

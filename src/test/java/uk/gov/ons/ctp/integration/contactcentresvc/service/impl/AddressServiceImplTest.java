@@ -59,6 +59,25 @@ public class AddressServiceImplTest {
     verifyAddresses(results);
   }
 
+  @Test
+  public void testUPRNQueryProcessing() throws Exception {
+    // Build results to be returned from search
+    AddressIndexSearchResultsDTO addressIndexResults =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsDTO[].class, null).get(0);
+    Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
+
+    // Run the request and verify results
+    AddressQueryResponseDTO results = addressService.uprnQuery(100041045018L);
+
+    assertEquals("39", results.getDataVersion());
+    assertEquals(1, results.getTotal());
+    ArrayList<AddressDTO> addresses = results.getAddresses();
+    assertEquals(1, addresses.size());
+    assertThat(addresses.get(0).getFormattedAddress(), startsWith("Unit 11p,"));
+    assertThat(addresses.get(0).getWelshFormattedAddress(), startsWith("Unit 11wp,"));
+    assertEquals("100041045018", addresses.get(0).getUprn());
+  }
+
   /**
    * Postcode and address queries return the same results, so this method validates the data in both
    * cases.

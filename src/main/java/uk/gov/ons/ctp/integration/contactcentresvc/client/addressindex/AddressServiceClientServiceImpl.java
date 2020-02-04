@@ -47,7 +47,7 @@ public class AddressServiceClientServiceImpl {
             path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
     log.with("status", addressIndexResponse.getStatus().getCode())
         .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
-        .debug("AddressQuery response received");
+        .debug("Address query response received");
 
     return addressIndexResponse;
   }
@@ -72,7 +72,22 @@ public class AddressServiceClientServiceImpl {
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
     log.with("status", addressIndexResponse.getStatus().getCode())
         .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
-        .debug("PostcodeQuery response received");
+        .debug("Postcode query response received");
+
+    return addressIndexResponse;
+  }
+
+  public AddressIndexSearchResultsDTO searchByUPRN(Long uprn) {
+    log.debug("Delegating UPRN search to AddressIndex service");
+
+    // Ask Address Index to do uprn search
+    String path = appConfig.getAddressIndexSettings().getUprnLookupPath();
+
+    AddressIndexSearchResultsDTO addressIndexResponse =
+        addressIndexClient.getResource(path, AddressIndexSearchResultsDTO.class, uprn.toString());
+    log.with("status", addressIndexResponse.getStatus().getCode())
+        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+        .debug("UPRN query response received");
 
     return addressIndexResponse;
   }
