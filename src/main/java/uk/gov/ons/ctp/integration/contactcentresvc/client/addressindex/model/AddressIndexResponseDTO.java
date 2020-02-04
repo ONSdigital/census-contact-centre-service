@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PostcodeSearchResponseDTO {
+public class AddressIndexResponseDTO {
 
   private String postcode;
 
