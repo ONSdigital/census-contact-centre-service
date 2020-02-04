@@ -167,13 +167,22 @@ public final class AddressEndpointIT {
       JsonNode uprn = addressNode.get("uprn");
       assertFalse(uprn.textValue(), uprn.textValue().equals("0"));
 
+      String region = addressNode.get("region").asText();
+      assertFalse(region, region.isEmpty());
+
+      String addressType = addressNode.get("addressType").asText();
+      assertFalse(addressType, addressType.isEmpty());
+
+      String estabType = addressNode.get("estabType").asText();
+      assertFalse(estabType, estabType.isEmpty());
+
       String formattedAddress = addressNode.get("formattedAddress").asText();
       assertFalse(formattedAddress, formattedAddress.isEmpty());
 
       String welshAddress = addressNode.get("welshFormattedAddress").asText();
       assertFalse(welshAddress, welshAddress.isEmpty());
 
-      assertEquals(3, addressNode.size());
+      assertEquals(6, addressNode.size());
     }
     assertTrue(
         "Not enough addresses found. Actual: " + addresses.size(), addresses.size() >= minExpected);
