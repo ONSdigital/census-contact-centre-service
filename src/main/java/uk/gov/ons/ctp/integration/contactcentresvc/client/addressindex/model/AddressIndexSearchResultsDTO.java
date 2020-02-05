@@ -10,7 +10,7 @@ public class AddressIndexSearchResultsDTO {
 
   private String dataVersion;
 
-  private PostcodeSearchResponseDTO response;
+  private AddressIndexResponseDTO response;
 
   private ResponseStatusData status;
 

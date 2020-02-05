@@ -61,6 +61,22 @@ public class AddressServiceImpl implements AddressService {
     return results;
   }
 
+  @Override
+  public AddressQueryResponseDTO uprnQuery(Long uprn) {
+    log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
+
+    // Delegate the query to Address Index
+    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.searchByUPRN(uprn);
+
+    // Summarise the returned addresses
+    AddressQueryResponseDTO results =
+        convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
+
+    log.with("addresses", results.getAddresses().size())
+        .debug("Postcode search is returning addresses");
+    return results;
+  }
+
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
       AddressIndexSearchResultsDTO addressIndexResponse) {
     ArrayList<AddressDTO> summarisedAddresses = new ArrayList<>();
@@ -89,7 +105,16 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO queryResponse = new AddressQueryResponseDTO();
     queryResponse.setDataVersion(addressIndexResponse.getDataVersion());
     queryResponse.setAddresses(summarisedAddresses);
-    queryResponse.setTotal(addressIndexResponse.getResponse().getTotal());
+
+    int total = addressIndexResponse.getResponse().getTotal();
+    int arraySize = summarisedAddresses.size();
+
+    // UPRN search has no JSON total attribute as only one or zero
+    if (total > 0) {
+      queryResponse.setTotal(total);
+    } else {
+      queryResponse.setTotal(arraySize);
+    }
 
     return queryResponse;
   }
