@@ -4,16 +4,13 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressUpdateRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.VersionResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
@@ -61,13 +58,6 @@ public final class AddressEndpoint implements CTPEndpoint {
       @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
     log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
     return addressService.postcodeQuery(postcodeQueryRequest);
-  }
-
-  @RequestMapping(value = "/addresses/{uprn}", method = RequestMethod.POST)
-  public ResponseDTO updateAddress(
-      String uprn, @Valid @RequestBody AddressUpdateRequestDTO addressUpdateRequestDTO) {
-    log.with("requestBody", addressUpdateRequestDTO).info("Entering POST updateAddress");
-    return addressService.addressChange(addressUpdateRequestDTO);
   }
 
   /**
