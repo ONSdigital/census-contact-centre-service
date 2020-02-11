@@ -28,6 +28,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.common.model.Language;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
@@ -71,6 +72,8 @@ public class CaseServiceImpl implements CaseService {
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
 
   @Autowired private EqLaunchService eqLaunchService;
+
+  @Autowired private EventPublisher eventPublisher;
 
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
@@ -270,8 +273,8 @@ public class CaseServiceImpl implements CaseService {
     log.info("Before new QID");
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
         caseServiceClient.getSingleUseQuestionnaireId(caseId, individual, individualCaseId);
-    log.with("newQuestionnaireID", newQuestionnaireIdDto.getQuestionnaireId())
-        .info("Have generated new questionnaireId");
+    String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
+    log.with("newQuestionnaireID", questionnaireId).info("Have generated new questionnaireId");
 
     // Finally, build the url needed to launch the survey
     String encryptedPayload = "";
@@ -283,7 +286,7 @@ public class CaseServiceImpl implements CaseService {
               uk.gov.ons.ctp.common.model.Channel.CC,
               caseDetails,
               requestParamsDTO.getAgentId(),
-              newQuestionnaireIdDto.getQuestionnaireId(),
+              questionnaireId,
               null,
               null,
               appConfig.getKeystore());
@@ -292,10 +295,36 @@ public class CaseServiceImpl implements CaseService {
       throw e;
     }
 
+    // Create full launch URL
     String eqUrl = "https://" + appConfig.getEq().getHost() + "/session?token=" + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
 
+    // Finally tell RM that a survey has been launched
+    publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
+
     return eqUrl;
+  }
+
+  private void publishSurveyLaunchedEvent(UUID caseId, String questionnaireId, String agentId) {
+    log.with("questionnaireId", questionnaireId)
+        .with("caseId", caseId)
+        .with("agentId", agentId)
+        .info("Generating SurveyLaunched event");
+
+    SurveyLaunchedResponse response =
+        SurveyLaunchedResponse.builder()
+            .questionnaireId(questionnaireId)
+            .caseId(caseId)
+            .agentId(agentId)
+            .build();
+
+    String transactionId =
+        eventPublisher.sendEvent(
+            EventType.SURVEY_LAUNCHED, Source.CONTACT_CENTRE_API, Channel.CC, response);
+
+    log.with("caseId", response.getCaseId())
+        .with("transactionId", transactionId)
+        .debug("SurveyLaunch event published");
   }
 
   private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {

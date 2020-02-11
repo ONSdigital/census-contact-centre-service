@@ -33,13 +33,4 @@ public interface CaseService {
 
   public ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO)
       throws CTPException;
-
-  private UUID createSemiRandomFakeUUID() {
-    String randomUUID = UUID.randomUUID().toString();
-    String firstPart = randomUUID.substring(0, 9);
-    String lastPart = randomUUID.substring(23);
-    String semiRandomUUID = firstPart + "aaaa-bbbb-cccc" + lastPart;
-
-    return UUID.fromString(semiRandomUUID);
-  }
 }
