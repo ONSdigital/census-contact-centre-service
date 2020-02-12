@@ -39,8 +39,10 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
+import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.common.model.Language;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
@@ -80,6 +82,8 @@ public class CaseServiceImplTest {
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
   @Mock EqLaunchService eqLaunchService = new EqLaunchServiceImpl();
+
+  @Mock EventPublisher eventPublisher;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
@@ -448,7 +452,7 @@ public class CaseServiceImplTest {
     Mockito.verify(caseServiceClient)
         .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
     if (caseType.equals("HH") && individual) {
-      assertNotEquals(uuid, individualCaseIdCaptor.getValue()); // newly allocated uuid
+      assertNotEquals(uuid, individualCaseIdCaptor.getValue()); // expecting newly allocated uuid
     } else {
       assertNull(individualCaseIdCaptor.getValue());
     }
@@ -471,10 +475,30 @@ public class CaseServiceImplTest {
     CaseContainerDTO capturedCase = caseCaptor.getValue();
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
-      assertNotEquals(uuid.toString(), capturedCase.getId().toString());
+      assertNotEquals(uuid, capturedCase.getId());
     } else {
-      assertEquals(uuid.toString(), capturedCase.getId().toString());
+      assertEquals(uuid, capturedCase.getId());
     }
+
+    // Verify surveyLaunched event published
+    ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor =
+        ArgumentCaptor.forClass(SurveyLaunchedResponse.class);
+    Mockito.verify(eventPublisher)
+        .sendEvent(
+            eq(EventType.SURVEY_LAUNCHED),
+            eq(Source.CONTACT_CENTRE_API),
+            eq(Channel.CC),
+            (EventPayload) surveyLaunchedResponseCaptor.capture());
+
+    // Verify payload for surveyLaunched event
+    if (caseType.equals("HH") && individual) {
+      // Should have used a new caseId, ie, not the uuid that we started with
+      assertNotEquals(uuid, surveyLaunchedResponseCaptor.getValue().getCaseId());
+    } else {
+      assertEquals(caseId, surveyLaunchedResponseCaptor.getValue().getCaseId());
+    }
+    assertEquals(questionnaireId, surveyLaunchedResponseCaptor.getValue().getQuestionnaireId());
+    assertEquals("1234", surveyLaunchedResponseCaptor.getValue().getAgentId());
   }
 
   private void doRespondentRefusalTest(
