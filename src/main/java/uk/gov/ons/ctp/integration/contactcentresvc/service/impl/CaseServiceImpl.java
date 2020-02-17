@@ -25,6 +25,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
+import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
@@ -39,7 +40,12 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
@@ -70,6 +76,10 @@ public class CaseServiceImpl implements CaseService {
   private MapperFacade caseDTOMapper = new CCSvcBeanMapper();
 
   @Autowired private EqLaunchService eqLaunchService;
+
+  @Autowired private CaseDataRepository dataRepo;
+
+  @Autowired private AddressServiceClientServiceImpl addressLookup;
 
   @Autowired private EventPublisher eventPublisher;
 
@@ -202,6 +212,16 @@ public class CaseServiceImpl implements CaseService {
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO) {
     log.with("uprn", uprn).debug("Fetching case details by UPRN");
 
+    // Return any stored case details
+    List<CollectionCaseNewAddress> createdCases = dataRepo.readCollectionCaseByUPRN(uprn.toString());
+    if (!createdCases.isEmpty()) {
+      List<CaseDTO> caseServiceResponse = caseDTOMapper.mapAsList(createdCases, CaseDTO.class);
+      log.with("uprn", uprn)
+          .with("cases", caseServiceResponse.size())
+          .debug("Returning stored case details for UPRN");
+      return caseServiceResponse;
+    }
+
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     List<CaseContainerDTO> caseDetails =
@@ -218,14 +238,14 @@ public class CaseServiceImpl implements CaseService {
     // Convert from Case service to Contact Centre DTOs
     List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
 
-    // Clean up the events before returning them
-    caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, getCaseEvents));
-
-    log.with("uprn", uprn)
-        .with("cases", caseServiceResponse.size())
-        .debug("Returning case details for UPRN");
-
-    return caseServiceResponse;
+    // New Case
+    AddressIndexSearchResultsDTO addressResults = addressLookup.searchByUPRN(uprn.getValue());
+    // No result for UPRN from Address index
+    if (addressResults.getResponse().getAddresses().isEmpty()) {
+      throw new CTPException(CTPException.Fault.RESOURCE_NOT_FOUND, "Failed to find address for UPRN %s", uprn.toString());
+    }
+    AddressIndexAddressDTO address = addressResults.getResponse().getAddresses().get(0);
+    
   }
 
   @Override
@@ -390,12 +410,18 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
+  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
+    return caseTypeString.equals(CaseType.HH.name())
+        || caseTypeString.equals(CaseType.CE.name())
+        || caseTypeString.equals(CaseType.SPG.name());
+  }
+
   /**
    * create a contact centre fulfilment request event
    *
    * @param fulfilmentCode the code for the product requested
    * @param deliveryChannel how the fulfilment should be delivered
-   * @param caseId the id of the household case the fulfilment is for
+   * @param caseId the id of the household,CE or SPG case the fulfilment is for
    * @return the request event to be delivered to the events exchange
    * @throws CTPException the requested product is invalid for the parameters given
    */

@@ -166,3 +166,6 @@ eq:
   
 report-settings:
   cron-expression: "0 * * * * *"
+
+cloudStorage:
+  caseSchemaName: new-case

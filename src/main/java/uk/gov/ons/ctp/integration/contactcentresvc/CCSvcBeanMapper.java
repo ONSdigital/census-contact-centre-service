@@ -8,6 +8,8 @@ import ma.glasnost.orika.impl.ConfigurableMapper;
 import ma.glasnost.orika.metadata.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+
+import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -33,6 +35,11 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .fieldMap("region", "region")
         .converter("regionConverter")
         .add()
+        .register();
+
+    factory
+        .classMap(CollectionCaseNewAddress.class, CaseDTO.class)
+        .byDefault()
         .register();
 
     factory
