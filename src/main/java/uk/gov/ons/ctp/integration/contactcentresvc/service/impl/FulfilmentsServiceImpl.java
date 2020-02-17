@@ -25,7 +25,7 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
   @Override
   public List<FulfilmentDTO> getFulfilments(CaseType caseType, Region region) throws CTPException {
     Product example = new Product();
-    example.setCaseType(caseType == null ? null : Product.CaseType.valueOf(caseType.name()));
+    example.setCaseTypes(caseType == null ? null : Arrays.asList(Product.CaseType.valueOf(caseType.name())));
     example.setRegions(
         region == null ? null : Arrays.asList(Product.Region.valueOf(region.name())));
     example.setRequestChannels(Arrays.asList(RequestChannel.CC));
