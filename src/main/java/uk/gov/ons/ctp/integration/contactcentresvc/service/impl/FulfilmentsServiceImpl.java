@@ -32,6 +32,7 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
     example.setRegions(
         region == null ? null : Arrays.asList(Product.Region.valueOf(region.name())));
     example.setRequestChannels(Arrays.asList(RequestChannel.CC));
+    example.setDeliveryChannel(Product.DeliveryChannel.valueOf(deliveryChannel.name()));
     return mapperFacade.mapAsList(productReference.searchProducts(example), FulfilmentDTO.class);
   }
 }
