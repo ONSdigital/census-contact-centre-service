@@ -58,7 +58,7 @@ public class FulfilmentServiceImplTest {
 
     // call the unit under test
     List<FulfilmentDTO> fulfilments =
-        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST);
+        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST, false);
 
     // fulfilmentService should call the productReference with this example Product
     Product expectedExample =
@@ -68,6 +68,7 @@ public class FulfilmentServiceImplTest {
             .requestChannels(
                 new ArrayList<Product.RequestChannel>(List.of(Product.RequestChannel.CC)))
             .deliveryChannel(Product.DeliveryChannel.POST)
+            .individual(false)
             .build();
 
     // verify that the unit under test called the expected productReference and with the
@@ -101,7 +102,7 @@ public class FulfilmentServiceImplTest {
 
     // call the unit under test
     List<FulfilmentDTO> fulfilments =
-        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST);
+        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST, false);
 
     // now check that no dtos were returned
     assertTrue(fulfilments.size() == 0);

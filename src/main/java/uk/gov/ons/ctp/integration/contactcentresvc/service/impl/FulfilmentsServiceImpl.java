@@ -25,7 +25,8 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
 
   @Override
   public List<FulfilmentDTO> getFulfilments(
-      CaseType caseType, Region region, DeliveryChannel deliveryChannel) throws CTPException {
+      CaseType caseType, Region region, DeliveryChannel deliveryChannel, boolean individual)
+      throws CTPException {
     Product example = new Product();
     example.setCaseTypes(
         caseType == null ? null : Arrays.asList(Product.CaseType.valueOf(caseType.name())));
@@ -33,6 +34,7 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
         region == null ? null : Arrays.asList(Product.Region.valueOf(region.name())));
     example.setRequestChannels(Arrays.asList(RequestChannel.CC));
     example.setDeliveryChannel(Product.DeliveryChannel.valueOf(deliveryChannel.name()));
+    example.setIndividual(individual);
     return mapperFacade.mapAsList(productReference.searchProducts(example), FulfilmentDTO.class);
   }
 }

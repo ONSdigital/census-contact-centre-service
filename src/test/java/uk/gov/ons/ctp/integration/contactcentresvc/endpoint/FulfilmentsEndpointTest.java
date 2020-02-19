@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
@@ -64,7 +65,8 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestNoParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any(), anyBoolean()))
+        .thenReturn(testCaseDTO);
 
     ResultActions actions = mockMvc.perform(getJson("/fulfilments"));
     actions.andExpect(status().isOk());
@@ -75,7 +77,8 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestAllParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any(), anyBoolean()))
+        .thenReturn(testCaseDTO);
 
     ResultActions actions =
         mockMvc.perform(

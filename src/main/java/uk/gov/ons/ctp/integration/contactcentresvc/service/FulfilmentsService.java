@@ -9,5 +9,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 
 public interface FulfilmentsService {
   List<FulfilmentDTO> getFulfilments(
-      CaseType caseType, Region region, DeliveryChannel deliveryChannel) throws CTPException;
+      CaseType caseType, Region region, DeliveryChannel deliveryChannel, boolean individual)
+      throws CTPException;
 }
