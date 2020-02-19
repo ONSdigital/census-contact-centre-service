@@ -64,7 +64,7 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestNoParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any())).thenReturn(testCaseDTO);
 
     ResultActions actions = mockMvc.perform(getJson("/fulfilments"));
     actions.andExpect(status().isOk());
@@ -75,7 +75,7 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestAllParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any())).thenReturn(testCaseDTO);
 
     ResultActions actions =
         mockMvc.perform(

@@ -20,6 +20,7 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
@@ -56,7 +57,8 @@ public class FulfilmentServiceImplTest {
         .thenReturn(new ArrayList<Product>(List.of(returnedProduct)));
 
     // call the unit under test
-    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.HH, Region.E);
+    List<FulfilmentDTO> fulfilments =
+        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST);
 
     // fulfilmentService should call the productReference with this example Product
     Product expectedExample =
@@ -97,7 +99,8 @@ public class FulfilmentServiceImplTest {
     Mockito.when(productReference.searchProducts(any())).thenReturn(new ArrayList<Product>());
 
     // call the unit under test
-    List<FulfilmentDTO> fulfilments = fulfilmentService.getFulfilments(CaseType.HH, Region.E);
+    List<FulfilmentDTO> fulfilments =
+        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST);
 
     // now check that no dtos were returned
     assertTrue(fulfilments.size() == 0);
