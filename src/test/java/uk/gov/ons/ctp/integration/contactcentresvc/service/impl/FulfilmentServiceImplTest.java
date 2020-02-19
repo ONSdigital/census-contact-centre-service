@@ -67,6 +67,7 @@ public class FulfilmentServiceImplTest {
             .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
             .requestChannels(
                 new ArrayList<Product.RequestChannel>(List.of(Product.RequestChannel.CC)))
+            .deliveryChannel(Product.DeliveryChannel.POST)
             .build();
 
     // verify that the unit under test called the expected productReference and with the
