@@ -51,7 +51,7 @@ public final class FulfilmentsEndpoint implements CTPEndpoint {
             requestDTO.getCaseType(),
             requestDTO.getRegion(),
             requestDTO.getDeliveryChannel(),
-            requestDTO.isIndividual());
+            requestDTO.getIndividual());
 
     return ResponseEntity.ok(fulfilments);
   }
