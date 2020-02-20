@@ -414,8 +414,10 @@ public class CaseServiceImplTest {
 
     // Fake RM response for creating questionnaire ID
     String questionnaireId = "566786126";
+    String formType = "H";
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();
     newQuestionnaireIdDto.setQuestionnaireId(questionnaireId);
+    newQuestionnaireIdDto.setFormType(formType);
     Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(uuid), eq(individual), any()))
         .thenReturn(newQuestionnaireIdDto);
 
@@ -430,6 +432,7 @@ public class CaseServiceImplTest {
                 eq(Language.ENGLISH),
                 eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
                 eq(uk.gov.ons.ctp.common.model.Channel.CC),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -467,6 +470,7 @@ public class CaseServiceImplTest {
             caseCaptor.capture(),
             eq("1234"), // agent
             eq(questionnaireId),
+            eq(formType),
             isNull(), // accountServiceUrl
             isNull(),
             any()); // keystore
