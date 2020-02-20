@@ -274,7 +274,10 @@ public class CaseServiceImpl implements CaseService {
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
         caseServiceClient.getSingleUseQuestionnaireId(caseId, individual, individualCaseId);
     String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
-    log.with("newQuestionnaireID", questionnaireId).info("Have generated new questionnaireId");
+    String formType = newQuestionnaireIdDto.getFormType();
+    log.with("newQuestionnaireID", questionnaireId)
+        .with("formType", formType)
+        .info("Have generated new questionnaireId");
 
     // Finally, build the url needed to launch the survey
     String encryptedPayload = "";
@@ -287,6 +290,7 @@ public class CaseServiceImpl implements CaseService {
               caseDetails,
               requestParamsDTO.getAgentId(),
               questionnaireId,
+              formType,
               null,
               null,
               appConfig.getKeystore());
