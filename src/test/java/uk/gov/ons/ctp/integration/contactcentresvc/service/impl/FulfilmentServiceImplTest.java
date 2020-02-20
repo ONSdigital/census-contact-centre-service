@@ -22,6 +22,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ProductGroup;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 
@@ -58,7 +59,8 @@ public class FulfilmentServiceImplTest {
 
     // call the unit under test
     List<FulfilmentDTO> fulfilments =
-        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST, false);
+        fulfilmentService.getFulfilments(
+            CaseType.HH, Region.E, DeliveryChannel.POST, false, ProductGroup.LARGE_PRINT);
 
     // fulfilmentService should call the productReference with this example Product
     Product expectedExample =
@@ -69,6 +71,7 @@ public class FulfilmentServiceImplTest {
                 new ArrayList<Product.RequestChannel>(List.of(Product.RequestChannel.CC)))
             .deliveryChannel(Product.DeliveryChannel.POST)
             .individual(false)
+            .productGroup(Product.ProductGroup.LARGE_PRINT)
             .build();
 
     // verify that the unit under test called the expected productReference and with the
@@ -102,7 +105,8 @@ public class FulfilmentServiceImplTest {
 
     // call the unit under test
     List<FulfilmentDTO> fulfilments =
-        fulfilmentService.getFulfilments(CaseType.HH, Region.E, DeliveryChannel.POST, false);
+        fulfilmentService.getFulfilments(
+            CaseType.HH, Region.E, DeliveryChannel.POST, false, ProductGroup.LARGE_PRINT);
 
     // now check that no dtos were returned
     assertTrue(fulfilments.size() == 0);

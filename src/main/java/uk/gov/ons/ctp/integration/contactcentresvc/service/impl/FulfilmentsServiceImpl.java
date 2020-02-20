@@ -13,6 +13,7 @@ import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ProductGroup;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 
@@ -25,7 +26,11 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
 
   @Override
   public List<FulfilmentDTO> getFulfilments(
-      CaseType caseType, Region region, DeliveryChannel deliveryChannel, Boolean individual)
+      CaseType caseType,
+      Region region,
+      DeliveryChannel deliveryChannel,
+      Boolean individual,
+      ProductGroup productGroup)
       throws CTPException {
     Product example = new Product();
     example.setCaseTypes(
@@ -36,6 +41,8 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
     example.setDeliveryChannel(
         deliveryChannel == null ? null : Product.DeliveryChannel.valueOf(deliveryChannel.name()));
     example.setIndividual(individual);
+    example.setProductGroup(
+        productGroup == null ? null : Product.ProductGroup.valueOf(productGroup.name()));
     return mapperFacade.mapAsList(productReference.searchProducts(example), FulfilmentDTO.class);
   }
 }
