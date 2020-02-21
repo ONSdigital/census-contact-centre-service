@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+//import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
@@ -30,6 +31,7 @@ public final class FulfilmentsEndpointTest {
 
   private static final String PARAM_CASE_TYPE = "caseType";
   private static final String PARAM_REGION = "region";
+  private static final String PARAM_INDIVIDUAL = "individual";
 
   private static final String FULFILMENT_CODE_1 = "P1";
   private static final String LANGUAGE_1 = "eng";
@@ -64,7 +66,8 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestNoParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any(), any(), any()))
+        .thenReturn(testCaseDTO);
 
     ResultActions actions = mockMvc.perform(getJson("/fulfilments"));
     actions.andExpect(status().isOk());
@@ -75,11 +78,12 @@ public final class FulfilmentsEndpointTest {
   @Test
   public void fulfilmentsGoodRequestAllParams() throws Exception {
     List<FulfilmentDTO> testCaseDTO = createResponseFulfilmentDTO();
-    Mockito.when(fulfilmentService.getFulfilments(any(), any())).thenReturn(testCaseDTO);
+    Mockito.when(fulfilmentService.getFulfilments(any(), any(), any(), any(), any()))
+        .thenReturn(testCaseDTO);
 
     ResultActions actions =
         mockMvc.perform(
-            getJson("/fulfilments").param(PARAM_CASE_TYPE, "HI").param(PARAM_REGION, "E"));
+            getJson("/fulfilments").param(PARAM_REGION, "E").param(PARAM_INDIVIDUAL, "true"));
     actions.andExpect(status().isOk());
 
     verifyStructureOfFulfilmentDTO(actions);

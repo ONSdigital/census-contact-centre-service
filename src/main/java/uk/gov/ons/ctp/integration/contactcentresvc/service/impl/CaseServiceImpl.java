@@ -368,12 +368,12 @@ public class CaseServiceImpl implements CaseService {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
-    Region region =
-        Region.valueOf(caseServiceClient.getCaseById(caseId, false).getRegion().substring(0, 1));
+    CaseContainerDTO caze = caseServiceClient.getCaseById(caseId, false);
+    Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
     if (deliveryChannel.equals(DeliveryChannel.POST)) {
-      if (!caseIsHouseholdOrCommunal(product.getCaseType().name())) {
+      if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
             || StringUtils.isBlank(contact.getSurname())) {
@@ -387,9 +387,11 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    // Set up the event payload request
     FulfilmentRequest fulfilmentRequest = new FulfilmentRequest();
-    if (product.getCaseType().equals(Product.CaseType.HI)) {
+    // create a new indiv id only if the parent case is an HH and the product requested is for an
+    // indiv
+    // SPG and CE indiv product requests do not need an indiv id creating
+    if (CaseType.HH.name().equals(caze.getCaseType()) && product.getIndividual()) {
       fulfilmentRequest.setIndividualCaseId(UUID.randomUUID().toString());
     }
 
