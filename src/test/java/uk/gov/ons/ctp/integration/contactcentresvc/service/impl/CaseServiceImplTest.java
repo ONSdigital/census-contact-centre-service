@@ -115,52 +115,40 @@ public class CaseServiceImplTest {
     // All of the following fail validation because one of the contact detail fields is always null
     // or empty
     doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), "", "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), "Mr", null, "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), "Mr", "", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), "Mr", "John", null, true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.HH), "Mr", "John", "", true);
+        Product.CaseType.HH, null, "John", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "", "John", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", null, "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", null, true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", "", true);
 
     doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), "", "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), "Mr", null, "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), "Mr", "", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), "Mr", "John", null, true);
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Arrays.asList(Product.CaseType.CE), "Mr", "John", "", true);
+        Product.CaseType.CE, null, "John", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "", "John", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", null, "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "", "Smith", true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "John", null, true);
+    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "John", "", true);
   }
 
   @Test
   public void testFulfilmentRequestByPost_nonIndividualAllowsNullContactDetails() throws Exception {
     // Test that non-individual cases allow null/empty contact details
-    doFulfilmentRequestByPostSuccess(Arrays.asList(Product.CaseType.HH), null, null, null, false);
-    doFulfilmentRequestByPostSuccess(Arrays.asList(Product.CaseType.HH), "", "", "", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, null, null, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "", "", false);
 
-    doFulfilmentRequestByPostSuccess(Arrays.asList(Product.CaseType.CE), null, null, null, false);
-    doFulfilmentRequestByPostSuccess(Arrays.asList(Product.CaseType.CE), "", "", "", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, null, null, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "", "", false);
   }
 
   @Test
   public void testFulfilmentRequestByPostSuccess_withCaseTypeHH() throws Exception {
-    doFulfilmentRequestByPostSuccess(
-        Arrays.asList(Product.CaseType.HH), "Mr", "Mickey", "Mouse", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", false);
   }
 
   @Test
   public void testFulfilmentRequestByPostSuccess_withIndividualTrue() throws Exception {
-    doFulfilmentRequestByPostSuccess(
-        Arrays.asList(Product.CaseType.HH), "Mr", "Mickey", "Mouse", true);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", true);
   }
 
   @Test
@@ -192,12 +180,12 @@ public class CaseServiceImplTest {
 
   @Test
   public void testFulfilmentRequestBySMSSuccess_withCaseTypeHH() throws Exception {
-    doFulfilmentRequestBySMSSuccess(Arrays.asList(Product.CaseType.HH), false);
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, false);
   }
 
   @Test
   public void testFulfilmentRequestBySMSSuccess_withIndividualTrue() throws Exception {
-    doFulfilmentRequestBySMSSuccess(Arrays.asList(Product.CaseType.HH), true);
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true);
   }
 
   @Test
@@ -572,15 +560,6 @@ public class CaseServiceImplTest {
     assertEquals("Description of refusal", refusal.getReport());
     assertNull(refusal.getAgentId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
-    // Validate contact details
-    // --- Start of code commented out for 2019 rehearsal. CR-416. ---
-    // Contact actualContact = refusal.getContact();
-    // assertEquals("Mr", actualContact.getTitle());
-    // assertEquals("Steve", actualContact.getForename());
-    // assertEquals("Jones", actualContact.getSurname());
-    // assertNull(actualContact.getEmail());
-    // assertEquals("+447890000000", actualContact.getTelNo());
-    // --- End of code commented out for 2019 rehearsal. CR-416. ---
     // Validate address
     AddressCompact address = refusal.getAddress();
     assertEquals("1 High Street", address.getAddressLine1());
@@ -770,11 +749,7 @@ public class CaseServiceImplTest {
   }
 
   private void doVerifyFulfilmentRequestByPostFailsValidation(
-      List<Product.CaseType> caseTypes,
-      String title,
-      String forename,
-      String surname,
-      boolean individual)
+      Product.CaseType caseType, String title, String forename, String surname, boolean individual)
       throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -792,7 +767,7 @@ public class CaseServiceImplTest {
 
     // The mocked productReference will return this product
     Product productFoundFixture =
-        getProductFoundFixture(caseTypes, Product.DeliveryChannel.POST, individual);
+        getProductFoundFixture(Arrays.asList(caseType), Product.DeliveryChannel.POST, individual);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
@@ -806,11 +781,7 @@ public class CaseServiceImplTest {
   }
 
   private void doFulfilmentRequestByPostSuccess(
-      List<Product.CaseType> caseTypes,
-      String title,
-      String forename,
-      String surname,
-      boolean individual)
+      Product.CaseType caseType, String title, String forename, String surname, boolean individual)
       throws Exception {
     Mockito.clearInvocations(publisher);
 
@@ -830,7 +801,7 @@ public class CaseServiceImplTest {
 
     // The mocked productReference will return this product
     Product productFoundFixture =
-        getProductFoundFixture(caseTypes, Product.DeliveryChannel.POST, individual);
+        getProductFoundFixture(Arrays.asList(caseType), Product.DeliveryChannel.POST, individual);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
@@ -865,8 +836,7 @@ public class CaseServiceImplTest {
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
 
-    // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
-    if (individual) {
+    if (caseType == Product.CaseType.HH && individual) {
       assertNotNull(actualFulfilmentRequest.getIndividualCaseId());
     } else {
       assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
@@ -880,7 +850,7 @@ public class CaseServiceImplTest {
     assertEquals(null, actualContact.getTelNo());
   }
 
-  private void doFulfilmentRequestBySMSSuccess(List<Product.CaseType> caseTypes, boolean individual)
+  private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType, boolean individual)
       throws Exception {
 
     // Build results to be returned from search
@@ -898,7 +868,7 @@ public class CaseServiceImplTest {
 
     // The mocked productReference will return this product
     Product productFoundFixture =
-        getProductFoundFixture(caseTypes, Product.DeliveryChannel.SMS, individual);
+        getProductFoundFixture(Arrays.asList(caseType), Product.DeliveryChannel.SMS, individual);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
@@ -933,8 +903,7 @@ public class CaseServiceImplTest {
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
 
-    // If the caseType is HI then the individualCaseId should be set, otherwise it should be empty.
-    if (individual) {
+    if (caseType == Product.CaseType.HH && individual) {
       assertNotNull(actualFulfilmentRequest.getIndividualCaseId());
     } else {
       assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
