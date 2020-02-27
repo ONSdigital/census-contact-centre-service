@@ -373,6 +373,12 @@ public class CaseServiceImpl implements CaseService {
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
     if (deliveryChannel.equals(DeliveryChannel.POST)) {
+      if (caze.isHandDelivery()) {
+        log.warn("This fulfilment is for hand delivery only and so it must not be sent by post");
+        throw new CTPException(
+            Fault.BAD_REQUEST,
+            "This fulfilment is for hand delivery only and so it must not be sent by post");
+      }
       if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
