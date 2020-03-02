@@ -247,7 +247,7 @@ public class CaseServiceImplTest {
       target.getCaseById(uuid, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a not a household or communal case", e.getReason());
+      assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }
@@ -336,7 +336,7 @@ public class CaseServiceImplTest {
       target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
-      assertEquals("Case is a not a household or communal case", e.getReason());
+      assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
   }
