@@ -185,6 +185,33 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
+  private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
+    List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
+
+    boolean handDelivery;
+    String caseType = null;
+
+    for (CaseDTO caseServiceResponse : caseServiceListResponse) {
+      handDelivery = caseServiceResponse.isHandDelivery();
+      caseType = caseServiceResponse.getCaseType();
+
+      if (handDelivery && caseType.equals("SPG")) {
+        // set allowed delivery channel list, for caseServiceResponse, to [SMS]
+        caseServiceResponse.setAllowedDeliveryChannels(
+            Arrays.asList(
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+      } else {
+        // set allowed delivery channel list, for caseServiceResponse, to [SMS, POST]
+        caseServiceResponse.setAllowedDeliveryChannels(
+            Arrays.asList(
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+      }
+    }
+
+    return caseServiceListResponse;
+  }
+
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
@@ -195,23 +222,30 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> caseDetails =
         caseServiceClient.getCaseByUprn(uprn.getValue(), getCaseEvents);
 
-    //    // Only return Household cases
-    //    List<CaseContainerDTO> householdCases =
-    //        caseDetails
-    //            .parallelStream()
-    //            .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
-    //            .collect(Collectors.toList());
+    // // Only return Household cases
+    // List<CaseContainerDTO> householdCases =
+    // caseDetails
+    // .parallelStream()
+    // .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
+    // .collect(Collectors.toList());
 
     // Only return cases that are not of caseType = HI
-    List<CaseContainerDTO> householdCases =
-        (List<CaseContainerDTO>)
-            caseDetails
-                .parallelStream()
-                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
-                .collect(Collectors.toList());
+    List<CaseContainerDTO> casesToReturn =
+        caseDetails
+            .parallelStream()
+            .filter(c -> caseIsNotTypeHI(c.getCaseType()))
+            .collect(Collectors.toList());
+
+    // Only return cases that are not of caseType = HI
+    // List<CaseContainerDTO> householdCases =
+    // (List<CaseContainerDTO>)
+    // caseDetails
+    // .parallelStream()
+    // .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
+    // .collect(Collectors.toList());
 
     // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = caseDTOMapper.mapAsList(householdCases, CaseDTO.class);
+    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
 
     // Clean up the events before returning them
     caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, getCaseEvents));
@@ -222,6 +256,18 @@ public class CaseServiceImpl implements CaseService {
 
     return caseServiceResponse;
   }
+
+  private boolean caseIsNotTypeHI(String caseTypeStr) {
+    if (caseTypeStr.equals(CaseType.HI.name())) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  // private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
+  // return caseTypeString.equals(CaseType.HH.name()) ||
+  // caseTypeString.equals(CaseType.CE.name());
+  // }
 
   @Override
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
@@ -380,11 +426,6 @@ public class CaseServiceImpl implements CaseService {
       caseDTO.setCaseEvents(null);
     }
   }
-
-  //  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-  //    return caseTypeString.equals(CaseType.HH.name()) ||
-  // caseTypeString.equals(CaseType.CE.name());
-  //  }
 
   /**
    * create a contact centre fulfilment request event
