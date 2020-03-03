@@ -263,13 +263,13 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByUprn_nonHouseholdCase_emptyResultSet() throws Exception {
+  public void testGetCaseByUprn_householdIndividualCase_emptyResultSet() throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("CI");
+    caseFromCaseService.get(0).setCaseType("HI");
     caseFromCaseService.get(1).setCaseType("HI");
     Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
         .thenReturn(caseFromCaseService);
