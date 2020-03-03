@@ -321,13 +321,13 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseRef_nonHouseholdCase() throws Exception {
+  public void testGetCaseByCaseRef_householdIndividualCase() throws Exception {
     long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("X"); // Not household case
+    caseFromCaseService.setCaseType("HI"); // Household Individual case
     Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
         .thenReturn(caseFromCaseService);
 

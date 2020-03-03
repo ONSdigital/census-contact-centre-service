@@ -201,7 +201,7 @@ public class CaseServiceImpl implements CaseService {
             Arrays.asList(
                 uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
       } else {
-        // set allowed delivery channel list, for caseServiceResponse, to [SMS, POST]
+        // set allowed delivery channel list, for caseServiceResponse, to [POST, SMS]
         caseServiceResponse.setAllowedDeliveryChannels(
             Arrays.asList(
                 uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
@@ -222,21 +222,7 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> caseDetails =
         caseServiceClient.getCaseByUprn(uprn.getValue(), getCaseEvents);
 
-    // // Only return Household cases
-    // List<CaseContainerDTO> householdCases =
-    // caseDetails
-    // .parallelStream()
-    // .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
-    // .collect(Collectors.toList());
-
     // Only return cases that are not of caseType = HI
-    //    List<CaseContainerDTO> casesToReturn =
-    //        caseDetails
-    //            .parallelStream()
-    //            .filter(c -> caseIsNotTypeHI(c.getCaseType()))
-    //            .collect(Collectors.toList());
-
-    //     Only return cases that are not of caseType = HI
     List<CaseContainerDTO> casesToReturn =
         (List<CaseContainerDTO>)
             caseDetails
@@ -256,14 +242,6 @@ public class CaseServiceImpl implements CaseService {
 
     return caseServiceResponse;
   }
-
-  //  private boolean caseIsNotTypeHI(String caseTypeStr) {
-  //    if (caseTypeStr.equals(CaseType.HI.name())) {
-  //      return false;
-  //    } else {
-  //      return true;
-  //    }
-  //  }
 
   @Override
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
