@@ -281,13 +281,13 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByUprn_nonHouseholdCase_mixed() throws Exception {
+  public void testGetCaseByUprn_mixedCaseTypes() throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("X"); // Not household case
+    caseFromCaseService.get(0).setCaseType("HI"); // Household Individual case
     Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
         .thenReturn(caseFromCaseService);
 
@@ -295,9 +295,6 @@ public class CaseServiceImplTest {
     boolean caseEvents = true;
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(1, results.size());
-
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
-    verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
