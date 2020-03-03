@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -59,6 +60,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -235,11 +237,11 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseId_nonHouseholdOrCommunalCase() throws Exception {
+  public void testGetCaseByCaseId_householdIndividualCase() throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("HI"); // Not household case
+    caseFromCaseService.setCaseType("HI"); // Household Individual case
     Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
@@ -250,6 +252,55 @@ public class CaseServiceImplTest {
       assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() throws Exception {
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+
+    // Run the request
+    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
+    assertTrue(result.isHandDelivery());
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseHHhandDeliveryTrue() throws Exception {
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType("HH"); // a non-SPG case
+    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+
+    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
+    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    assertEquals(
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+        result.getAllowedDeliveryChannels());
+    assertTrue(result.isHandDelivery());
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseSPGhandDeliveryFalse() throws Exception {
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
+    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+
+    // Run the request
+    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    assertEquals(
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+        result.getAllowedDeliveryChannels());
+    assertFalse(result.isHandDelivery());
   }
 
   @Test
