@@ -295,6 +295,9 @@ public class CaseServiceImplTest {
     boolean caseEvents = true;
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(1, results.size());
+
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
+    verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
@@ -686,8 +689,6 @@ public class CaseServiceImplTest {
     } else {
       assertNull(results.getCaseEvents());
     }
-
-    assertEquals(expectedCaseResult, results);
   }
 
   private long asMillis(String datetime) throws ParseException {
