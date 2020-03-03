@@ -230,19 +230,19 @@ public class CaseServiceImpl implements CaseService {
     // .collect(Collectors.toList());
 
     // Only return cases that are not of caseType = HI
-    List<CaseContainerDTO> casesToReturn =
-        caseDetails
-            .parallelStream()
-            .filter(c -> caseIsNotTypeHI(c.getCaseType()))
-            .collect(Collectors.toList());
+    //    List<CaseContainerDTO> casesToReturn =
+    //        caseDetails
+    //            .parallelStream()
+    //            .filter(c -> caseIsNotTypeHI(c.getCaseType()))
+    //            .collect(Collectors.toList());
 
-    // Only return cases that are not of caseType = HI
-    // List<CaseContainerDTO> householdCases =
-    // (List<CaseContainerDTO>)
-    // caseDetails
-    // .parallelStream()
-    // .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
-    // .collect(Collectors.toList());
+    //     Only return cases that are not of caseType = HI
+    List<CaseContainerDTO> casesToReturn =
+        (List<CaseContainerDTO>)
+            caseDetails
+                .parallelStream()
+                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
+                .collect(Collectors.toList());
 
     // Convert from Case service to Contact Centre DTOs
     List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
@@ -257,17 +257,13 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
-  private boolean caseIsNotTypeHI(String caseTypeStr) {
-    if (caseTypeStr.equals(CaseType.HI.name())) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-  // private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-  // return caseTypeString.equals(CaseType.HH.name()) ||
-  // caseTypeString.equals(CaseType.CE.name());
-  // }
+  //  private boolean caseIsNotTypeHI(String caseTypeStr) {
+  //    if (caseTypeStr.equals(CaseType.HI.name())) {
+  //      return false;
+  //    } else {
+  //      return true;
+  //    }
+  //  }
 
   @Override
   public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
