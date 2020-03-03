@@ -352,6 +352,30 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testGetCaseByUprn_caseSPGhandDeliveryTrue() throws Exception {
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
+
+    // Build results to be returned from search
+    List<CaseContainerDTO> caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    caseFromCaseService.get(0).setCaseType("SPG"); // Special Population Group case
+    caseFromCaseService.get(0).setHandDelivery(true); // delivery by post not allowed
+    Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
+        .thenReturn(caseFromCaseService);
+
+    // Run the request
+    boolean caseEvents = true;
+    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
+    assertEquals(2, results.size());
+
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
+    assertEquals(
+        Arrays.asList(DeliveryChannel.SMS), expectedCaseResult.getAllowedDeliveryChannels());
+    assertTrue(expectedCaseResult.isHandDelivery());
+    verifyCase(results.get(0), expectedCaseResult, caseEvents);
+  }
+
+  @Test
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
     doTestGetCaseByCaseRef(CaseType.HH, true);
   }
@@ -741,11 +765,21 @@ public class CaseServiceImplTest {
   }
 
   private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
+
+    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
+
+    if (caseFromCaseService.getCaseType().equals("SPG") && caseFromCaseService.isHandDelivery()) {
+      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    } else {
+      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    }
+
     CaseDTO expectedCaseResult =
         CaseDTO.builder()
             .id(caseFromCaseService.getId())
             .caseRef(caseFromCaseService.getCaseRef())
             .caseType(caseFromCaseService.getCaseType())
+            .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
             .createdDateTime(caseFromCaseService.getCreatedDateTime())
             .addressLine1(caseFromCaseService.getAddressLine1())
             .addressLine2(caseFromCaseService.getAddressLine2())
@@ -754,6 +788,7 @@ public class CaseServiceImplTest {
             .region(caseFromCaseService.getRegion().substring(0, 1))
             .postcode(caseFromCaseService.getPostcode())
             .uprn(new UniquePropertyReferenceNumber(caseFromCaseService.getUprn()))
+            .handDelivery(caseFromCaseService.isHandDelivery())
             .build();
     if (caseEvents) {
       List<CaseEventDTO> expectedCaseEvents =
