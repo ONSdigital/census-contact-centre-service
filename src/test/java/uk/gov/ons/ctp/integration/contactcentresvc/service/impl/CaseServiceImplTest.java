@@ -181,6 +181,46 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testFulfilmentRequestByPostFailure_handDeliveryOnly() throws Exception {
+
+    Mockito.clearInvocations(publisher);
+
+    // Build results to be returned from search
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
+
+    caseFromCaseService.setCaseType("SPG");
+    caseFromCaseService.setHandDelivery(true);
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(caseFromCaseService, "Mrs", "Sally", "Smurf");
+
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
+
+    Product productFoundFixture =
+        getProductFoundFixture(
+            Arrays.asList(Product.CaseType.SPG), Product.DeliveryChannel.POST, false);
+    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
+        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
+
+    try {
+      // execution - call the unit under test
+      target.fulfilmentRequestByPost(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(
+          "This fulfilment is for hand delivery only and so it must not be sent by post",
+          e.getMessage());
+      assertEquals("BAD_REQUEST", e.getFault().name());
+    }
+  }
+
+  @Test
   public void testFulfilmentRequestBySMSSuccess_withCaseTypeHH() throws Exception {
     doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, false);
   }
