@@ -143,20 +143,73 @@ public class CaseServiceImpl implements CaseService {
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
 
-    // Only return Household cases
-    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
+    // Do not return HI cases
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.warn("Case is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
-    // Convert from Case service to Contact Centre DTOs
-    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
+    // this far.
+    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
     log.with("caseId", caseId).debug("Returning case details for caseId");
 
     return caseServiceResponse;
+  }
+
+  private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
+    boolean handDelivery;
+    String caseType = null;
+
+    handDelivery = caseServiceResponse.isHandDelivery();
+    caseType = caseServiceResponse.getCaseType();
+
+    if (handDelivery && caseType.equals("SPG")) {
+      // set allowed delivery channel list, for caseServiceResponse, to [SMS]
+      caseServiceResponse.setAllowedDeliveryChannels(
+          Arrays.asList(
+              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+    } else {
+      // set allowed delivery channel list, for caseServiceResponse, to [SMS, POST]
+      caseServiceResponse.setAllowedDeliveryChannels(
+          Arrays.asList(
+              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
+              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+    }
+
+    return caseServiceResponse;
+  }
+
+  private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
+    List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
+
+    boolean handDelivery;
+    String caseType = null;
+
+    for (CaseDTO caseServiceResponse : caseServiceListResponse) {
+      handDelivery = caseServiceResponse.isHandDelivery();
+      caseType = caseServiceResponse.getCaseType();
+
+      if (handDelivery && caseType.equals("SPG")) {
+        // set allowed delivery channel list, for caseServiceResponse, to [SMS]
+        caseServiceResponse.setAllowedDeliveryChannels(
+            Arrays.asList(
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+      } else {
+        // set allowed delivery channel list, for caseServiceResponse, to [POST, SMS]
+        caseServiceResponse.setAllowedDeliveryChannels(
+            Arrays.asList(
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
+      }
+    }
+
+    return caseServiceListResponse;
   }
 
   @Override
@@ -169,15 +222,16 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> caseDetails =
         caseServiceClient.getCaseByUprn(uprn.getValue(), getCaseEvents);
 
-    // Only return Household cases
-    List<CaseContainerDTO> householdCases =
-        caseDetails
-            .parallelStream()
-            .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
-            .collect(Collectors.toList());
+    // Only return cases that are not of caseType = HI
+    List<CaseContainerDTO> casesToReturn =
+        (List<CaseContainerDTO>)
+            caseDetails
+                .parallelStream()
+                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
+                .collect(Collectors.toList());
 
     // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = caseDTOMapper.mapAsList(householdCases, CaseDTO.class);
+    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
 
     // Clean up the events before returning them
     caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, getCaseEvents));
@@ -197,15 +251,13 @@ public class CaseServiceImpl implements CaseService {
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
 
-    // Only return Household cases
-    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
-      log.warn("Case is a not a household or communal case");
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
+    // Do not return HI cases
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.warn("Case is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
-    // Convert from Case service to Contact Centre DTOs
-    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -347,10 +399,6 @@ public class CaseServiceImpl implements CaseService {
       // Caller doesn't want any event data
       caseDTO.setCaseEvents(null);
     }
-  }
-
-  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-    return caseTypeString.equals(CaseType.HH.name()) || caseTypeString.equals(CaseType.CE.name());
   }
 
   /**
