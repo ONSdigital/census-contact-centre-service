@@ -163,7 +163,8 @@ public class CaseServiceImpl implements CaseService {
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
 
-    if (caseServiceResponse.isHandDelivery() && caseServiceResponse.getCaseType().equals("SPG")) {
+    if (caseServiceResponse.isHandDelivery()
+        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
       // set allowed delivery channel list, for caseServiceResponse, to [SMS]
       caseServiceResponse.setAllowedDeliveryChannels(
           Arrays.asList(
