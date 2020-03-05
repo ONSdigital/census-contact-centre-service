@@ -145,7 +145,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Do not return HI cases
     if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
-      log.with(caseId).warn("Case is a household individual case");
+      log.with(caseId).info("Case is not suitable as it is a household individual case");
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
