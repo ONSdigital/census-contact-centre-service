@@ -883,6 +883,8 @@ public class CaseServiceImplTest {
     } else {
       assertNull(results.getCaseEvents());
     }
+
+    assertEquals(expectedCaseResult, results);
   }
 
   private long asMillis(String datetime) throws ParseException {
