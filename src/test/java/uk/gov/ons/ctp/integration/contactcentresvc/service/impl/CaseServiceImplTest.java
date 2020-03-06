@@ -424,7 +424,8 @@ public class CaseServiceImplTest {
 
     CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
     assertEquals(expectedDeliveryChannels, expectedCaseResult.getAllowedDeliveryChannels());
-    assertFalse(expectedCaseResult.isHandDelivery());
+    //    assertFalse(expectedCaseResult.isHandDelivery());
+    assertEquals(handDelivery, expectedCaseResult.isHandDelivery());
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
