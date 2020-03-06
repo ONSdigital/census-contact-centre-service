@@ -186,17 +186,23 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private List<DeliveryChannel> calculateAllowedDeliveryChannels(CaseDTO caseServiceResponse) {
+
+    List<DeliveryChannel> dcList = null;
+
     if (caseServiceResponse.isHandDelivery()
         && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
       log.with(caseServiceResponse.getId())
           .debug(
-              "Calculating allowed delivery channel list as [SMS] because handDelivery=true and caseType=SPG");
-      return Arrays.asList(DeliveryChannel.SMS);
+              "Calculating allowed delivery channel list as [SMS] because handDelivery=true "
+                  + "and caseType=SPG");
+      dcList = Arrays.asList(DeliveryChannel.SMS);
     } else {
       log.with(caseServiceResponse.getId())
           .debug("Calculating allowed delivery channel list as [POST, SMS]");
-      return Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+      dcList = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     }
+
+    return dcList;
   }
 
   @Override
