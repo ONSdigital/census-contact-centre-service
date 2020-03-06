@@ -375,29 +375,34 @@ public class CaseServiceImplTest {
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
+  //  @Test
+  //  public void testGetCaseByUprn_caseHHhandDeliveryTrue() throws Exception {
+  //    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
+  //
+  //    // Build results to be returned from search
+  //    List<CaseContainerDTO> caseFromCaseService =
+  //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+  //    caseFromCaseService.get(0).setCaseType("HH"); // Special Population Group case
+  //    caseFromCaseService.get(0).setHandDelivery(true); // delivery by post not allowed
+  //    Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
+  //        .thenReturn(caseFromCaseService);
+  //
+  //    // Run the request
+  //    boolean caseEvents = true;
+  //    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
+  //    assertEquals(2, results.size());
+  //
+  //    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
+  //    assertEquals(
+  //        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+  //        expectedCaseResult.getAllowedDeliveryChannels());
+  //    assertTrue(expectedCaseResult.isHandDelivery());
+  //    verifyCase(results.get(0), expectedCaseResult, caseEvents);
+  //  }
+
   @Test
   public void testGetCaseByUprn_caseHHhandDeliveryTrue() throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
-
-    // Build results to be returned from search
-    List<CaseContainerDTO> caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("HH"); // Special Population Group case
-    caseFromCaseService.get(0).setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    boolean caseEvents = true;
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
-    assertEquals(2, results.size());
-
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        expectedCaseResult.getAllowedDeliveryChannels());
-    assertTrue(expectedCaseResult.isHandDelivery());
-    verifyCase(results.get(0), expectedCaseResult, caseEvents);
+    doTestGetCasesByUprn("HH", true, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
   }
 
   @Test
