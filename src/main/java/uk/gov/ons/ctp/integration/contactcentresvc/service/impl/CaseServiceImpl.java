@@ -168,16 +168,8 @@ public class CaseServiceImpl implements CaseService {
 
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-
-    if (caseServiceResponse.isHandDelivery()
-        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
-      // set allowed delivery channel list, for caseServiceResponse, to [SMS]
-      caseServiceResponse.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.SMS));
-    } else {
-      // set allowed delivery channel list, for caseServiceResponse, to [POST, SMS]
-      caseServiceResponse.setAllowedDeliveryChannels(
-          Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
-    }
+    caseServiceResponse.setAllowedDeliveryChannels(
+        calculateAllowedDeliveryChannels(caseServiceResponse));
 
     return caseServiceResponse;
   }
@@ -185,24 +177,26 @@ public class CaseServiceImpl implements CaseService {
   private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
     List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
 
-    boolean handDelivery;
-    String caseType = null;
-
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      handDelivery = caseServiceResponse.isHandDelivery();
-      caseType = caseServiceResponse.getCaseType();
-
-      if (handDelivery && caseType.equals("SPG")) {
-        // set allowed delivery channel list, for caseServiceResponse, to [SMS]
-        caseServiceResponse.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.SMS));
-      } else {
-        // set allowed delivery channel list, for caseServiceResponse, to [POST, SMS]
-        caseServiceResponse.setAllowedDeliveryChannels(
-            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
-      }
+      caseServiceResponse.setAllowedDeliveryChannels(
+          calculateAllowedDeliveryChannels(caseServiceResponse));
     }
 
     return caseServiceListResponse;
+  }
+
+  private List<DeliveryChannel> calculateAllowedDeliveryChannels(CaseDTO caseServiceResponse) {
+    if (caseServiceResponse.isHandDelivery()
+        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
+      log.with(caseServiceResponse.getId())
+          .debug(
+              "Calculating allowed delivery channel list as [SMS] because handDelivery=true and caseType=SPG");
+      return Arrays.asList(DeliveryChannel.SMS);
+    } else {
+      log.with(caseServiceResponse.getId())
+          .debug("Calculating allowed delivery channel list as [POST, SMS]");
+      return Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    }
   }
 
   @Override
