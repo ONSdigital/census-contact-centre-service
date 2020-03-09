@@ -387,18 +387,8 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(2, results.size());
 
-    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-
-    if (caseFromCaseService.get(0).getCaseType().equals("SPG")
-        && caseFromCaseService.get(0).isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
-
     CaseDTO expectedCaseResult =
-        createExpectedCaseDTO(
-            caseFromCaseService.get(0), caseEvents, expectedAllowedDeliveryChannels);
+        createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents, expectedDeliveryChannels);
     assertEquals(expectedDeliveryChannels, expectedCaseResult.getAllowedDeliveryChannels());
     assertEquals(handDelivery, expectedCaseResult.isHandDelivery());
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
