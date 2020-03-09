@@ -389,8 +389,8 @@ public class CaseServiceImplTest {
 
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents, expectedDeliveryChannels);
-    assertEquals(expectedDeliveryChannels, expectedCaseResult.getAllowedDeliveryChannels());
-    assertEquals(handDelivery, expectedCaseResult.isHandDelivery());
+    // assertEquals(expectedDeliveryChannels, expectedCaseResult.getAllowedDeliveryChannels());
+    // assertEquals(handDelivery, expectedCaseResult.isHandDelivery());
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
@@ -869,6 +869,9 @@ public class CaseServiceImplTest {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
+    assertEquals(
+        expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
+    assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
 
     if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
