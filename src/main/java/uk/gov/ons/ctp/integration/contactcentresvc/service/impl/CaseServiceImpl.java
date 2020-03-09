@@ -90,10 +90,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(),
-            uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel.POST,
-            caseId,
-            contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.POST, caseId, contact);
 
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
@@ -122,10 +119,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(),
-            uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel.SMS,
-            caseId,
-            contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.SMS, caseId, contact);
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
@@ -404,10 +398,7 @@ public class CaseServiceImpl implements CaseService {
    * @throws CTPException the requested product is invalid for the parameters given
    */
   private FulfilmentRequest createFulfilmentRequestPayload(
-      String fulfilmentCode,
-      uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel deliveryChannel,
-      UUID caseId,
-      Contact contact)
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
@@ -416,8 +407,7 @@ public class CaseServiceImpl implements CaseService {
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (deliveryChannel.equals(
-        uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel.POST)) {
+    if (deliveryChannel.equals(Product.DeliveryChannel.POST)) {
       if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
