@@ -37,7 +37,6 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerD
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
-import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
@@ -45,6 +44,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -90,7 +90,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.POST, caseId, contact);
 
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
@@ -119,7 +119,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.SMS, caseId, contact);
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
@@ -145,7 +145,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Do not return HI cases
     if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
-      log.warn("Case is a household individual case");
+      log.with(caseId).info("Case is not suitable as it is a household individual case");
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
@@ -162,25 +162,8 @@ public class CaseServiceImpl implements CaseService {
 
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-
-    boolean handDelivery;
-    String caseType = null;
-
-    handDelivery = caseServiceResponse.isHandDelivery();
-    caseType = caseServiceResponse.getCaseType();
-
-    if (handDelivery && caseType.equals("SPG")) {
-      // set allowed delivery channel list, for caseServiceResponse, to [SMS]
-      caseServiceResponse.setAllowedDeliveryChannels(
-          Arrays.asList(
-              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
-    } else {
-      // set allowed delivery channel list, for caseServiceResponse, to [SMS, POST]
-      caseServiceResponse.setAllowedDeliveryChannels(
-          Arrays.asList(
-              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
-              uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
-    }
+    caseServiceResponse.setAllowedDeliveryChannels(
+        calculateAllowedDeliveryChannels(caseServiceResponse));
 
     return caseServiceResponse;
   }
@@ -188,28 +171,32 @@ public class CaseServiceImpl implements CaseService {
   private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
     List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
 
-    boolean handDelivery;
-    String caseType = null;
-
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      handDelivery = caseServiceResponse.isHandDelivery();
-      caseType = caseServiceResponse.getCaseType();
-
-      if (handDelivery && caseType.equals("SPG")) {
-        // set allowed delivery channel list, for caseServiceResponse, to [SMS]
-        caseServiceResponse.setAllowedDeliveryChannels(
-            Arrays.asList(
-                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
-      } else {
-        // set allowed delivery channel list, for caseServiceResponse, to [POST, SMS]
-        caseServiceResponse.setAllowedDeliveryChannels(
-            Arrays.asList(
-                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST,
-                uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.SMS));
-      }
+      caseServiceResponse.setAllowedDeliveryChannels(
+          calculateAllowedDeliveryChannels(caseServiceResponse));
     }
 
     return caseServiceListResponse;
+  }
+
+  private List<DeliveryChannel> calculateAllowedDeliveryChannels(CaseDTO caseServiceResponse) {
+
+    List<DeliveryChannel> dcList = null;
+
+    if (caseServiceResponse.isHandDelivery()
+        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
+      log.with(caseServiceResponse.getId())
+          .debug(
+              "Calculating allowed delivery channel list as [SMS] because handDelivery=true "
+                  + "and caseType=SPG");
+      dcList = Arrays.asList(DeliveryChannel.SMS);
+    } else {
+      log.with(caseServiceResponse.getId())
+          .debug("Calculating allowed delivery channel list as [POST, SMS]");
+      dcList = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    }
+
+    return dcList;
   }
 
   @Override
@@ -253,7 +240,8 @@ public class CaseServiceImpl implements CaseService {
 
     // Do not return HI cases
     if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
-      log.warn("Case is a household individual case");
+      log.with(caseDetails.getId())
+          .info("Case is not suitable as it is a household individual case");
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
@@ -411,7 +399,7 @@ public class CaseServiceImpl implements CaseService {
    * @throws CTPException the requested product is invalid for the parameters given
    */
   private FulfilmentRequest createFulfilmentRequestPayload(
-      String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
@@ -420,7 +408,7 @@ public class CaseServiceImpl implements CaseService {
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (deliveryChannel.equals(DeliveryChannel.POST)) {
+    if (deliveryChannel.equals(Product.DeliveryChannel.POST)) {
       if (caze.isHandDelivery()) {
         log.warn("This fulfilment is for hand delivery only and so it must not be sent by post");
         throw new CTPException(

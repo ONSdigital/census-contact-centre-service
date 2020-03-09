@@ -2,7 +2,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;

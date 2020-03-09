@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -100,6 +99,12 @@ public class CaseServiceImplTest {
   private static final EventType FULFILMENT_EVENT_TYPE_FIELD_VALUE = EventType.FULFILMENT_REQUESTED;
   private static final Source FULFILMENT_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
   private static final Channel FULFILMENT_CHANNEL_FIELD_VALUE = Channel.CC;
+
+  private static final boolean HAND_DELIVERY_TRUE = true;
+  private static final boolean HAND_DELIVERY_FALSE = false;
+
+  private static final boolean CASE_EVENTS_TRUE = true;
+  private static final boolean CASE_EVENTS_FALSE = false;
 
   @Before
   public void initMocks() {
@@ -258,22 +263,57 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.HH, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.HH, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseHHhandDeliveryTrue() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.CE, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.CE, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseSPGhandDeliveryFalse() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -292,55 +332,6 @@ public class CaseServiceImplTest {
       assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
-  }
-
-  @Test
-  public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
-  }
-
-  @Test
-  public void testGetCaseByCaseId_caseHHhandDeliveryTrue() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("HH"); // a non-SPG case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
-
-    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
-  }
-
-  @Test
-  public void testGetCaseByCaseId_caseSPGhandDeliveryFalse() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertFalse(result.isHandDelivery());
   }
 
   @Test
@@ -387,68 +378,38 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(1, results.size());
 
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
+    CaseDTO expectedCaseResult =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(1),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
   public void testGetCaseByUprn_caseSPGhandDeliveryTrue() throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
-
-    // Build results to be returned from search
-    List<CaseContainerDTO> caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.get(0).setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    boolean caseEvents = true;
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
-    assertEquals(2, results.size());
-
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
-    assertEquals(
-        Arrays.asList(DeliveryChannel.SMS), expectedCaseResult.getAllowedDeliveryChannels());
-    assertTrue(expectedCaseResult.isHandDelivery());
-    verifyCase(results.get(0), expectedCaseResult, caseEvents);
+    doTestGetCasesByUprn("SPG", true, Arrays.asList(DeliveryChannel.SMS));
   }
 
   @Test
   public void testGetCaseByUprn_caseHHhandDeliveryTrue() throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
-
-    // Build results to be returned from search
-    List<CaseContainerDTO> caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("HH"); // Special Population Group case
-    caseFromCaseService.get(0).setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    boolean caseEvents = true;
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
-    assertEquals(2, results.size());
-
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        expectedCaseResult.getAllowedDeliveryChannels());
-    assertTrue(expectedCaseResult.isHandDelivery());
-    verifyCase(results.get(0), expectedCaseResult, caseEvents);
+    doTestGetCasesByUprn("HH", true, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
   }
 
   @Test
   public void testGetCaseByUprn_caseSPGhandDeliveryFalse() throws Exception {
+    doTestGetCasesByUprn("SPG", false, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+  }
+
+  private void doTestGetCasesByUprn(
+      String caseType, boolean handDelivery, List<DeliveryChannel> expectedDeliveryChannels)
+      throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
-    // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-    caseFromCaseService.get(0).setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.get(0).setHandDelivery(false); // delivery by post not allowed
+    caseFromCaseService.get(0).setCaseType(caseType);
+    caseFromCaseService.get(0).setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
         .thenReturn(caseFromCaseService);
 
@@ -457,90 +418,64 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(2, results.size());
 
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        expectedCaseResult.getAllowedDeliveryChannels());
-    assertFalse(expectedCaseResult.isHandDelivery());
+    CaseDTO expectedCaseResult =
+        createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents, expectedDeliveryChannels);
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.HH, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.HH, false);
-  }
-
-  @Test
-  public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.CE, true);
-  }
-
-  @Test
-  public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.CE, false);
-  }
-
-  @Test
-  public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
-    long testCaseRef = 88234544;
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() throws Exception {
-    long testCaseRef = 88234544;
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+  }
 
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("HH"); // non-SPG case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
+  @Test
+  public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+  }
 
-    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+  @Test
+  public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+  }
+
+  @Test
+  public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
+    List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() throws Exception {
-    long testCaseRef = 88234544;
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertFalse(result.isHandDelivery());
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -799,18 +734,25 @@ public class CaseServiceImplTest {
     assertTrue(actualInMillis + " not before " + maxAllowed, actualInMillis <= maxAllowed);
   }
 
-  private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseId(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType.name());
+    caseFromCaseService.setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(uuid, requestParams);
 
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService, caseEvents);
+    CaseDTO expectedCaseResult =
+        createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
     verifyCase(results, expectedCaseResult, caseEvents);
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
   }
@@ -830,39 +772,48 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
     // Verify response
-    CaseDTO expectedCaseResult0 = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
+    CaseDTO expectedCaseResult0 =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(0),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(0), expectedCaseResult0, caseEvents);
 
-    CaseDTO expectedCaseResult1 = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
+    CaseDTO expectedCaseResult1 =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(1),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
-  private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseRef(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType.name());
+    caseFromCaseService.setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
-
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService, caseEvents);
+    CaseDTO expectedCaseResult =
+        createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
     verifyCase(results, expectedCaseResult, caseEvents);
   }
 
-  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
-
-    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-
-    if (caseFromCaseService.getCaseType().equals("SPG") && caseFromCaseService.isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
+  private CaseDTO createExpectedCaseDTO(
+      CaseContainerDTO caseFromCaseService,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels) {
 
     CaseDTO expectedCaseResult =
         CaseDTO.builder()
@@ -907,6 +858,9 @@ public class CaseServiceImplTest {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
+    assertEquals(
+        expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
+    assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
 
     if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
@@ -923,6 +877,8 @@ public class CaseServiceImplTest {
     } else {
       assertNull(results.getCaseEvents());
     }
+
+    assertEquals(expectedCaseResult, results);
   }
 
   private long asMillis(String datetime) throws ParseException {
