@@ -389,8 +389,6 @@ public class CaseServiceImplTest {
 
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents, expectedDeliveryChannels);
-    // assertEquals(expectedDeliveryChannels, expectedCaseResult.getAllowedDeliveryChannels());
-    // assertEquals(handDelivery, expectedCaseResult.isHandDelivery());
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
@@ -767,31 +765,37 @@ public class CaseServiceImplTest {
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
-    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-
-    if (caseFromCaseService.get(0).getCaseType().equals("SPG")
-        && caseFromCaseService.get(0).isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
+    //    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
+    //
+    //    if (caseFromCaseService.get(0).getCaseType().equals("SPG")
+    //        && caseFromCaseService.get(0).isHandDelivery()) {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    //    } else {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST,
+    // DeliveryChannel.SMS);
+    //    }
 
     // Verify response
     CaseDTO expectedCaseResult0 =
         createExpectedCaseDTO(
-            caseFromCaseService.get(0), caseEvents, expectedAllowedDeliveryChannels);
+            caseFromCaseService.get(0),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(0), expectedCaseResult0, caseEvents);
 
-    if (caseFromCaseService.get(1).getCaseType().equals("SPG")
-        && caseFromCaseService.get(1).isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
+    //    if (caseFromCaseService.get(1).getCaseType().equals("SPG")
+    //        && caseFromCaseService.get(1).isHandDelivery()) {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    //    } else {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST,
+    // DeliveryChannel.SMS);
+    //    }
 
     CaseDTO expectedCaseResult1 =
         createExpectedCaseDTO(
-            caseFromCaseService.get(1), caseEvents, expectedAllowedDeliveryChannels);
+            caseFromCaseService.get(1),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
