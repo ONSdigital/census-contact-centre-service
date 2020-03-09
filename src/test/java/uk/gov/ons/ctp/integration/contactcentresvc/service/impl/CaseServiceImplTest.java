@@ -224,22 +224,34 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.HH, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.HH, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.CE, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseId(CaseType.CE, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -744,7 +756,12 @@ public class CaseServiceImplTest {
     assertTrue(actualInMillis + " not before " + maxAllowed, actualInMillis <= maxAllowed);
   }
 
-  private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseId(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -754,14 +771,6 @@ public class CaseServiceImplTest {
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(uuid, requestParams);
-
-    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-
-    if (caseFromCaseService.getCaseType().equals("SPG") && caseFromCaseService.isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
 
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
@@ -817,17 +826,6 @@ public class CaseServiceImplTest {
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
-
-    //    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-    //
-    //    if (caseFromCaseService.getCaseType().equals("SPG") &&
-    // caseFromCaseService.isHandDelivery()) {
-    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    //    } else {
-    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST,
-    // DeliveryChannel.SMS);
-    //    }
-
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
     verifyCase(results, expectedCaseResult, caseEvents);
