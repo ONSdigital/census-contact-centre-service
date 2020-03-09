@@ -37,7 +37,6 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerD
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
-import uk.gov.ons.ctp.integration.common.product.model.Product.DeliveryChannel;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
@@ -45,6 +44,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -90,7 +90,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.POST, caseId, contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.POST, caseId, contact);
 
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
@@ -119,7 +119,7 @@ public class CaseServiceImpl implements CaseService {
 
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
-            requestBodyDTO.getFulfilmentCode(), DeliveryChannel.SMS, caseId, contact);
+            requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.SMS, caseId, contact);
     publisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
@@ -143,20 +143,60 @@ public class CaseServiceImpl implements CaseService {
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
 
-    // Only return Household cases
-    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
+    // Do not return HI cases
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.with(caseId).info("Case is not suitable as it is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
-    // Convert from Case service to Contact Centre DTOs
-    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
+    // this far.
+    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
     log.with("caseId", caseId).debug("Returning case details for caseId");
 
     return caseServiceResponse;
+  }
+
+  private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    caseServiceResponse.setAllowedDeliveryChannels(
+        calculateAllowedDeliveryChannels(caseServiceResponse));
+
+    return caseServiceResponse;
+  }
+
+  private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
+    List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
+
+    for (CaseDTO caseServiceResponse : caseServiceListResponse) {
+      caseServiceResponse.setAllowedDeliveryChannels(
+          calculateAllowedDeliveryChannels(caseServiceResponse));
+    }
+
+    return caseServiceListResponse;
+  }
+
+  private List<DeliveryChannel> calculateAllowedDeliveryChannels(CaseDTO caseServiceResponse) {
+
+    List<DeliveryChannel> dcList = null;
+
+    if (caseServiceResponse.isHandDelivery()
+        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
+      log.with(caseServiceResponse.getId())
+          .debug(
+              "Calculating allowed delivery channel list as [SMS] because handDelivery=true "
+                  + "and caseType=SPG");
+      dcList = Arrays.asList(DeliveryChannel.SMS);
+    } else {
+      log.with(caseServiceResponse.getId())
+          .debug("Calculating allowed delivery channel list as [POST, SMS]");
+      dcList = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    }
+
+    return dcList;
   }
 
   @Override
@@ -169,15 +209,16 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> caseDetails =
         caseServiceClient.getCaseByUprn(uprn.getValue(), getCaseEvents);
 
-    // Only return Household cases
-    List<CaseContainerDTO> householdCases =
-        caseDetails
-            .parallelStream()
-            .filter(c -> caseIsHouseholdOrCommunal(c.getCaseType()))
-            .collect(Collectors.toList());
+    // Only return cases that are not of caseType = HI
+    List<CaseContainerDTO> casesToReturn =
+        (List<CaseContainerDTO>)
+            caseDetails
+                .parallelStream()
+                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
+                .collect(Collectors.toList());
 
     // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = caseDTOMapper.mapAsList(householdCases, CaseDTO.class);
+    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
 
     // Clean up the events before returning them
     caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, getCaseEvents));
@@ -197,15 +238,14 @@ public class CaseServiceImpl implements CaseService {
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
 
-    // Only return Household cases
-    if (!caseIsHouseholdOrCommunal(caseDetails.getCaseType())) {
-      log.warn("Case is a not a household or communal case");
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Case is a not a household or communal case");
+    // Do not return HI cases
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.with(caseDetails.getId())
+          .info("Case is not suitable as it is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
     }
 
-    // Convert from Case service to Contact Centre DTOs
-    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -349,10 +389,6 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-    return caseTypeString.equals(CaseType.HH.name()) || caseTypeString.equals(CaseType.CE.name());
-  }
-
   /**
    * create a contact centre fulfilment request event
    *
@@ -363,7 +399,7 @@ public class CaseServiceImpl implements CaseService {
    * @throws CTPException the requested product is invalid for the parameters given
    */
   private FulfilmentRequest createFulfilmentRequestPayload(
-      String fulfilmentCode, DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
+      String fulfilmentCode, Product.DeliveryChannel deliveryChannel, UUID caseId, Contact contact)
       throws CTPException {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
@@ -372,7 +408,7 @@ public class CaseServiceImpl implements CaseService {
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (deliveryChannel.equals(DeliveryChannel.POST)) {
+    if (deliveryChannel.equals(Product.DeliveryChannel.POST)) {
       if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
