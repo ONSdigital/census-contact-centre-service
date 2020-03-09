@@ -101,6 +101,12 @@ public class CaseServiceImplTest {
   private static final Source FULFILMENT_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
   private static final Channel FULFILMENT_CHANNEL_FIELD_VALUE = Channel.CC;
 
+  private static final boolean HAND_DELIVERY_TRUE = true;
+  private static final boolean HAND_DELIVERY_FALSE = false;
+
+  private static final boolean CASE_EVENTS_TRUE = true;
+  private static final boolean CASE_EVENTS_FALSE = false;
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -394,22 +400,34 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.HH, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.HH, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.CE, true);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
-    doTestGetCaseByCaseRef(CaseType.CE, false);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -781,26 +799,34 @@ public class CaseServiceImplTest {
     verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
-  private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {
+  private void doTestGetCaseByCaseRef(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     long testCaseRef = 88234544;
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType.name());
+    caseFromCaseService.setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
 
-    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
-
-    if (caseFromCaseService.getCaseType().equals("SPG") && caseFromCaseService.isHandDelivery()) {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
+    //    List<DeliveryChannel> expectedAllowedDeliveryChannels = null;
+    //
+    //    if (caseFromCaseService.getCaseType().equals("SPG") &&
+    // caseFromCaseService.isHandDelivery()) {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    //    } else {
+    //      expectedAllowedDeliveryChannels = Arrays.asList(DeliveryChannel.POST,
+    // DeliveryChannel.SMS);
+    //    }
 
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
