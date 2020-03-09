@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -274,51 +273,65 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
 
-    // Run the request
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    //    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    //    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    //
+    //    // Run the request
+    //    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    //    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
+    //    assertTrue(result.isHandDelivery());
   }
 
   @Test
   public void testGetCaseByCaseId_caseHHhandDeliveryTrue() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("HH"); // a non-SPG case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
 
-    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("HH"); // a non-SPG case
+    //    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    //    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    //
+    //    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
+    //    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    //    assertEquals(
+    //        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+    //        result.getAllowedDeliveryChannels());
+    //    assertTrue(result.isHandDelivery());
   }
 
   @Test
   public void testGetCaseByCaseId_caseSPGhandDeliveryFalse() throws Exception {
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
-    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
 
-    // Run the request
-    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertFalse(result.isHandDelivery());
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    //    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
+    //    Mockito.when(caseServiceClient.getCaseById(any(), any())).thenReturn(caseFromCaseService);
+    //
+    //    // Run the request
+    //    CaseDTO result = target.getCaseById(uuid, new CaseRequestDTO(true));
+    //    assertEquals(
+    //        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+    //        result.getAllowedDeliveryChannels());
+    //    assertFalse(result.isHandDelivery());
   }
 
   @Test
@@ -731,6 +744,7 @@ public class CaseServiceImplTest {
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType.name());
+    caseFromCaseService.setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     // Run the request
