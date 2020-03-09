@@ -415,7 +415,7 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
-        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
@@ -423,7 +423,7 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
-        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -444,60 +444,69 @@ public class CaseServiceImplTest {
 
   @Test
   public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
-    long testCaseRef = 88234544;
+    List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+    //    long testCaseRef = 88234544;
 
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    //    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    //    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
+    //        .thenReturn(caseFromCaseService);
+    //
+    //    // Run the request
+    //    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
+    //    assertEquals(Arrays.asList(DeliveryChannel.SMS), result.getAllowedDeliveryChannels());
+    //    assertTrue(result.isHandDelivery());
   }
 
   @Test
   public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() throws Exception {
-    long testCaseRef = 88234544;
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("HH"); // non-SPG case
-    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertTrue(result.isHandDelivery());
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+    //    long testCaseRef = 88234544;
+    //
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("HH"); // non-SPG case
+    //    caseFromCaseService.setHandDelivery(true); // delivery by post not allowed
+    //    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
+    //        .thenReturn(caseFromCaseService);
+    //
+    //    // Run the request NB. We expect POST to still be allowed as this is not an SPG case
+    //    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
+    //    assertEquals(
+    //        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+    //        result.getAllowedDeliveryChannels());
+    //    assertTrue(result.isHandDelivery());
   }
 
   @Test
   public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() throws Exception {
-    long testCaseRef = 88234544;
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
-    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
-        .thenReturn(caseFromCaseService);
-
-    // Run the request
-    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
-    assertEquals(
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
-        result.getAllowedDeliveryChannels());
-    assertFalse(result.isHandDelivery());
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+    //    // Build results to be returned from search
+    //    CaseContainerDTO caseFromCaseService =
+    //        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    //    caseFromCaseService.setCaseType("SPG"); // Special Population Group case
+    //    caseFromCaseService.setHandDelivery(false); // delivery by post is allowed
+    //    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
+    //        .thenReturn(caseFromCaseService);
+    //
+    //    // Run the request
+    //    CaseDTO result = target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
+    //    assertEquals(
+    //        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS),
+    //        result.getAllowedDeliveryChannels());
+    //    assertFalse(result.isHandDelivery());
   }
 
   @Test
