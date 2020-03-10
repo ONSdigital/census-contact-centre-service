@@ -408,7 +408,12 @@ public class CaseServiceImpl implements CaseService {
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (deliveryChannel.equals(Product.DeliveryChannel.POST)) {
+    if (deliveryChannel == Product.DeliveryChannel.POST) {
+      if (caze.isHandDelivery()) {
+        log.info("Postal fulfilments cannot be delivered to this respondent");
+        throw new CTPException(
+            Fault.BAD_REQUEST, "Postal fulfilments cannot be delivered to this respondent");
+      }
       if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
