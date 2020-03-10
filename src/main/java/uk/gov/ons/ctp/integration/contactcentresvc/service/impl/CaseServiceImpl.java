@@ -408,7 +408,7 @@ public class CaseServiceImpl implements CaseService {
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
-    if (deliveryChannel.equals(Product.DeliveryChannel.POST)) {
+    if (deliveryChannel == Product.DeliveryChannel.POST) {
       if (caze.isHandDelivery()) {
         log.warn("This fulfilment is for hand delivery only and so it must not be sent by post");
         throw new CTPException(
