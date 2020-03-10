@@ -193,10 +193,9 @@ public class CaseServiceImplTest {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
-    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
-
     caseFromCaseService.setCaseType("SPG");
     caseFromCaseService.setHandDelivery(true);
+    Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseFromCaseService, "Mrs", "Sally", "Smurf");
