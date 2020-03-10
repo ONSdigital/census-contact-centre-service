@@ -410,7 +410,7 @@ public class CaseServiceImpl implements CaseService {
 
     if (deliveryChannel == Product.DeliveryChannel.POST) {
       if (caze.isHandDelivery()) {
-        log.warn("This fulfilment is for hand delivery only and so it must not be sent by post");
+        log.info("This fulfilment is for hand delivery only and so it must not be sent by post");
         throw new CTPException(
             Fault.BAD_REQUEST,
             "This fulfilment is for hand delivery only and so it must not be sent by post");
