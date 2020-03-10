@@ -217,9 +217,7 @@ public class CaseServiceImplTest {
       target.fulfilmentRequestByPost(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
-      assertEquals(
-          "This fulfilment is for hand delivery only and so it must not be sent by post",
-          e.getMessage());
+      assertEquals("Postal fulfilments cannot be delivered to this respondent", e.getMessage());
       assertEquals("BAD_REQUEST", e.getFault().name());
     }
   }
