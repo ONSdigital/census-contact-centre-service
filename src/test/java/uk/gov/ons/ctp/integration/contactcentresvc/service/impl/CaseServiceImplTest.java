@@ -37,6 +37,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
+import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.EventPayload;
@@ -1033,6 +1034,19 @@ public class CaseServiceImplTest {
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
     assertEquals(null, actualContact.getEmail());
     assertEquals(null, actualContact.getTelNo());
+
+    Address actualAddress = actualFulfilmentRequest.getAddress();
+    assertEquals(caseFromCaseService.getAddressLine1(), actualAddress.getAddressLine1());
+    assertEquals(caseFromCaseService.getAddressLine2(), actualAddress.getAddressLine2());
+    assertEquals(caseFromCaseService.getAddressLine3(), actualAddress.getAddressLine3());
+    assertEquals(caseFromCaseService.getTownName(), actualAddress.getTownName());
+    assertEquals(caseFromCaseService.getPostcode(), actualAddress.getPostcode());
+    assertEquals(caseFromCaseService.getRegion(), actualAddress.getRegion());
+    assertEquals(caseFromCaseService.getLatitude(), actualAddress.getLatitude());
+    assertEquals(caseFromCaseService.getLongitude(), actualAddress.getLongitude());
+    assertEquals(caseFromCaseService.getUprn(), actualAddress.getUprn());
+    assertEquals(caseFromCaseService.getArid(), actualAddress.getArid());
+    assertEquals(caseFromCaseService.getEstabType(), actualAddress.getEstabType());
   }
 
   private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType, boolean individual)
