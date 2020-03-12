@@ -454,8 +454,7 @@ public class CaseServiceImpl implements CaseService {
     address.setLongitude(caseDetails.getLongitude());
     address.setUprn(caseDetails.getUprn());
     address.setArid(caseDetails.getArid());
-    // address.setAddressType(caseDetails.); - the addressType field does not currently exist in
-    // CaseContainerDTO
+    address.setAddressType(caseDetails.getAddressType()); 
     address.setEstabType(caseDetails.getEstabType());
     fulfilmentRequest.setAddress(address);
 
