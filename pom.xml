@@ -140,11 +140,22 @@
       <version>0.0.66</version>
     </dependency>
 
+
+
+    <--
+      WARNING WARNING WARNING
+      The CCCucmber project has this dependancy also, as it has tests that use
+      the product lib as fixtures. That dependancy must be kept in sync with this one
+      in order for the tests to run successfully
+      -->
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>product-reference</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.3</version>
     </dependency>
+
+
+
 
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
