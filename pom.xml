@@ -142,7 +142,7 @@
 
 
 
-    <--
+    <!--
       WARNING WARNING WARNING
       The CCCucmber project has this dependancy also, as it has tests that use
       the product lib as fixtures. That dependancy must be kept in sync with this one
