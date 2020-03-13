@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -74,29 +75,21 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
  * which would deal with actually sending a HTTP request to the case service.
  */
 public class CaseServiceImplTest {
-  @Mock
-  AppConfig appConfig = new AppConfig();
+  @Mock AppConfig appConfig = new AppConfig();
 
-  @Mock
-  ProductReference productReference;
+  @Mock ProductReference productReference;
 
-  @Mock
-  EventPublisher publisher;
+  @Mock EventPublisher publisher;
 
-  @Mock
-  CaseServiceClientServiceImpl caseServiceClient;
+  @Mock CaseServiceClientServiceImpl caseServiceClient;
 
-  @Mock
-  EqLaunchService eqLaunchService = new EqLaunchServiceImpl();
+  @Mock EqLaunchService eqLaunchService = new EqLaunchServiceImpl();
 
-  @Mock
-  EventPublisher eventPublisher;
+  @Mock EventPublisher eventPublisher;
 
-  @Spy
-  private MapperFacade mapperFacade = new CCSvcBeanMapper();
+  @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
-  @InjectMocks
-  CaseService target = new CaseServiceImpl();
+  @InjectMocks CaseService target = new CaseServiceImpl();
 
   private UUID uuid = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
 
@@ -129,16 +122,16 @@ public class CaseServiceImplTest {
   public void testFulfilmentRequestByPost_individualFailsWithNullContactDetails() throws Exception {
     // All of the following fail validation because one of the contact detail fields is always null
     // or empty
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, null, "John", "Smith",
-        true);
+    doVerifyFulfilmentRequestByPostFailsValidation(
+        Product.CaseType.HH, null, "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", null, true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", "", true);
 
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, null, "John", "Smith",
-        true);
+    doVerifyFulfilmentRequestByPostFailsValidation(
+        Product.CaseType.CE, null, "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "", "Smith", true);
@@ -176,8 +169,9 @@ public class CaseServiceImplTest {
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseData, "Mr", "Mickey", "Mouse");
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseData,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
 
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
@@ -207,11 +201,15 @@ public class CaseServiceImplTest {
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseFromCaseService, "Mrs", "Sally", "Smurf");
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseFromCaseService,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
-    Product productFoundFixture = getProductFoundFixture(Arrays.asList(Product.CaseType.SPG),
-        Product.DeliveryChannel.POST, false);
+    Product productFoundFixture =
+        getProductFoundFixture(
+            Arrays.asList(Product.CaseType.SPG), Product.DeliveryChannel.POST, false);
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
 
@@ -244,8 +242,9 @@ public class CaseServiceImplTest {
 
     SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseData,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
 
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
@@ -264,55 +263,55 @@ public class CaseServiceImplTest {
   public void testGetHouseholdCaseByCaseId_withCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseId_withNoCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseId_caseHHhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseId_withNoCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseId_caseSPGhandDeliveryFalse() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseId(CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseId(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -377,8 +376,11 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
     assertEquals(1, results.size());
 
-    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents,
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(1),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
@@ -397,8 +399,9 @@ public class CaseServiceImplTest {
     doTestGetCasesByUprn("SPG", false, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
   }
 
-  private void doTestGetCasesByUprn(String caseType, boolean handDelivery,
-      List<DeliveryChannel> expectedDeliveryChannels) throws Exception {
+  private void doTestGetCasesByUprn(
+      String caseType, boolean handDelivery, List<DeliveryChannel> expectedDeliveryChannels)
+      throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     List<CaseContainerDTO> caseFromCaseService =
@@ -422,55 +425,55 @@ public class CaseServiceImplTest {
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE,
-        expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(
+        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
@@ -582,11 +585,18 @@ public class CaseServiceImplTest {
     Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
 
     // Mock out building of launch payload
-    Mockito
-        .when(eqLaunchService.getEqLaunchJwe(eq(Language.ENGLISH),
-            eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
-            eq(uk.gov.ons.ctp.common.model.Channel.CC), any(), any(), any(), any(), any(), any(),
-            isNull())) // keystore
+    Mockito.when(
+            eqLaunchService.getEqLaunchJwe(
+                eq(Language.ENGLISH),
+                eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
+                eq(uk.gov.ons.ctp.common.model.Channel.CC),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                isNull())) // keystore
         .thenReturn("simulated-encrypted-payload");
 
     // Build DTO for launch request
@@ -600,8 +610,8 @@ public class CaseServiceImplTest {
 
     // Verify call to RM to get qid is using the correct individual case id
     ArgumentCaptor<UUID> individualCaseIdCaptor = ArgumentCaptor.forClass(UUID.class);
-    Mockito.verify(caseServiceClient).getSingleUseQuestionnaireId(any(), eq(individual),
-        individualCaseIdCaptor.capture());
+    Mockito.verify(caseServiceClient)
+        .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
     if (caseType.equals("HH") && individual) {
       assertNotEquals(uuid, individualCaseIdCaptor.getValue()); // expecting newly allocated uuid
     } else {
@@ -610,11 +620,18 @@ public class CaseServiceImplTest {
 
     // Verify correct data passed to eqLauncher
     ArgumentCaptor<CaseContainerDTO> caseCaptor = ArgumentCaptor.forClass(CaseContainerDTO.class);
-    Mockito.verify(eqLaunchService).getEqLaunchJwe(eq(Language.ENGLISH),
-        eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
-        eq(uk.gov.ons.ctp.common.model.Channel.CC), caseCaptor.capture(), eq("1234"), // agent
-        eq(questionnaireId), eq(formType), isNull(), // accountServiceUrl
-        isNull(), any()); // keystore
+    Mockito.verify(eqLaunchService)
+        .getEqLaunchJwe(
+            eq(Language.ENGLISH),
+            eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
+            eq(uk.gov.ons.ctp.common.model.Channel.CC),
+            caseCaptor.capture(),
+            eq("1234"), // agent
+            eq(questionnaireId),
+            eq(formType),
+            isNull(), // accountServiceUrl
+            isNull(),
+            any()); // keystore
 
     // Verify case details passed to eqLauncher
     CaseContainerDTO capturedCase = caseCaptor.getValue();
@@ -628,9 +645,12 @@ public class CaseServiceImplTest {
     // Verify surveyLaunched event published
     ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor =
         ArgumentCaptor.forClass(SurveyLaunchedResponse.class);
-    Mockito.verify(eventPublisher).sendEvent(eq(EventType.SURVEY_LAUNCHED),
-        eq(Source.CONTACT_CENTRE_API), eq(Channel.CC),
-        (EventPayload) surveyLaunchedResponseCaptor.capture());
+    Mockito.verify(eventPublisher)
+        .sendEvent(
+            eq(EventType.SURVEY_LAUNCHED),
+            eq(Source.CONTACT_CENTRE_API),
+            eq(Channel.CC),
+            (EventPayload) surveyLaunchedResponseCaptor.capture());
 
     // Verify payload for surveyLaunched event
     if (caseType.equals("HH") && individual) {
@@ -643,13 +663,25 @@ public class CaseServiceImplTest {
     assertEquals("1234", surveyLaunchedResponseCaptor.getValue().getAgentId());
   }
 
-  private void doRespondentRefusalTest(UUID caseId, UUID expectedEventCaseId,
-      String expectedResponseCaseId, Date dateTime) throws Exception {
-    RefusalRequestDTO refusalPayload = RefusalRequestDTO.builder()
-        .caseId(caseId == null ? null : caseId.toString()).notes("Description of refusal")
-        .title("Mr").forename("Steve").surname("Jones").telNo("+447890000000")
-        .addressLine1("1 High Street").addressLine2("Delph").addressLine3("Oldham")
-        .townName("Manchester").postcode("OL3 5DJ").region("E").dateTime(dateTime).build();
+  private void doRespondentRefusalTest(
+      UUID caseId, UUID expectedEventCaseId, String expectedResponseCaseId, Date dateTime)
+      throws Exception {
+    RefusalRequestDTO refusalPayload =
+        RefusalRequestDTO.builder()
+            .caseId(caseId == null ? null : caseId.toString())
+            .notes("Description of refusal")
+            .title("Mr")
+            .forename("Steve")
+            .surname("Jones")
+            .telNo("+447890000000")
+            .addressLine1("1 High Street")
+            .addressLine2("Delph")
+            .addressLine3("Oldham")
+            .townName("Manchester")
+            .postcode("OL3 5DJ")
+            .region("E")
+            .dateTime(dateTime)
+            .build();
 
     // report the refusal
     long timeBeforeInvocation = System.currentTimeMillis();
@@ -658,8 +690,8 @@ public class CaseServiceImplTest {
 
     // Validate the response to the refusal
     assertEquals(expectedResponseCaseId, refusalResponse.getId());
-    verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation,
-        refusalResponse.getDateTime());
+    verifyTimeInExpectedRange(
+        timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
 
     // Grab the published event
     ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
@@ -667,8 +699,12 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalDetails.class);
-    verify(publisher).sendEvent(eventTypeCaptor.capture(), sourceCaptor.capture(),
-        channelCaptor.capture(), refusalEventCaptor.capture());
+    verify(publisher)
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            refusalEventCaptor.capture());
 
     assertEquals(REFUSAL_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
     assertEquals(REFUSAL_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
@@ -696,8 +732,12 @@ public class CaseServiceImplTest {
     assertTrue(actualInMillis + " not before " + maxAllowed, actualInMillis <= maxAllowed);
   }
 
-  private void doTestGetCaseByCaseId(CaseType caseType, boolean handDelivery, boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels) throws Exception {
+  private void doTestGetCaseByCaseId(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -730,17 +770,27 @@ public class CaseServiceImplTest {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
     // Verify response
-    CaseDTO expectedCaseResult0 = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents,
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult0 =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(0),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(0), expectedCaseResult0, caseEvents);
 
-    CaseDTO expectedCaseResult1 = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents,
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult1 =
+        createExpectedCaseDTO(
+            caseFromCaseService.get(1),
+            caseEvents,
+            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
     verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
-  private void doTestGetCaseByCaseRef(CaseType caseType, boolean handDelivery, boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels) throws Exception {
+  private void doTestGetCaseByCaseRef(
+      CaseType caseType,
+      boolean handDelivery,
+      boolean caseEvents,
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     long testCaseRef = 88234544;
 
     // Build results to be returned from search
@@ -758,28 +808,44 @@ public class CaseServiceImplTest {
     verifyCase(results, expectedCaseResult, caseEvents);
   }
 
-  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents,
+  private CaseDTO createExpectedCaseDTO(
+      CaseContainerDTO caseFromCaseService,
+      boolean caseEvents,
       List<DeliveryChannel> expectedAllowedDeliveryChannels) {
 
-    CaseDTO expectedCaseResult = CaseDTO.builder().id(caseFromCaseService.getId())
-        .caseRef(caseFromCaseService.getCaseRef()).caseType(caseFromCaseService.getCaseType())
-        .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
-        .createdDateTime(caseFromCaseService.getCreatedDateTime())
-        .addressLine1(caseFromCaseService.getAddressLine1())
-        .addressLine2(caseFromCaseService.getAddressLine2())
-        .addressLine3(caseFromCaseService.getAddressLine3())
-        .townName(caseFromCaseService.getTownName())
-        .region(caseFromCaseService.getRegion().substring(0, 1))
-        .postcode(caseFromCaseService.getPostcode())
-        .uprn(new UniquePropertyReferenceNumber(caseFromCaseService.getUprn()))
-        .handDelivery(caseFromCaseService.isHandDelivery()).build();
+    CaseDTO expectedCaseResult =
+        CaseDTO.builder()
+            .id(caseFromCaseService.getId())
+            .caseRef(caseFromCaseService.getCaseRef())
+            .caseType(caseFromCaseService.getCaseType())
+            .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
+            .createdDateTime(caseFromCaseService.getCreatedDateTime())
+            .addressLine1(caseFromCaseService.getAddressLine1())
+            .addressLine2(caseFromCaseService.getAddressLine2())
+            .addressLine3(caseFromCaseService.getAddressLine3())
+            .townName(caseFromCaseService.getTownName())
+            .region(caseFromCaseService.getRegion().substring(0, 1))
+            .postcode(caseFromCaseService.getPostcode())
+            .uprn(new UniquePropertyReferenceNumber(caseFromCaseService.getUprn()))
+            .handDelivery(caseFromCaseService.isHandDelivery())
+            .build();
     if (caseEvents) {
-      List<CaseEventDTO> expectedCaseEvents = caseFromCaseService.getCaseEvents().stream()
-          .filter(e -> !e.getDescription().contains("Should be filtered out")).map(e -> {
-            CaseEventDTO expectedEvent = CaseEventDTO.builder().description(e.getDescription())
-                .category(e.getEventType()).createdDateTime(e.getCreatedDateTime()).build();
-            return expectedEvent;
-          }).collect(Collectors.toList());
+      List<CaseEventDTO> expectedCaseEvents =
+          caseFromCaseService
+              .getCaseEvents()
+              .stream()
+              .filter(e -> !e.getDescription().contains("Should be filtered out"))
+              .map(
+                  e -> {
+                    CaseEventDTO expectedEvent =
+                        CaseEventDTO.builder()
+                            .description(e.getDescription())
+                            .category(e.getEventType())
+                            .createdDateTime(e.getCreatedDateTime())
+                            .build();
+                    return expectedEvent;
+                  })
+              .collect(Collectors.toList());
       expectedCaseResult.setCaseEvents(expectedCaseEvents);
     }
     return expectedCaseResult;
@@ -790,8 +856,8 @@ public class CaseServiceImplTest {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
-    assertEquals(expectedCaseResult.getAllowedDeliveryChannels(),
-        results.getAllowedDeliveryChannels());
+    assertEquals(
+        expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
     assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
 
     if (caseEventsExpected) {
@@ -840,26 +906,37 @@ public class CaseServiceImplTest {
     return requestBodyDTOFixture;
   }
 
-  private Product getProductFoundFixture(List<Product.CaseType> caseTypes,
-      Product.DeliveryChannel deliveryChannel, boolean individual) {
-    return Product.builder().caseTypes(caseTypes).description("foobar").fulfilmentCode("ABC123")
-        .language("eng").deliveryChannel(deliveryChannel)
+  private Product getProductFoundFixture(
+      List<Product.CaseType> caseTypes,
+      Product.DeliveryChannel deliveryChannel,
+      boolean individual) {
+    return Product.builder()
+        .caseTypes(caseTypes)
+        .description("foobar")
+        .fulfilmentCode("ABC123")
+        .language("eng")
+        .deliveryChannel(deliveryChannel)
         .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
-        .requestChannels(new ArrayList<Product.RequestChannel>(
-            List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
-        .individual(individual).build();
+        .requestChannels(
+            new ArrayList<Product.RequestChannel>(
+                List.of(Product.RequestChannel.CC, Product.RequestChannel.FIELD)))
+        .individual(individual)
+        .build();
   }
 
-  private Product getExpectedSearchCriteria(CaseContainerDTO caseData, String fulfilmentCode,
-      Product.DeliveryChannel deliveryChannel) {
-    return Product.builder().fulfilmentCode(fulfilmentCode)
-        .requestChannels(Arrays.asList(Product.RequestChannel.CC)).deliveryChannel(deliveryChannel)
+  private Product getExpectedSearchCriteria(
+      CaseContainerDTO caseData, String fulfilmentCode, Product.DeliveryChannel deliveryChannel) {
+    return Product.builder()
+        .fulfilmentCode(fulfilmentCode)
+        .requestChannels(Arrays.asList(Product.RequestChannel.CC))
+        .deliveryChannel(deliveryChannel)
         .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
         .build();
   }
 
-  private void doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType caseType,
-      String title, String forename, String surname, boolean individual) throws Exception {
+  private void doVerifyFulfilmentRequestByPostFailsValidation(
+      Product.CaseType caseType, String title, String forename, String surname, boolean individual)
+      throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
@@ -868,8 +945,11 @@ public class CaseServiceImplTest {
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseFromCaseService,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
     // The mocked productReference will return this product
     Product productFoundFixture =
@@ -886,8 +966,9 @@ public class CaseServiceImplTest {
     }
   }
 
-  private void doFulfilmentRequestByPostSuccess(Product.CaseType caseType, String title,
-      String forename, String surname, boolean individual) throws Exception {
+  private void doFulfilmentRequestByPostSuccess(
+      Product.CaseType caseType, String title, String forename, String surname, boolean individual)
+      throws Exception {
     Mockito.clearInvocations(publisher);
 
     // Build results to be returned from search
@@ -898,8 +979,11 @@ public class CaseServiceImplTest {
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
         getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseFromCaseService,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
     // The mocked productReference will return this product
     Product productFoundFixture =
@@ -914,8 +998,8 @@ public class CaseServiceImplTest {
 
     // Validate the response
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), responseDTOFixture.getId());
-    verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation,
-        responseDTOFixture.getDateTime());
+    verifyTimeInExpectedRange(
+        timeBeforeInvocation, timeAfterInvocation, responseDTOFixture.getDateTime());
 
     // Grab the published event
     ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
@@ -923,15 +1007,19 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher).sendEvent(eventTypeCaptor.capture(), sourceCaptor.capture(),
-        channelCaptor.capture(), fulfilmentRequestCaptor.capture());
+    verify(publisher)
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            fulfilmentRequestCaptor.capture());
 
     assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
     assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
     assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
     FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
-    assertEquals(requestBodyDTOFixture.getFulfilmentCode(),
-        actualFulfilmentRequest.getFulfilmentCode());
+    assertEquals(
+        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
 
     if (caseType == Product.CaseType.HH && individual) {
@@ -972,8 +1060,11 @@ public class CaseServiceImplTest {
 
     SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseFromCaseService);
 
-    Product expectedSearchCriteria = getExpectedSearchCriteria(caseFromCaseService,
-        requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
+    Product expectedSearchCriteria =
+        getExpectedSearchCriteria(
+            caseFromCaseService,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.SMS);
 
     // The mocked productReference will return this product
     Product productFoundFixture =
@@ -996,16 +1087,20 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher).sendEvent(eventTypeCaptor.capture(), sourceCaptor.capture(),
-        channelCaptor.capture(), fulfilmentRequestCaptor.capture());
+    verify(publisher)
+        .sendEvent(
+            eventTypeCaptor.capture(),
+            sourceCaptor.capture(),
+            channelCaptor.capture(),
+            fulfilmentRequestCaptor.capture());
 
     assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
     assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
     assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
 
     FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
-    assertEquals(requestBodyDTOFixture.getFulfilmentCode(),
-        actualFulfilmentRequest.getFulfilmentCode());
+    assertEquals(
+        requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
 
     if (caseType == Product.CaseType.HH && individual) {
