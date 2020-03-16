@@ -23,6 +23,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
+import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
@@ -439,6 +440,23 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequest.setFulfilmentCode(product.getFulfilmentCode());
     fulfilmentRequest.setCaseId(caseId.toString());
     fulfilmentRequest.setContact(contact);
+
+    // Get the case address details from the case service
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+    Address address = new Address();
+    address.setAddressLine1(caseDetails.getAddressLine1());
+    address.setAddressLine2(caseDetails.getAddressLine2());
+    address.setAddressLine3(caseDetails.getAddressLine3());
+    address.setTownName(caseDetails.getTownName());
+    address.setPostcode(caseDetails.getPostcode());
+    address.setRegion(caseDetails.getRegion());
+    address.setLatitude(caseDetails.getLatitude());
+    address.setLongitude(caseDetails.getLongitude());
+    address.setUprn(caseDetails.getUprn());
+    address.setArid(caseDetails.getArid());
+    address.setAddressType(caseDetails.getAddressType());
+    address.setEstabType(caseDetails.getEstabType());
+    fulfilmentRequest.setAddress(address);
 
     return fulfilmentRequest;
   }
