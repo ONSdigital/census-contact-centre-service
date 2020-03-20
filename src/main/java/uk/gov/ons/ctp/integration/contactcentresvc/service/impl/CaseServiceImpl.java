@@ -512,15 +512,15 @@ public class CaseServiceImpl implements CaseService {
     refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
+    refusal.setReason(refusalRequest.getReason().name());
+    refusal.setAgentId(refusalRequest.getAgentId());
 
     // Populate contact
     Contact contact = new Contact();
-    // --- Start of code commented out for 2019 rehearsal. CR-416. ---
-    // contact.setTitle(refusalRequest.getTitle());
-    // contact.setForename(refusalRequest.getForename());
-    // contact.setSurname(refusalRequest.getSurname());
-    // contact.setTelNo(refusalRequest.getTelNo());
-    // --- End of code commented out for 2019 rehearsal. CR-416. ---
+    contact.setTitle(refusalRequest.getTitle());
+    contact.setForename(refusalRequest.getForename());
+    contact.setSurname(refusalRequest.getSurname());
+    contact.setTelNo(refusalRequest.getTelNo());
     refusal.setContact(contact);
 
     // Populate address
@@ -530,7 +530,8 @@ public class CaseServiceImpl implements CaseService {
     address.setAddressLine3(refusalRequest.getAddressLine3());
     address.setTownName(refusalRequest.getTownName());
     address.setPostcode(refusalRequest.getPostcode());
-    address.setRegion(refusalRequest.getRegion());
+    address.setRegion(refusalRequest.getRegion().name());
+    address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
     refusal.setAddress(address);
 
     return refusal;

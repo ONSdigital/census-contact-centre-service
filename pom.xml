@@ -124,7 +124,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>event-publisher</artifactId>
-      <version>0.0.23</version>
+      <version>0.0.25-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -137,7 +137,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.69</version>
+      <version>0.0.72-SNAPSHOT</version>
     </dependency>
 
     <!--
@@ -151,9 +151,6 @@
       <artifactId>product-reference</artifactId>
       <version>1.0.3</version>
     </dependency>
-
-
-
 
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
