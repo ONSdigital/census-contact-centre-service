@@ -62,7 +62,7 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private EventPublisher publisher;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  private static final String RESPONDENT_REFUSAL_TYPE = "HARD_REFUSAL";
+  private static final String TYPE_SUFFIX = "_REFUSAL";
 
   @Autowired private AppConfig appConfig;
 
@@ -508,11 +508,10 @@ public class CaseServiceImpl implements CaseService {
 
     // Create message payload
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
-    refusal.setType(RESPONDENT_REFUSAL_TYPE);
+    refusal.setType(refusalRequest.getReason().name().concat(TYPE_SUFFIX));
     refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
-    refusal.setReason(refusalRequest.getReason().name());
     refusal.setAgentId(refusalRequest.getAgentId());
 
     // Populate contact

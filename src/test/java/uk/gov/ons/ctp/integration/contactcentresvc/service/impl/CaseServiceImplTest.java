@@ -719,13 +719,12 @@ public class CaseServiceImplTest {
 
     // Validate payload of published event
     RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
-    assertEquals("HARD_REFUSAL", refusal.getType());
     assertEquals("Description of refusal", refusal.getReport());
     assertEquals("123", refusal.getAgentId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
     verifyRefusalAddress(refusal, uprn);
-    assertEquals(Reason.EXTRAORDINARY.name(), refusal.getReason());
+    assertEquals(Reason.EXTRAORDINARY.name() + "_REFUSAL", refusal.getType());
     Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
     assertEquals(expectedContact, refusal.getContact());
   }
