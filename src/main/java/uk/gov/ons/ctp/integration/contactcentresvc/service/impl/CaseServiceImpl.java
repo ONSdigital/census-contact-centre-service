@@ -48,6 +48,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
@@ -62,7 +63,6 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private EventPublisher publisher;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  private static final String TYPE_SUFFIX = "_REFUSAL";
 
   @Autowired private AppConfig appConfig;
 
@@ -508,7 +508,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Create message payload
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
-    refusal.setType(refusalRequest.getReason().name().concat(TYPE_SUFFIX));
+    refusal.setType(mapToType(refusalRequest.getReason()));
     refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
@@ -534,5 +534,16 @@ public class CaseServiceImpl implements CaseService {
     refusal.setAddress(address);
 
     return refusal;
+  }
+
+  private String mapToType(Reason reason) throws CTPException {
+    switch (reason) {
+      case HARD:
+        return "HARD_REFUSAL";
+      case EXTRAORDINARY:
+        return "EXTRAORDINARY_REFUSAL";
+      default:
+        throw new CTPException(Fault.SYSTEM_ERROR, "Unexpected refusal reason: %s", reason);
+    }
   }
 }

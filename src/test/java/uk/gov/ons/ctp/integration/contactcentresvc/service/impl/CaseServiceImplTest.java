@@ -110,6 +110,8 @@ public class CaseServiceImplTest {
   private static final boolean CASE_EVENTS_FALSE = false;
   private static final String A_UPRN = "1234";
 
+  private Reason reason = Reason.EXTRAORDINARY;
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -501,6 +503,26 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testRespondentRefusal_withExtraordinaryReason() throws Exception {
+    Date dateTime = new Date();
+    UUID caseId = UUID.randomUUID();
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    this.reason = Reason.EXTRAORDINARY;
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+  }
+
+  @Test
+  public void testRespondentRefusal_withHardReason() throws Exception {
+    Date dateTime = new Date();
+    UUID caseId = UUID.randomUUID();
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    this.reason = Reason.HARD;
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+  }
+
+  @Test
   public void testRespondentRefusal_withUUID() throws Exception {
     Date dateTime = new Date();
     UUID caseId = UUID.randomUUID();
@@ -686,7 +708,7 @@ public class CaseServiceImplTest {
             .postcode("OL3 5DJ")
             .uprn(uprn)
             .region(Region.E)
-            .reason(Reason.EXTRAORDINARY)
+            .reason(reason)
             .dateTime(dateTime)
             .build();
 
@@ -724,7 +746,7 @@ public class CaseServiceImplTest {
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
     verifyRefusalAddress(refusal, uprn);
-    assertEquals(Reason.EXTRAORDINARY.name() + "_REFUSAL", refusal.getType());
+    assertEquals(reason.name() + "_REFUSAL", refusal.getType());
     Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
     assertEquals(expectedContact, refusal.getContact());
   }
