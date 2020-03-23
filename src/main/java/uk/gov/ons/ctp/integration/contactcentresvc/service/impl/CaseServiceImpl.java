@@ -48,6 +48,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
@@ -62,7 +63,6 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private EventPublisher publisher;
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  private static final String RESPONDENT_REFUSAL_TYPE = "HARD_REFUSAL";
 
   @Autowired private AppConfig appConfig;
 
@@ -508,19 +508,18 @@ public class CaseServiceImpl implements CaseService {
 
     // Create message payload
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
-    refusal.setType(RESPONDENT_REFUSAL_TYPE);
+    refusal.setType(mapToType(refusalRequest.getReason()));
     refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
+    refusal.setAgentId(refusalRequest.getAgentId());
 
     // Populate contact
     Contact contact = new Contact();
-    // --- Start of code commented out for 2019 rehearsal. CR-416. ---
-    // contact.setTitle(refusalRequest.getTitle());
-    // contact.setForename(refusalRequest.getForename());
-    // contact.setSurname(refusalRequest.getSurname());
-    // contact.setTelNo(refusalRequest.getTelNo());
-    // --- End of code commented out for 2019 rehearsal. CR-416. ---
+    contact.setTitle(refusalRequest.getTitle());
+    contact.setForename(refusalRequest.getForename());
+    contact.setSurname(refusalRequest.getSurname());
+    contact.setTelNo(refusalRequest.getTelNo());
     refusal.setContact(contact);
 
     // Populate address
@@ -530,9 +529,21 @@ public class CaseServiceImpl implements CaseService {
     address.setAddressLine3(refusalRequest.getAddressLine3());
     address.setTownName(refusalRequest.getTownName());
     address.setPostcode(refusalRequest.getPostcode());
-    address.setRegion(refusalRequest.getRegion());
+    address.setRegion(refusalRequest.getRegion().name());
+    address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
     refusal.setAddress(address);
 
     return refusal;
+  }
+
+  private String mapToType(Reason reason) throws CTPException {
+    switch (reason) {
+      case HARD:
+        return "HARD_REFUSAL";
+      case EXTRAORDINARY:
+        return "EXTRAORDINARY_REFUSAL";
+      default:
+        throw new CTPException(Fault.SYSTEM_ERROR, "Unexpected refusal reason: %s", reason);
+    }
   }
 }

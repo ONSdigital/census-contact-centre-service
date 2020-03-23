@@ -63,7 +63,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -106,6 +108,9 @@ public class CaseServiceImplTest {
 
   private static final boolean CASE_EVENTS_TRUE = true;
   private static final boolean CASE_EVENTS_FALSE = false;
+  private static final String A_UPRN = "1234";
+
+  private Reason reason = Reason.EXTRAORDINARY;
 
   @Before
   public void initMocks() {
@@ -498,6 +503,26 @@ public class CaseServiceImplTest {
   }
 
   @Test
+  public void testRespondentRefusal_withExtraordinaryReason() throws Exception {
+    Date dateTime = new Date();
+    UUID caseId = UUID.randomUUID();
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    this.reason = Reason.EXTRAORDINARY;
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+  }
+
+  @Test
+  public void testRespondentRefusal_withHardReason() throws Exception {
+    Date dateTime = new Date();
+    UUID caseId = UUID.randomUUID();
+    UUID expectedEventCaseId = caseId;
+    String expectedResponseCaseId = caseId.toString();
+    this.reason = Reason.HARD;
+    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+  }
+
+  @Test
   public void testRespondentRefusal_withUUID() throws Exception {
     Date dateTime = new Date();
     UUID caseId = UUID.randomUUID();
@@ -666,9 +691,11 @@ public class CaseServiceImplTest {
   private void doRespondentRefusalTest(
       UUID caseId, UUID expectedEventCaseId, String expectedResponseCaseId, Date dateTime)
       throws Exception {
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(A_UPRN);
     RefusalRequestDTO refusalPayload =
         RefusalRequestDTO.builder()
             .caseId(caseId == null ? null : caseId.toString())
+            .agentId("123")
             .notes("Description of refusal")
             .title("Mr")
             .forename("Steve")
@@ -679,7 +706,9 @@ public class CaseServiceImplTest {
             .addressLine3("Oldham")
             .townName("Manchester")
             .postcode("OL3 5DJ")
-            .region("E")
+            .uprn(uprn)
+            .region(Region.E)
+            .reason(reason)
             .dateTime(dateTime)
             .build();
 
@@ -712,10 +741,18 @@ public class CaseServiceImplTest {
 
     // Validate payload of published event
     RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
-    assertEquals("HARD_REFUSAL", refusal.getType());
     assertEquals("Description of refusal", refusal.getReport());
-    assertNull(refusal.getAgentId());
+    assertEquals("123", refusal.getAgentId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
+
+    verifyRefusalAddress(refusal, uprn);
+    assertEquals(reason.name() + "_REFUSAL", refusal.getType());
+    Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
+    assertEquals(expectedContact, refusal.getContact());
+  }
+
+  private void verifyRefusalAddress(
+      RespondentRefusalDetails refusal, UniquePropertyReferenceNumber expectedUprn) {
     // Validate address
     AddressCompact address = refusal.getAddress();
     assertEquals("1 High Street", address.getAddressLine1());
@@ -724,6 +761,7 @@ public class CaseServiceImplTest {
     assertEquals("Manchester", address.getTownName());
     assertEquals("OL3 5DJ", address.getPostcode());
     assertEquals("E", address.getRegion());
+    assertEquals(A_UPRN, address.getUprn());
   }
 
   private void verifyTimeInExpectedRange(long minAllowed, long maxAllowed, Date dateTime) {
@@ -1032,7 +1070,6 @@ public class CaseServiceImplTest {
     assertEquals(requestBodyDTOFixture.getTitle(), actualContact.getTitle());
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
-    assertEquals(null, actualContact.getEmail());
     assertEquals(null, actualContact.getTelNo());
 
     Address actualAddress = actualFulfilmentRequest.getAddress();
@@ -1113,7 +1150,6 @@ public class CaseServiceImplTest {
     assertEquals(null, actualContact.getTitle());
     assertEquals(null, actualContact.getForename());
     assertEquals(null, actualContact.getSurname());
-    assertEquals(null, actualContact.getEmail());
     assertEquals(requestBodyDTOFixture.getTelNo(), actualContact.getTelNo());
   }
 }

@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -26,6 +25,7 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -33,6 +33,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public final class CaseEndpointRefusalTest {
 
   private static final String CASE_ID = "caseId";
+  private static final String AGENT_ID = "agentId";
   private static final String TITLE = "title";
   private static final String NOTES = "notes";
   private static final String TEL_NO = "telNo";
@@ -43,6 +44,7 @@ public final class CaseEndpointRefusalTest {
   private static final String ADDRESS_LINE_3 = "addressLine3";
   private static final String TOWN_NAME = "townName";
   private static final String REGION = "region";
+  private static final String REASON = "reason";
   private static final String POSTCODE = "postcode";
   private static final String UPRN = "uprn";
   private static final String DATE_TIME = "dateTime";
@@ -136,6 +138,11 @@ public final class CaseEndpointRefusalTest {
   @Test
   public void refusalTitleTooLong() throws Exception {
     assertBadRequest(TITLE, "Mrrrrrrrrrrrr");
+  }
+
+  @Test
+  public void refusalNotesValid() throws Exception {
+    assertOk(NOTES, "Note: this is valid");
   }
 
   @Test
@@ -262,16 +269,50 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
+  public void refusalReasonRequired() throws Exception {
+    assertBadRequest(REASON, (String) null);
+  }
+
+  @Test
+  public void refusalReasonBad() throws Exception {
+    assertBadRequest(REASON, "NOT_A_REASON");
+  }
+
+  @Test
+  public void refusalExtraordinaryReasonOk() throws Exception {
+    assertOk(REASON, Reason.EXTRAORDINARY.name());
+  }
+
+  @Test
+  public void refusalAgentIdRequired() throws Exception {
+    assertBadRequest(AGENT_ID, (String) null);
+  }
+
+  @Test
+  public void refusalAgentIdBad() throws Exception {
+    assertBadRequest(AGENT_ID, "NOT_A_REASON");
+  }
+
+  @Test
+  public void refusalAgentIdTooLong() throws Exception {
+    assertBadRequest(AGENT_ID, "123456");
+  }
+
+  @Test
+  public void refusalAgentIdOk() throws Exception {
+    assertOk(AGENT_ID, "12345");
+  }
+
+  @Test
+  public void refusalHardReasonOkl() throws Exception {
+    assertOk(REASON, Reason.HARD.name());
+  }
+
+  @Test
   public void refusalRegionNull() throws Exception {
     assertOk(REGION, (String) null);
   }
 
-  @Test
-  public void refusalRegionBlank() throws Exception {
-    assertOk(REGION, "");
-  }
-
-  @Ignore // TODO until region validation in place
   @Test
   public void refusalRegionBad() throws Exception {
     assertBadRequest(REGION, "X");
