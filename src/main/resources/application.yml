@@ -99,7 +99,7 @@ spring:
   application:
     name: ONS ContactCentreService
 
-mode: CC
+channel: CC
 
 address-index-settings:
   address-query-path: /addresses

@@ -17,8 +17,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Value("${spring.security.user.password}")
   String password;
 
-  @Value("${mode}")
-  String mode;
+  @Value("${channel}")
+  String channel;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -60,6 +60,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.inMemoryAuthentication().withUser(username).password("{noop}" + password).roles(mode);
+    auth.inMemoryAuthentication().withUser(username).password("{noop}" + password).roles(channel);
   }
 }
