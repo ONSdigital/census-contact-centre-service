@@ -19,4 +19,5 @@ public class AppConfig {
   private KeyStore keystore;
   private EqConfig eq;
   private Logging logging;
+  private String mode;
 }

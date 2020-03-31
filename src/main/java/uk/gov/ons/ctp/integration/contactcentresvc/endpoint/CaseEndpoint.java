@@ -5,6 +5,8 @@ import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,13 +24,18 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.model.editor.UniquePropertyReferenceNumberEditor;
+import uk.gov.ons.ctp.integration.contactcentresvc.Constants;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /** The REST controller for ContactCentreSvc find cases end points */
@@ -246,6 +253,118 @@ public class CaseEndpoint implements CTPEndpoint {
     ResponseDTO response = caseService.reportRefusal(caseIdUUID, requestBodyDTO);
 
     log.with("caseId", caseId).debug("Exiting reportRefusal");
+
+    return ResponseEntity.ok(response);
+  }
+
+  // ---------------------------------------------------------------
+  // DUMMY ENDPOINTS FROM HERE
+  // ---------------------------------------------------------------
+
+  /**
+   * DUMMY ENDPOINT
+   *
+   * <p>the PUT end point to modify an existing case
+   *
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/{caseId}", method = RequestMethod.PUT)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<ResponseDTO> modifyCase(
+      @PathVariable(value = "caseId") final UUID caseId,
+      @Valid @RequestBody ModifyCaseRequestDTO requestBodyDTO)
+      throws CTPException {
+
+    log.with("requestBody", requestBodyDTO).info("Entering PUT modifyCase");
+
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      log.with(caseId)
+          .warn(
+              "The caseid in the URL does not match the caseid "
+                  + "in the modifyCase request body");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
+    }
+    ResponseDTO response = new ResponseDTO();
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * DUMMY ENDPOINT
+   *
+   * <p>the POST end point to create a new case
+   *
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "", method = RequestMethod.POST)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<CaseDTO> newCase(@Valid @RequestBody NewCaseRequestDTO requestBodyDTO)
+      throws CTPException {
+
+    log.with("requestBody", requestBodyDTO).info("Entering POST newCase");
+
+    CaseDTO response = new CaseDTO();
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * DUMMY ENDPOINT FOR CC
+   *
+   * <p>the GET end point to request a CCS case by postcode
+   *
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/ccs/postcode/{postcode}", method = RequestMethod.GET)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<CaseDTO> getCCSCaseByPostcode(
+      @PathVariable(value = "postcode") @NotBlank @Pattern(regexp = Constants.POSTCODE_RE)
+          final String postcode)
+      throws CTPException {
+
+    log.with("pathParam", postcode).info("Entering GET getCCSCaseByPostcode");
+
+    CaseDTO response = new CaseDTO();
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * DUMMY ENDPOINT FOR AD
+   *
+   * <p>the GET end point to request a UAC from AD for a given caseid
+   *
+   * @param caseId the id of the case
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/{caseId}/uac", method = RequestMethod.GET)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<UACResponseDTO> getUACForCase(
+      @PathVariable(value = "caseId") final UUID caseId, @Valid UACRequestDTO requestBodyDTO)
+      throws CTPException {
+
+    log.with("pathParam", caseId)
+        .with("requestBody", requestBodyDTO)
+        .info("Entering GET getUACForCase");
+
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      log.with(caseId)
+          .warn(
+              "The caseid in the URL does not match the caseid "
+                  + "in the getUACForCase request body");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
+    }
+
+    UACResponseDTO response = new UACResponseDTO();
 
     return ResponseEntity.ok(response);
   }
