@@ -12,6 +12,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 @RunWith(SpringRunner.class)
@@ -24,6 +25,7 @@ public class ADEndpointSecurityTest extends EndpointSecurityTest {
   @LocalServerPort int port;
 
   @MockBean CaseService caseService;
+  @MockBean AddressService addressService;
 
   @Test
   public void adOkGetUACForCase() throws IllegalStateException, IOException {
