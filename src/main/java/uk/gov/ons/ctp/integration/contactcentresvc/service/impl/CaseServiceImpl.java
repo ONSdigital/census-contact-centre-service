@@ -20,7 +20,6 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
-import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
@@ -60,8 +59,6 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 @Configuration
 public class CaseServiceImpl implements CaseService {
 
-  @Autowired private EventPublisher publisher;
-
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
 
   @Autowired private AppConfig appConfig;
@@ -93,10 +90,10 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.POST, caseId, contact);
 
-    publisher.sendEvent(
+    eventPublisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
-        Channel.CC,
+        appConfig.getChannel(),
         fulfilmentRequestPayload);
 
     ResponseDTO response =
@@ -121,10 +118,10 @@ public class CaseServiceImpl implements CaseService {
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.SMS, caseId, contact);
-    publisher.sendEvent(
+    eventPublisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
-        Channel.CC,
+        appConfig.getChannel(),
         fulfilmentRequestedPayload);
 
     ResponseDTO response =
@@ -271,8 +268,11 @@ public class CaseServiceImpl implements CaseService {
     RespondentRefusalDetails refusalPayload =
         createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
 
-    publisher.sendEvent(
-        EventType.REFUSAL_RECEIVED, Source.CONTACT_CENTRE_API, Channel.CC, refusalPayload);
+    eventPublisher.sendEvent(
+        EventType.REFUSAL_RECEIVED,
+        Source.CONTACT_CENTRE_API,
+        appConfig.getChannel(),
+        refusalPayload);
 
     // Build response
     ResponseDTO response =
@@ -365,7 +365,7 @@ public class CaseServiceImpl implements CaseService {
 
     String transactionId =
         eventPublisher.sendEvent(
-            EventType.SURVEY_LAUNCHED, Source.CONTACT_CENTRE_API, Channel.CC, response);
+            EventType.SURVEY_LAUNCHED, Source.CONTACT_CENTRE_API, appConfig.getChannel(), response);
 
     log.with("caseId", response.getCaseId())
         .with("transactionId", transactionId)

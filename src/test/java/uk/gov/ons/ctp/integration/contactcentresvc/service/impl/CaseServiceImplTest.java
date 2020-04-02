@@ -81,8 +81,6 @@ public class CaseServiceImplTest {
 
   @Mock ProductReference productReference;
 
-  @Mock EventPublisher publisher;
-
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
   @Mock EqLaunchService eqLaunchService = new EqLaunchServiceImpl();
@@ -121,6 +119,7 @@ public class CaseServiceImplTest {
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+    Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
   }
 
   @Test
@@ -194,7 +193,7 @@ public class CaseServiceImplTest {
   @Test
   public void testFulfilmentRequestByPostFailure_handDeliveryOnly() throws Exception {
 
-    Mockito.clearInvocations(publisher);
+    Mockito.clearInvocations(eventPublisher);
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -728,7 +727,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalDetails.class);
-    verify(publisher)
+    verify(eventPublisher)
         .sendEvent(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
@@ -1007,7 +1006,7 @@ public class CaseServiceImplTest {
   private void doFulfilmentRequestByPostSuccess(
       Product.CaseType caseType, String title, String forename, String surname, boolean individual)
       throws Exception {
-    Mockito.clearInvocations(publisher);
+    Mockito.clearInvocations(eventPublisher);
 
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService =
@@ -1045,7 +1044,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher)
+    verify(eventPublisher)
         .sendEvent(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
@@ -1124,7 +1123,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(publisher)
+    verify(eventPublisher)
         .sendEvent(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),

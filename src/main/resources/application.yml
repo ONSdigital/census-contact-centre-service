@@ -11,7 +11,8 @@ info:
 logging:
   level:
     uk.gov.ons.ctp: INFO
-    org.springframework: INFO
+    org.springframework: WARN
+    
   profile: DEV
   useJson: true
 
@@ -97,6 +98,7 @@ spring:
   application:
     name: ONS ContactCentreService
 
+channel: CC
 
 address-index-settings:
   address-query-path: /addresses
