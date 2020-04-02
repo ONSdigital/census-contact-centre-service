@@ -37,7 +37,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class EndpointSecurityTest {
+public abstract class EndpointSecurityTest {
 
   TestRestTemplate restTemplate;
   URL base;
