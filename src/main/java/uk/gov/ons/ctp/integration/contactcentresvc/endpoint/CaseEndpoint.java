@@ -26,7 +26,7 @@ import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.model.editor.UniquePropertyReferenceNumberEditor;
 import uk.gov.ons.ctp.integration.contactcentresvc.Constants;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
@@ -73,7 +73,7 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{caseId}", method = RequestMethod.GET)
   public ResponseEntity<CaseDTO> getCaseById(
-      @PathVariable("caseId") final UUID caseId, @Valid CaseRequestDTO requestParamsDTO)
+      @PathVariable("caseId") final UUID caseId, @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", caseId)
         .with("requestParams", requestParamsDTO)
@@ -95,7 +95,7 @@ public class CaseEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/uprn/{uprn}", method = RequestMethod.GET)
   public ResponseEntity<List<CaseDTO>> getCaseByUPRN(
       @PathVariable(value = "uprn") final UniquePropertyReferenceNumber uprn,
-      @Valid CaseRequestDTO requestParamsDTO)
+      @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", uprn)
         .with("requestParams", requestParamsDTO)
@@ -116,7 +116,7 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/ref/{ref}", method = RequestMethod.GET)
   public ResponseEntity<CaseDTO> getCaseByCaseReference(
-      @PathVariable(value = "ref") final long ref, @Valid CaseRequestDTO requestParamsDTO)
+      @PathVariable(value = "ref") final long ref, @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", ref)
         .with("requestParams", requestParamsDTO)

@@ -58,7 +58,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
@@ -328,7 +328,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     try {
-      target.getCaseById(uuid, new CaseRequestDTO(true));
+      target.getCaseById(uuid, new CaseQueryRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
       assertEquals("Case is not suitable", e.getReason());
@@ -360,7 +360,7 @@ public class CaseServiceImplTest {
 
     // Run the request, and check that there are no results (all filtered out as there are no
     // household or communal cases)
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(true));
+    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseQueryRequestDTO(true));
     assertTrue(results.isEmpty());
   }
 
@@ -377,7 +377,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     boolean caseEvents = true;
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
+    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseQueryRequestDTO(caseEvents));
     assertEquals(1, results.size());
 
     CaseDTO expectedCaseResult =
@@ -417,7 +417,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     boolean caseEvents = true;
-    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseRequestDTO(caseEvents));
+    List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseQueryRequestDTO(caseEvents));
     assertEquals(2, results.size());
 
     CaseDTO expectedCaseResult =
@@ -493,7 +493,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     try {
-      target.getCaseByCaseReference(testCaseRef, new CaseRequestDTO(true));
+      target.getCaseByCaseReference(testCaseRef, new CaseQueryRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
       assertEquals("Case is not suitable", e.getReason());
@@ -783,7 +783,7 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseById(eq(uuid), any())).thenReturn(caseFromCaseService);
 
     // Run the request
-    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(uuid, requestParams);
 
     CaseDTO expectedCaseResult =
@@ -803,7 +803,7 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseByUprn(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
-    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
     // Verify response
@@ -838,7 +838,7 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
-    CaseRequestDTO requestParams = new CaseRequestDTO(caseEvents);
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
