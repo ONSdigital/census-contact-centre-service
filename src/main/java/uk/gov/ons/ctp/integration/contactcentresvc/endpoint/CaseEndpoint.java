@@ -11,8 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +21,6 @@ import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
-import uk.gov.ons.ctp.common.model.editor.UniquePropertyReferenceNumberEditor;
 import uk.gov.ons.ctp.integration.contactcentresvc.Constants;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
@@ -55,12 +52,6 @@ public class CaseEndpoint implements CTPEndpoint {
   @Autowired
   public CaseEndpoint(final CaseService caseService) {
     this.caseService = caseService;
-  }
-
-  @InitBinder
-  public void initBinder(WebDataBinder binder) {
-    binder.registerCustomEditor(
-        UniquePropertyReferenceNumber.class, new UniquePropertyReferenceNumberEditor());
   }
 
   /**
@@ -266,6 +257,7 @@ public class CaseEndpoint implements CTPEndpoint {
    *
    * <p>the PUT end point to modify an existing case
    *
+   * @param caseId case ID
    * @param requestBodyDTO the request body
    * @return response entity
    * @throws CTPException something went wrong
@@ -318,7 +310,7 @@ public class CaseEndpoint implements CTPEndpoint {
    *
    * <p>the GET end point to request a CCS case by postcode
    *
-   * @param requestBodyDTO the request body
+   * @param postcode postcode
    * @return response entity
    * @throws CTPException something went wrong
    */
