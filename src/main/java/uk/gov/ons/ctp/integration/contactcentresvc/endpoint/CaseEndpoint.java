@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -15,15 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.Constants;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
@@ -64,7 +64,7 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{caseId}", method = RequestMethod.GET)
   public ResponseEntity<CaseDTO> getCaseById(
-      @PathVariable("caseId") final UUID caseId, @Valid CaseRequestDTO requestParamsDTO)
+      @PathVariable("caseId") final UUID caseId, @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", caseId)
         .with("requestParams", requestParamsDTO)
@@ -86,7 +86,7 @@ public class CaseEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/uprn/{uprn}", method = RequestMethod.GET)
   public ResponseEntity<List<CaseDTO>> getCaseByUPRN(
       @PathVariable(value = "uprn") final UniquePropertyReferenceNumber uprn,
-      @Valid CaseRequestDTO requestParamsDTO)
+      @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", uprn)
         .with("requestParams", requestParamsDTO)
@@ -107,7 +107,7 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/ref/{ref}", method = RequestMethod.GET)
   public ResponseEntity<CaseDTO> getCaseByCaseReference(
-      @PathVariable(value = "ref") final long ref, @Valid CaseRequestDTO requestParamsDTO)
+      @PathVariable(value = "ref") final long ref, @Valid CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("pathParam", ref)
         .with("requestParams", requestParamsDTO)
@@ -257,6 +257,7 @@ public class CaseEndpoint implements CTPEndpoint {
    *
    * <p>the PUT end point to modify an existing case
    *
+   * @param caseId case ID
    * @param requestBodyDTO the request body
    * @return response entity
    * @throws CTPException something went wrong
@@ -309,7 +310,7 @@ public class CaseEndpoint implements CTPEndpoint {
    *
    * <p>the GET end point to request a CCS case by postcode
    *
-   * @param requestBodyDTO the request body
+   * @param postcode postcode
    * @return response entity
    * @throws CTPException something went wrong
    */

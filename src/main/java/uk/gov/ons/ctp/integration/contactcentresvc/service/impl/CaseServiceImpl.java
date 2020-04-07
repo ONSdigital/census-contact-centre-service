@@ -42,7 +42,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
@@ -134,7 +134,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public CaseDTO getCaseById(final UUID caseId, CaseRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO) {
     log.debug("Fetching case details by caseId: {}", caseId);
 
     // Get the case details from the case service
@@ -199,7 +199,7 @@ public class CaseServiceImpl implements CaseService {
 
   @Override
   public List<CaseDTO> getCaseByUPRN(
-      UniquePropertyReferenceNumber uprn, CaseRequestDTO requestParamsDTO) {
+      UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO) {
     log.with("uprn", uprn).debug("Fetching case details by UPRN");
 
     // Get the case details from the case service
@@ -229,7 +229,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public CaseDTO getCaseByCaseReference(final long caseRef, CaseRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO) {
     log.with("caseRef", caseRef).debug("Fetching case details by case reference");
 
     // Get the case details from the case service

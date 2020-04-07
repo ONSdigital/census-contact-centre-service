@@ -162,7 +162,6 @@ public abstract class EndpointSecurityTest {
     requestBody.setStatus(CaseStatus.UNCHANGED);
     requestBody.setEstabType(EstabType.HOUSEHOLD);
     requestBody.setDateTime(new Date());
-    requestBody.setCaseType(CaseType.HH);
     requestBody.setAddressLine1("1 Contagion Street");
     requestBody.setTownName("Coronaville");
     requestBody.setPostcode("SO22 4HJ");

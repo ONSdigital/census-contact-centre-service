@@ -7,9 +7,9 @@ import uk.gov.ons.ctp.common.event.model.CollectionCase;
 /** Repository for Case Data */
 public interface CaseDataRepository {
 
-  /** Write a Case */
+  /* Write a Case */
   void writeCollectionCase(CollectionCase collectionCase) throws CTPException;
 
-  /** Read a Case */
+  /* Read a Case */
   Optional<CollectionCase> readCollectionCase(String caseId) throws CTPException;
 }
