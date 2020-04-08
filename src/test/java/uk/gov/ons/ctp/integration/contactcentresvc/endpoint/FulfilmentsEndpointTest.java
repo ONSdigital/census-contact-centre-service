@@ -33,11 +33,9 @@ public final class FulfilmentsEndpointTest {
   private static final String PARAM_INDIVIDUAL = "individual";
 
   private static final String FULFILMENT_CODE_1 = "P1";
-  private static final String LANGUAGE_1 = "eng";
   private static final String DESCRIPTION_1 = "First fulfilment";
 
   private static final String FULFILMENT_CODE_2 = "P2";
-  private static final String LANGUAGE_2 = "wel";
   private static final String DESCRIPTION_2 = "Another fulfilment";
 
   @Mock private FulfilmentsService fulfilmentService;
@@ -104,7 +102,6 @@ public final class FulfilmentsEndpointTest {
     FulfilmentDTO fulfilmentsDTO1 =
         FulfilmentDTO.builder()
             .fulfilmentCode(FULFILMENT_CODE_1)
-            .language(LANGUAGE_1)
             .description(DESCRIPTION_1)
             .deliveryChannel(DeliveryChannel.SMS)
             .build();
@@ -112,7 +109,6 @@ public final class FulfilmentsEndpointTest {
     FulfilmentDTO fulfilmentsDTO2 =
         FulfilmentDTO.builder()
             .fulfilmentCode(FULFILMENT_CODE_2)
-            .language(LANGUAGE_2)
             .description(DESCRIPTION_2)
             .deliveryChannel(DeliveryChannel.POST)
             .build();
@@ -123,12 +119,10 @@ public final class FulfilmentsEndpointTest {
 
   private void verifyStructureOfFulfilmentDTO(ResultActions actions) throws Exception {
     actions.andExpect(jsonPath("$.[0].fulfilmentCode", is(FULFILMENT_CODE_1)));
-    actions.andExpect(jsonPath("$.[0].language", is(LANGUAGE_1)));
     actions.andExpect(jsonPath("$.[0].description", is(DESCRIPTION_1)));
     actions.andExpect(jsonPath("$.[0].deliveryChannel", is(DeliveryChannel.SMS.toString())));
 
     actions.andExpect(jsonPath("$.[1].fulfilmentCode", is(FULFILMENT_CODE_2)));
-    actions.andExpect(jsonPath("$.[1].language", is(LANGUAGE_2)));
     actions.andExpect(jsonPath("$.[1].description", is(DESCRIPTION_2)));
     actions.andExpect(jsonPath("$.[1].deliveryChannel", is(DeliveryChannel.POST.toString())));
   }
