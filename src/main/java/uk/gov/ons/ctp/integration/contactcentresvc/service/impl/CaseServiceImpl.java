@@ -4,18 +4,19 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKN
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -28,6 +29,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
+import uk.gov.ons.ctp.common.event.model.NewAddress;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.common.model.Language;
@@ -40,12 +42,11 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
@@ -57,15 +58,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
 @Service
-@Validated()
-@Configuration
 public class CaseServiceImpl implements CaseService {
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
+
+  private static final String SCOTTISH_COUNTRY_CODE = "S";
 
   @Autowired private AppConfig appConfig;
 
@@ -79,7 +81,7 @@ public class CaseServiceImpl implements CaseService {
 
   @Autowired private CaseDataRepository dataRepo;
 
-  @Autowired private AddressServiceClientServiceImpl addressLookup;
+  @Autowired private AddressService addressSvc;
 
   @Autowired private EventPublisher eventPublisher;
 
@@ -209,43 +211,25 @@ public class CaseServiceImpl implements CaseService {
 
   @Override
   public List<CaseDTO> getCaseByUPRN(
-      UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO) {
+      UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
+      throws CTPException {
     log.with("uprn", uprn).debug("Fetching case details by UPRN");
 
-    // Return any stored case details
-    List<CollectionCaseNewAddress> createdCases = dataRepo.readCollectionCaseByUPRN(uprn.toString());
-    if (!createdCases.isEmpty()) {
-      List<CaseDTO> caseServiceResponse = caseDTOMapper.mapAsList(createdCases, CaseDTO.class);
-      log.with("uprn", uprn)
-          .with("cases", caseServiceResponse.size())
-          .debug("Returning stored case details for UPRN");
-      return caseServiceResponse;
+    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), requestParamsDTO.getCaseEvents());
+    if (!rmCases.isEmpty()) {
+      return rmCases;
     }
 
-    // Get the case details from the case service
-    Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    List<CaseContainerDTO> caseDetails =
-        caseServiceClient.getCaseByUprn(uprn.getValue(), getCaseEvents);
-
-    // Only return cases that are not of caseType = HI
-    List<CaseContainerDTO> casesToReturn =
-        (List<CaseContainerDTO>)
-            caseDetails
-                .parallelStream()
-                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
-                .collect(Collectors.toList());
-
-    // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
+    // Return stored case details if present
+    Optional<CachedCase> cachedCase = dataRepo.readCaseByUPRN(uprn);
+    if (cachedCase.isPresent()) {
+      log.with("uprn", uprn).debug("Returning stored case details for UPRN");
+      return Collections.singletonList(caseDTOMapper.map(cachedCase.get(), CaseDTO.class));
+    }
 
     // New Case
-    AddressIndexSearchResultsDTO addressResults = addressLookup.searchByUPRN(uprn.getValue());
-    // No result for UPRN from Address index
-    if (addressResults.getResponse().getAddresses().isEmpty()) {
-      throw new CTPException(CTPException.Fault.RESOURCE_NOT_FOUND, "Failed to find address for UPRN %s", uprn.toString());
-    }
-    AddressIndexAddressDTO address = addressResults.getResponse().getAddresses().get(0);
-    
+    CaseDTO result = caseDTOMapper.map(createNewCase(uprn.getValue()), CaseDTO.class);
+    return Collections.singletonList(result);
   }
 
   @Override
@@ -392,6 +376,33 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
+  private void publishNewAddressReportedEvent(String caseId, AddressIndexAddressSplitDTO address) {
+    log.with("caseId", caseId).info("Generating NewAddressReported event");
+
+    CollectionCaseNewAddress newAddress =
+        caseDTOMapper.map(address, CollectionCaseNewAddress.class);
+    newAddress.setId(caseId);
+    newAddress.setSurvey("CENSUS");
+
+    // TO DO Derivation of addressLevel to be clarified. For now set to value covering majority of
+    // cases
+    newAddress.getAddress().setAddressLevel("U");
+
+    NewAddress payload = new NewAddress();
+    payload.setCollectionCase(newAddress);
+
+    String transactionId =
+        eventPublisher.sendEvent(
+            EventType.NEW_ADDRESS_REPORTED,
+            Source.CONTACT_CENTRE_API,
+            appConfig.getChannel(),
+            payload);
+
+    log.with("caseId", payload.getCollectionCase().getId())
+        .with("transactionId", transactionId)
+        .debug("NewAddressReported event published");
+  }
+
   private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {
     if (getCaseEvents) {
       // Only return whitelisted events
@@ -408,12 +419,6 @@ public class CaseServiceImpl implements CaseService {
       // Caller doesn't want any event data
       caseDTO.setCaseEvents(null);
     }
-  }
-
-  private boolean caseIsHouseholdOrCommunal(String caseTypeString) {
-    return caseTypeString.equals(CaseType.HH.name())
-        || caseTypeString.equals(CaseType.CE.name())
-        || caseTypeString.equals(CaseType.SPG.name());
   }
 
   /**
@@ -571,5 +576,83 @@ public class CaseServiceImpl implements CaseService {
       default:
         throw new CTPException(Fault.SYSTEM_ERROR, "Unexpected refusal reason: %s", reason);
     }
+  }
+
+  /**
+   * Make Case Service request to return cases by UPRN
+   *
+   * @param uprn of requested cases
+   * @param listCaseEvents boolean of whether require case events
+   * @return List of cases for UPRN
+   * @throws CTPException
+   */
+  private List<CaseDTO> callCaseSvcByUPRN(Long uprn, Boolean listCaseEvents) throws CTPException {
+
+    List<CaseContainerDTO> rmCases = new ArrayList<>();
+    try {
+      rmCases = caseServiceClient.getCaseByUprn(uprn, listCaseEvents);
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with(uprn).info("Case by UPRN Not Found calling Case Service");
+        return Collections.emptyList();
+      } else {
+        log.with(uprn).with("status", ex.getStatus()).error("Error calling Case Service");
+        throw ex;
+      }
+    }
+
+    // Only return cases that are not of caseType = HI
+    List<CaseContainerDTO> casesToReturn =
+        (List<CaseContainerDTO>)
+            rmCases
+                .parallelStream()
+                .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
+                .collect(Collectors.toList());
+
+    // Convert from Case service to Contact Centre DTOs
+    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
+
+    // Clean up the events before returning them
+    caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, listCaseEvents));
+    return caseServiceResponse;
+  }
+
+  /**
+   * Create new case, publish new address reported event and store new case in rerpository cache for
+   * new cases.
+   *
+   * @param uprn of address found
+   * @return Cachedcase details
+   * @throws CTPException
+   */
+  private CachedCase createNewCase(Long uprn) throws CTPException {
+
+    // Query AIMS for UPRN
+    Optional<AddressIndexAddressSplitDTO> addressQuery = addressSvc.uprnQuery(uprn);
+    if (addressQuery.isEmpty()) {
+      log.with("uprn", uprn).error("Failed to find address for UPRN");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Failed to find address for UPRN %s", uprn);
+    }
+    AddressIndexAddressSplitDTO address = addressQuery.get();
+    if (address.getCountryCode() == SCOTTISH_COUNTRY_CODE) {
+      log.with("uprn", uprn)
+          .with("countryCode", address.getCountryCode())
+          .warn("Scottish address retrieved");
+      throw new CTPException(Fault.VALIDATION_FAILED, "Scottish address found for UPRN: " + uprn);
+    }
+
+    String newCaseId = (UUID.randomUUID().toString());
+    publishNewAddressReportedEvent(newCaseId, address);
+
+    CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
+    cachedCase.setId(newCaseId);
+    try {
+      dataRepo.storeCaseByUPRN(cachedCase);
+    } catch (DataStoreContentionException e) {
+      log.error("Retries exhausted for storage of new address case: " + newCaseId);
+      throw new CTPException(
+          Fault.SYSTEM_ERROR, e, "Retries exhausted for storage of new address case: " + newCaseId);
+    }
+    return cachedCase;
   }
 }

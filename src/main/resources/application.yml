@@ -103,11 +103,14 @@ channel: CC
 address-index-settings:
   address-query-path: /addresses
   postcode-lookup-path: /addresses/postcode/{postcode}
-  uprn-lookup-path: /addresses/uprn/{uprn}
+  uprn-lookup-path: /addresses/rh/uprn/{uprn}
+  address-type: paf
   rest-client-config:
-    scheme: http
-    host: addressindex-api-beta.apps.devtest.onsclofo.uk
-    port: 80
+    username: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_USERNAME}
+    password: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_PASSWORD}
+    scheme: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_SCHEME:https}
+    host: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_HOST:rh-dev-ai-api.ai.census-gcp.onsdigital.uk}
+    port: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_PORT:443}
     
 case-service-settings:
   rest-client-config:
@@ -169,3 +172,7 @@ report-settings:
 
 cloudStorage:
   caseSchemaName: new-case
+  backoffInitial: 100
+  backoffMultiplier: 1.2
+  backoffMax: 3000
+  backoffMaxAttempts: 2

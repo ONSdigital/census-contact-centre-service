@@ -1,0 +1,27 @@
+{
+  "apiVersion": "1.0.0-SNAPSHOT",
+  "dataVersion": "72",
+  "response": {
+    "address": {
+      "uprn": "100041045018",
+      "formattedAddress": "39 Sandford Walk, Exeter, EX1 2ET",
+      "addressLine1": "39 Sandford Walk",
+      "addressLine2": "",
+      "addressLine3": "",
+      "townName": "Exeter",
+      "postcode": "EX1 2ET",
+      "foundAddressType": "PAF",
+      "censusAddressType": "HH",
+      "censusEstabType": "Household",
+      "countryCode": "E"
+    },
+    "addressType": "PAF",
+    "historical": true,
+    "epoch": ""
+  },
+  "status": {
+    "code": 200,
+    "message": "Ok"
+  },
+  "errors": []
+}

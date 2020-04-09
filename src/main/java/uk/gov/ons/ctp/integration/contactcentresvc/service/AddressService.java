@@ -1,5 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
+import java.util.Optional;
+import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -27,7 +30,7 @@ public interface AddressService {
    * Search for an address by uprn
    *
    * @param uprn Unique Property Reference No.
-   * @return result object as for other searches but with only ever 0 or 1 result
+   * @return Optional with result object splitting address into census component fields
    */
-  public AddressQueryResponseDTO uprnQuery(Long uprn);
+  public Optional<AddressIndexAddressSplitDTO> uprnQuery(long uprn) throws CTPException;
 }

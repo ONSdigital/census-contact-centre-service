@@ -8,10 +8,13 @@ import ma.glasnost.orika.impl.ConfigurableMapper;
 import ma.glasnost.orika.metadata.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
+import uk.gov.ons.ctp.common.util.StringToUPRNConverter;
+import uk.gov.ons.ctp.common.util.StringToUUIDConverter;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 
@@ -28,6 +31,8 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
   protected final void configure(final MapperFactory factory) {
     ConverterFactory converterFactory = factory.getConverterFactory();
     converterFactory.registerConverter("regionConverter", new RegionConverter());
+    converterFactory.registerConverter(new StringToUUIDConverter());
+    converterFactory.registerConverter(new StringToUPRNConverter());
 
     factory
         .classMap(CaseContainerDTO.class, CaseDTO.class)
@@ -38,15 +43,33 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .register();
 
     factory
-        .classMap(CollectionCaseNewAddress.class, CaseDTO.class)
-        .byDefault()
-        .register();
-
-    factory
         .classMap(EventDTO.class, CaseEventDTO.class)
         .field("eventType", "category")
         .byDefault()
         .register();
+
+    factory
+        .classMap(AddressIndexAddressSplitDTO.class, CollectionCaseNewAddress.class)
+        .field("uprn", "address.uprn")
+        .field("addressLine1", "address.addressLine1")
+        .field("addressLine2", "address.addressLine2")
+        .field("addressLine3", "address.addressLine3")
+        .field("townName", "address.townName")
+        .field("postcode", "address.postcode")
+        .field("censusAddressType", "address.addressType")
+        .field("censusEstabType", "address.estabType")
+        .field("countryCode", "address.region")
+        .register();
+
+    factory
+        .classMap(AddressIndexAddressSplitDTO.class, CachedCase.class)
+        .field("censusAddressType", "addressType")
+        .field("censusEstabType", "estabType")
+        .field("countryCode", "region")
+        .byDefault()
+        .register();
+
+    factory.classMap(CachedCase.class, CaseDTO.class).byDefault().register();
   }
 
   private class RegionConverter extends BidirectionalConverter<String, String> {
