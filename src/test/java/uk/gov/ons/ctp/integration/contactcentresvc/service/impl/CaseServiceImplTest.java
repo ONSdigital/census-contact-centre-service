@@ -981,7 +981,6 @@ public class CaseServiceImplTest {
         .caseTypes(caseTypes)
         .description("foobar")
         .fulfilmentCode("ABC123")
-        .language("eng")
         .deliveryChannel(deliveryChannel)
         .regions(new ArrayList<Product.Region>(List.of(Product.Region.E)))
         .requestChannels(
