@@ -47,7 +47,6 @@ public class FulfilmentServiceImplTest {
             .caseTypes(new ArrayList<Product.CaseType>(List.of(Product.CaseType.HH)))
             .description("foobar")
             .fulfilmentCode("ABC123")
-            .language("eng")
             .deliveryChannel(Product.DeliveryChannel.POST)
             .regions(new ArrayList<Product.Region>(List.of(Product.Region.E, Product.Region.W)))
             .requestChannels(
@@ -91,7 +90,6 @@ public class FulfilmentServiceImplTest {
         fulfilment.getDeliveryChannel().name(),
         uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel.POST.name());
     assertEquals(fulfilment.getFulfilmentCode(), "ABC123");
-    assertEquals(fulfilment.getLanguage(), "eng");
     assertTrue(
         fulfilment
             .getRegions()

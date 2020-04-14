@@ -253,7 +253,7 @@ public class CaseEndpoint implements CTPEndpoint {
   // ---------------------------------------------------------------
 
   /**
-   * DUMMY ENDPOINT
+   * DUMMY ENDPOINT FOR CC
    *
    * <p>the PUT end point to modify an existing case
    *
@@ -285,7 +285,7 @@ public class CaseEndpoint implements CTPEndpoint {
   }
 
   /**
-   * DUMMY ENDPOINT
+   * DUMMY ENDPOINT FOR CC
    *
    * <p>the POST end point to create a new case
    *
