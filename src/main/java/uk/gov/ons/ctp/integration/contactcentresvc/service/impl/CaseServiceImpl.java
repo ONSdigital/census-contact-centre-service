@@ -24,6 +24,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
+import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
@@ -46,6 +47,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryReque
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -348,6 +350,37 @@ public class CaseServiceImpl implements CaseService {
     publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
 
     return eqUrl;
+  }
+
+  @Override
+  public ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
+
+    String xxxx;
+
+    UUID caseId = modifyRequestDTO.getCaseId();
+
+    // WRITEME got to check that caseType is not UNCHANGED
+
+    // WRITEME add notes , where do I get that from ?
+
+    AddressNotValid payload =
+        AddressNotValid.builder()
+            .caseId(caseId)
+            .build();
+
+    eventPublisher.sendEvent(
+        EventType.ADDRESS_NOT_VALID,
+        Source.CONTACT_CENTRE_API,
+        appConfig.getChannel(),
+        payload);
+
+
+    // WRITEME
+
+    ResponseDTO response =
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
+
+    return response;
   }
 
   private void publishSurveyLaunchedEvent(UUID caseId, String questionnaireId, String agentId) {

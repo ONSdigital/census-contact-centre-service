@@ -8,6 +8,7 @@ import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
@@ -15,22 +16,24 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 
 public interface CaseService {
 
-  public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO);
+  CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO);
 
-  public List<CaseDTO> getCaseByUPRN(
+  List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO);
 
-  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO);
+  CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO);
 
-  public String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
+  String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
       throws CTPException;
 
-  public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
+  ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException;
+
+  ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;
 
-  public ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
+  ResponseDTO fulfilmentRequestBySMS(SMSFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;
 
-  public ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO)
+  ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO)
       throws CTPException;
 }
