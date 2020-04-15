@@ -44,6 +44,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
@@ -352,34 +353,39 @@ public class CaseServiceImpl implements CaseService {
     return eqUrl;
   }
 
+  // will throw exception if case does not exist.
+  private void verifyCaseExists(UUID caseId) {
+    caseServiceClient.getCaseById(caseId, false);
+  }
+
   @Override
   public ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
-
-    String xxxx;
-
     UUID caseId = modifyRequestDTO.getCaseId();
 
-    // WRITEME got to check that caseType is not UNCHANGED
+    log.with("caseId", caseId).with("status", modifyRequestDTO.getStatus()).debug("Modify Case");
 
-    // WRITEME add notes , where do I get that from ?
+    verifyCaseExists(caseId);
 
-    AddressNotValid payload =
-        AddressNotValid.builder()
-            .caseId(caseId)
-            .build();
+    CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
-    eventPublisher.sendEvent(
-        EventType.ADDRESS_NOT_VALID,
-        Source.CONTACT_CENTRE_API,
-        appConfig.getChannel(),
-        payload);
+    if (CaseStatus.UNCHANGED == modifyRequestDTO.getStatus()) {
+      log.with("caseId", caseId).debug("No event published since status is UNCHANGED");
+    } else {
+      log.debug("Case modified: publishing AddressNotValid event");
+      AddressNotValid payload =
+          AddressNotValid.builder()
+              .collectionCase(collectionCase)
+              .notes(modifyRequestDTO.getNotes())
+              .reason(modifyRequestDTO.getStatus().name())
+              .build();
 
-
-    // WRITEME
-
+      eventPublisher.sendEvent(
+          EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
+    }
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
+    log.with(response).debug("Return from modify case");
     return response;
   }
 

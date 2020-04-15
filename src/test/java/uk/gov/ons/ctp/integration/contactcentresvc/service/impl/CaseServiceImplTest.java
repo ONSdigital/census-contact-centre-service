@@ -9,7 +9,11 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,6 +44,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
+import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
@@ -54,15 +59,18 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuest
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -91,9 +99,6 @@ public class CaseServiceImplTest {
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
   @InjectMocks CaseService target = new CaseServiceImpl();
-
-  private static final UUID UUID_0 = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
-  private static final UUID UUID_1 = UUID.fromString("b7565b5e-2222-2222-2222-918c0d3642ed");
 
   private static final EventType REFUSAL_EVENT_TYPE_FIELD_VALUE = EventType.REFUSAL_RECEIVED;
   private static final Source REFUSAL_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
@@ -614,6 +619,76 @@ public class CaseServiceImplTest {
     } catch (Exception e) {
       assertTrue(e.getMessage(), e.getMessage().contains("must be SPG, CE or HH"));
     }
+  }
+
+  @SneakyThrows
+  private void checkModifyCaseForStatus(CaseStatus status) {
+    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
+    dto.setStatus(status);
+    ResponseDTO response = target.modifyCase(dto);
+    assertEquals(dto.getCaseId().toString(), response.getId());
+    assertNotNull(response.getDateTime());
+
+    ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
+
+    verify(eventPublisher)
+        .sendEvent(
+            eq(EventType.ADDRESS_NOT_VALID),
+            eq(Source.CONTACT_CENTRE_API),
+            eq(Channel.CC),
+            payloadCaptor.capture());
+
+    AddressNotValid payload = payloadCaptor.getValue();
+    assertEquals(dto.getCaseId(), payload.getCollectionCase().getId());
+    assertEquals(dto.getNotes(), payload.getNotes());
+    assertEquals(dto.getStatus().name(), payload.getReason());
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusDerelict() {
+    checkModifyCaseForStatus(CaseStatus.DERELICT);
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusDemolished() {
+    checkModifyCaseForStatus(CaseStatus.DEMOLISHED);
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusNonResidential() {
+    checkModifyCaseForStatus(CaseStatus.NON_RESIDENTIAL);
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusUnderConstruction() {
+    checkModifyCaseForStatus(CaseStatus.UNDER_CONSTRUCTION);
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusSplitAddress() {
+    checkModifyCaseForStatus(CaseStatus.SPLIT_ADDRESS);
+  }
+
+  @Test
+  public void shouldModifyCaseWhenStatusMerged() {
+    checkModifyCaseForStatus(CaseStatus.MERGED);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void shouldRejectCaseNotFound() throws Exception {
+    when(caseServiceClient.getCaseById(any(), any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
+    target.modifyCase(dto);
+  }
+
+  @Test
+  public void shouldNotModifyCaseWhenStatusUnchanged() throws Exception {
+    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
+    ResponseDTO response = target.modifyCase(dto);
+    assertEquals(dto.getCaseId().toString(), response.getId());
+    assertNotNull(response.getDateTime());
+    verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
   private void doLaunchTest(UUID caseId, String caseType, boolean individual) throws Exception {
