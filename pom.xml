@@ -338,10 +338,11 @@
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.2</version>
         <configuration>
-      	  <excludes>
-      	    <exclude>reflectasm.*</exclude>
-      	    <exclude>**/*MethodAccess</exclude>
-      	  </excludes>
+          <!-- exclude generated classes that cause javaco failures -->
+          <excludes>
+            <exclude>reflectasm.*</exclude>
+            <exclude>**/*MethodAccess</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
