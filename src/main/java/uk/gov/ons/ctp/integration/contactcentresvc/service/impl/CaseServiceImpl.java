@@ -24,6 +24,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
+import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
@@ -43,9 +44,11 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -348,6 +351,42 @@ public class CaseServiceImpl implements CaseService {
     publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
 
     return eqUrl;
+  }
+
+  // will throw exception if case does not exist.
+  private void verifyCaseExists(UUID caseId) {
+    caseServiceClient.getCaseById(caseId, false);
+  }
+
+  @Override
+  public ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
+    UUID caseId = modifyRequestDTO.getCaseId();
+
+    log.with("caseId", caseId).with("status", modifyRequestDTO.getStatus()).debug("Modify Case");
+
+    verifyCaseExists(caseId);
+
+    CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
+
+    if (CaseStatus.UNCHANGED == modifyRequestDTO.getStatus()) {
+      log.with("caseId", caseId).debug("No event published since status is UNCHANGED");
+    } else {
+      log.debug("Case modified: publishing AddressNotValid event");
+      AddressNotValid payload =
+          AddressNotValid.builder()
+              .collectionCase(collectionCase)
+              .notes(modifyRequestDTO.getNotes())
+              .reason(modifyRequestDTO.getStatus().name())
+              .build();
+
+      eventPublisher.sendEvent(
+          EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
+    }
+    ResponseDTO response =
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
+
+    log.with(response).debug("Return from modify case");
+    return response;
   }
 
   private void publishSurveyLaunchedEvent(UUID caseId, String questionnaireId, String agentId) {
