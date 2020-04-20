@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
@@ -58,7 +57,6 @@ public class CaseEndpointCaseLaunchTest {
     ResultActions actions =
         mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
     actions.andExpect(status().isOk());
-    actions.andDo(MockMvcResultHandlers.print());
 
     // Check that the url is as expected. Note that MockMvc (or some component in the chain) escapes
     // all double quotes

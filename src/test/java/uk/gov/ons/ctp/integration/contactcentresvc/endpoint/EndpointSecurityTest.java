@@ -166,6 +166,7 @@ public abstract class EndpointSecurityTest {
     requestBody.setTownName("Coronaville");
     requestBody.setPostcode("SO22 4HJ");
     requestBody.setRegion(Region.E);
+    requestBody.setNotes("some notes");
 
     HttpHeaders headers = new HttpHeaders();
     Map<String, String> param = new HashMap<String, String>();

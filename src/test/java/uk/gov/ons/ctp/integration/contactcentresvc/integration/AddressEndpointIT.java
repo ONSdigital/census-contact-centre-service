@@ -200,7 +200,6 @@ public final class AddressEndpointIT {
 
   // Run a request and return the results as an object
   private AddressQueryResponseDTO runAddressBasedQuery(String url) throws Exception {
-    System.out.println("Running URL: " + url);
     MvcResult paginationResult = mockMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
 
     String json = paginationResult.getResponse().getContentAsString();

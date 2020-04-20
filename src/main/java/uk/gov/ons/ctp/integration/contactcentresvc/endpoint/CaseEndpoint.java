@@ -248,14 +248,8 @@ public class CaseEndpoint implements CTPEndpoint {
     return ResponseEntity.ok(response);
   }
 
-  // ---------------------------------------------------------------
-  // DUMMY ENDPOINTS FROM HERE
-  // ---------------------------------------------------------------
-
   /**
-   * DUMMY ENDPOINT
-   *
-   * <p>the PUT end point to modify an existing case
+   * the PUT end point to modify an existing case
    *
    * @param caseId case ID
    * @param requestBodyDTO the request body
@@ -279,13 +273,16 @@ public class CaseEndpoint implements CTPEndpoint {
       throw new CTPException(
           Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
     }
-    ResponseDTO response = new ResponseDTO();
-
+    ResponseDTO response = caseService.modifyCase(requestBodyDTO);
     return ResponseEntity.ok(response);
   }
 
+  // ---------------------------------------------------------------
+  // DUMMY ENDPOINTS FROM HERE
+  // ---------------------------------------------------------------
+
   /**
-   * DUMMY ENDPOINT
+   * DUMMY ENDPOINT FOR CC
    *
    * <p>the POST end point to create a new case
    *
