@@ -1,3 +1,5 @@
+google-cloud-project: census-rh-test
+
 info:
   name: ${project.artifactId}
   version: ${project.version}
@@ -170,9 +172,9 @@ eq:
 report-settings:
   cron-expression: "0 * * * * *"
 
-cloudStorage:
-  caseSchemaName: new-case
-  backoffInitial: 100
-  backoffMultiplier: 1.2
-  backoffMax: 3000
-  backoffMaxAttempts: 2
+cloud-storage:
+  case-schema-name: new-case
+  backoff-initial: 100
+  backoff-multiplier: 1.2
+  backoff-max: 3000
+  backoff-max-attempts: 2

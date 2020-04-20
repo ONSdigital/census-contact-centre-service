@@ -29,16 +29,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
     classes = {CcRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
 @TestPropertySource(
     properties = {
-      "GOOGLE_CLOUD_PROJECT=census-cc-test",
-      "cloudStorage.caseSchemaName=new-case",
-      "cloudStorage.backoffInitial=10",
-      "cloudStorage.backoffMultiplier=1.2",
-      "cloudStorage.backoffMax=300",
-      "cloudStorage.backoffMaxAttempts=3",
+      "google-cloud-project=census-cc-test",
+      "cloud-storage.case-schema-name=new-case",
+      "cloud-storage.backoff-initial=10",
+      "cloud-storage.backoff-multiplier=1.2",
+      "cloud-storage.backoff-max=300",
+      "cloud-storage.backoff-max-attempts=3",
     })
 public class CaseDataRepositoryImplTest {
 
-  @Value("${GOOGLE_CLOUD_PROJECT}-${cloudStorage.caseSchemaName}")
+  @Value("${google-cloud-project}-${cloud-storage.case-schema-name}")
   private String caseSchema;
 
   @MockBean CloudDataStore dataStore;

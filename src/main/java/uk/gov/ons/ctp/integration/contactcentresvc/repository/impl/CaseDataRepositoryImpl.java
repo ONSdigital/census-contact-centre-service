@@ -17,10 +17,10 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
 @Service
 public class CaseDataRepositoryImpl implements CaseDataRepository {
 
-  @Value("${GOOGLE_CLOUD_PROJECT}")
+  @Value("${google-cloud-project}")
   private String gcpProject;
 
-  @Value("${cloudStorage.caseSchemaName}")
+  @Value("${cloud-storage.case-schema-name}")
   private String caseSchemaName;
 
   private String caseSchema;
@@ -43,10 +43,10 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       include = DataStoreContentionException.class,
       backoff =
           @Backoff(
-              delayExpression = "#{${cloudStorage.backoffInitial}}",
-              multiplierExpression = "#{${cloudStorage.backoffMultiplier}}",
-              maxDelayExpression = "#{${cloudStorage.backoffMax}}"),
-      maxAttemptsExpression = "#{${cloudStorage.backoffMaxAttempts}}",
+              delayExpression = "#{${cloud-storage.backoff-initial}}",
+              multiplierExpression = "#{${cloud-storage.backoff-multiplier}}",
+              maxDelayExpression = "#{${cloud-storage.backoff-max}}"),
+      maxAttemptsExpression = "#{${cloud-storage.backoff-max-attempts}}",
       listeners = "ccRetryListener")
   @Override
   public void storeCaseByUPRN(CachedCase caze) throws CTPException, DataStoreContentionException {
