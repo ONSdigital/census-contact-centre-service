@@ -106,11 +106,11 @@ address-index-settings:
   uprn-lookup-path: /addresses/rh/uprn/{uprn}
   address-type: paf
   rest-client-config:
-    username: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_USERNAME}
-    password: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_PASSWORD}
-    scheme: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_SCHEME:https}
-    host: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_HOST:rh-dev-ai-api.ai.census-gcp.onsdigital.uk}
-    port: ${ADDRESS_INDEX_SETTINGS_REST_CLIENT_CONFIG_PORT:443}
+    username:
+    password:
+    scheme: https
+    host: rh-dev-ai-api.ai.census-gcp.onsdigital.uk
+    port: 443
     
 case-service-settings:
   rest-client-config:
