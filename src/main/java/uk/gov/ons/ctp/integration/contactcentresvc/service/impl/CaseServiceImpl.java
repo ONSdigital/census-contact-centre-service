@@ -423,7 +423,7 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setId(caseId);
     newAddress.setSurvey("CENSUS");
 
-    // TO DO Derivation of addressLevel to be clarified. For now set to value covering majority of
+    // TODO Derivation of addressLevel to be clarified. For now set to value covering majority of
     // cases
     newAddress.getAddress().setAddressLevel("U");
 
@@ -644,7 +644,7 @@ public class CaseServiceImpl implements CaseService {
     List<CaseContainerDTO> casesToReturn =
         (List<CaseContainerDTO>)
             rmCases
-                .parallelStream()
+                .stream()
                 .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
                 .collect(Collectors.toList());
 
