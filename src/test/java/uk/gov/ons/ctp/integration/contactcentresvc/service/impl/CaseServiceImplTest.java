@@ -67,6 +67,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
@@ -470,6 +471,25 @@ public class CaseServiceImplTest {
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
 
+    target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
+  }
+
+  @Test(expected = CTPException.class)
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_DataStoreContentionException()
+      throws Exception {
+
+    AddressIndexAddressSplitDTO addressFromAI =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseByUprn(eq(UPRN.getValue()), any());
+    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(Optional.of(addressFromAI));
+    Mockito.doThrow(
+            new DataStoreContentionException(
+                "Test repository contention exception", new Exception()))
+        .when(dataRepo)
+        .storeCaseByUPRN(any());
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
   }
 
