@@ -33,11 +33,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
     this.cloudDataStore.connect();
   }
 
-  /**
-   * Store a New Address Case object into the data store
-   *
-   * @param CollectionCaseNewAddress to store
-   */
   @Retryable(
       label = "writeNewCase",
       include = DataStoreContentionException.class,
@@ -53,12 +48,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
     cloudDataStore.storeObject(caseSchema, caze.getUprn(), caze);
   }
 
-  /**
-   * Read a New Address Case object from data store
-   *
-   * @param Unique Property Reference Number under which the case is stored
-   * @return Case stored for UPRN
-   */
   @Override
   public Optional<CachedCase> readCaseByUPRN(final UniquePropertyReferenceNumber uprn)
       throws CTPException {

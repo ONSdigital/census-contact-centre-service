@@ -20,11 +20,12 @@ public interface CaseService {
   CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO);
 
   /**
-   * Return HH, CE and SPG cases but filter out any HI cases at address.
+   * Return HH, CE and SPG cases but filter out any HI cases at address
    *
    * @param uprn Unique Property Reference No for which to return cases
    * @param requestParamsDTO request details
-   * @return List of Cases at address, excluding HI cases.
+   * @return List of Cases at address, excluding HI cases
+   * @throws CTPException error querying for case
    */
   List<CaseDTO> getCaseByUPRN(
       final UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)

@@ -9,9 +9,21 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionExce
 /** Repository for Case Data */
 public interface CaseDataRepository {
 
-  /** Write a Case */
+  /**
+   * Store newly created skeleton case to repository
+   *
+   * @param newCase Skeleton case to be stored in repository
+   * @throws CTPException undefined system error on storing case to repository
+   * @throws DataStoreContentionException repository store operation failing due to excess load
+   */
   void storeCaseByUPRN(CachedCase newCase) throws CTPException, DataStoreContentionException;
 
-  /** Read Cases for an address UPRN */
+  /**
+   * Read Case for an address by Unique Property Reference Number
+   *
+   * @param uprn of case to read
+   * @return Optional containing case for UPRN if available
+   * @throws CTPException error reading case
+   */
   Optional<CachedCase> readCaseByUPRN(final UniquePropertyReferenceNumber uprn) throws CTPException;
 }

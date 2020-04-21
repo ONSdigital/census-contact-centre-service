@@ -27,10 +27,11 @@ public interface AddressService {
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest);
 
   /**
-   * Search for an address by uprn
+   * Search for an address by Unique Property Reference No
    *
-   * @param uprn Unique Property Reference No.
+   * @param uprn for which to return address
    * @return Optional with result object splitting address into census component fields
+   * @throws CTPException error querying for address
    */
   public Optional<AddressIndexAddressSplitDTO> uprnQuery(long uprn) throws CTPException;
 }

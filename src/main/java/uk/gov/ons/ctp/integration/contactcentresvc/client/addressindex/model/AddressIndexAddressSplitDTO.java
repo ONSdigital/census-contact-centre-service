@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+/** Address Index query result splitting address into Census component fields */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddressIndexAddressSplitDTO {
