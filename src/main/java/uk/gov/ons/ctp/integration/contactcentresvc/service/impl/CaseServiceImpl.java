@@ -419,12 +419,12 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
-  private void publishNewAddressReportedEvent(String caseId, AddressIndexAddressSplitDTO address) {
-    log.with("caseId", caseId).info("Generating NewAddressReported event");
+  private void publishNewAddressReportedEvent(UUID caseId, AddressIndexAddressSplitDTO address) {
+    log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
         caseDTOMapper.map(address, CollectionCaseNewAddress.class);
-    newAddress.setId(caseId);
+    newAddress.setId(caseId.toString());
     newAddress.setSurvey("CENSUS");
 
     // TO DO Derivation of addressLevel to be clarified. For now set to value covering majority of
@@ -684,17 +684,19 @@ public class CaseServiceImpl implements CaseService {
       throw new CTPException(Fault.VALIDATION_FAILED, "Scottish address found for UPRN: " + uprn);
     }
 
-    String newCaseId = (UUID.randomUUID().toString());
+    UUID newCaseId = UUID.randomUUID();
     publishNewAddressReportedEvent(newCaseId, address);
 
     CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
-    cachedCase.setId(newCaseId);
+    cachedCase.setId(newCaseId.toString());
     try {
       dataRepo.storeCaseByUPRN(cachedCase);
     } catch (DataStoreContentionException e) {
-      log.error("Retries exhausted for storage of new address case: " + newCaseId);
+      log.error("Retries exhausted for storage of new address case: " + newCaseId.toString());
       throw new CTPException(
-          Fault.SYSTEM_ERROR, e, "Retries exhausted for storage of new address case: " + newCaseId);
+          Fault.SYSTEM_ERROR,
+          e,
+          "Retries exhausted for storage of new address case: " + newCaseId.toString());
     }
     return cachedCase;
   }
