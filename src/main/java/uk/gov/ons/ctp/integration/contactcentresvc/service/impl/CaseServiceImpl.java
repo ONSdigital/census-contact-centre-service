@@ -220,6 +220,7 @@ public class CaseServiceImpl implements CaseService {
 
     List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), requestParamsDTO.getCaseEvents());
     if (!rmCases.isEmpty()) {
+      log.with("uprn", uprn).with("cases", rmCases.size()).debug("Returning case details for UPRN");
       return rmCases;
     }
 
@@ -232,6 +233,9 @@ public class CaseServiceImpl implements CaseService {
 
     // New Case
     CaseDTO result = caseDTOMapper.map(createNewCase(uprn.getValue()), CaseDTO.class);
+    log.with("uprn", uprn)
+        .with("caseId", result.getId())
+        .debug("Returning new skeleton case for UPRN");
     return Collections.singletonList(result);
   }
 
@@ -423,7 +427,7 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setId(caseId);
     newAddress.setSurvey("CENSUS");
 
-    // TODO Derivation of addressLevel to be clarified. For now set to value covering majority of
+    // TO DO Derivation of addressLevel to be clarified. For now set to value covering majority of
     // cases
     newAddress.getAddress().setAddressLevel("U");
 
@@ -657,11 +661,11 @@ public class CaseServiceImpl implements CaseService {
   }
 
   /**
-   * Create new case, publish new address reported event and store new case in rerpository cache for
-   * new cases.
+   * Create new skeleton case, publish new address reported event and store new case in repository
+   * cache.
    *
-   * @param uprn of address found
-   * @return Cachedcase details
+   * @param uprn for address
+   * @return CachedCase details of created skeleton case
    * @throws CTPException
    */
   private CachedCase createNewCase(Long uprn) throws CTPException {
