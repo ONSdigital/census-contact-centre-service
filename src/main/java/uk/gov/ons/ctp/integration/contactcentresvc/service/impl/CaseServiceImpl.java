@@ -671,12 +671,8 @@ public class CaseServiceImpl implements CaseService {
   private CachedCase createNewCase(Long uprn) throws CTPException {
 
     // Query AIMS for UPRN
-    Optional<AddressIndexAddressSplitDTO> addressQuery = addressSvc.uprnQuery(uprn);
-    if (addressQuery.isEmpty()) {
-      log.with("uprn", uprn).error("Failed to find address for UPRN");
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Failed to find address for UPRN %s", uprn);
-    }
-    AddressIndexAddressSplitDTO address = addressQuery.get();
+    AddressIndexAddressSplitDTO address = addressSvc.uprnQuery(uprn);
+
     if (address.getCountryCode() == SCOTTISH_COUNTRY_CODE) {
       log.with("uprn", uprn)
           .with("countryCode", address.getCountryCode())

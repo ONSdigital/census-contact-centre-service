@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -73,8 +72,7 @@ public class AddressServiceImplTest {
     Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    Optional<AddressIndexAddressSplitDTO> result = addressService.uprnQuery(100041045018L);
-    AddressIndexAddressSplitDTO address = result.get();
+    AddressIndexAddressSplitDTO address = addressService.uprnQuery(100041045018L);
 
     assertEquals("100041045018", address.getUprn());
     assertEquals("39 Sandford Walk", address.getAddressLine1());

@@ -3,7 +3,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -67,10 +66,8 @@ public class AddressServiceImpl implements AddressService {
   }
 
   @Override
-  public Optional<AddressIndexAddressSplitDTO> uprnQuery(long uprn) throws CTPException {
+  public AddressIndexAddressSplitDTO uprnQuery(long uprn) throws CTPException {
     log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
-
-    AddressIndexAddressSplitDTO address;
 
     // Delegate the query to Address Index
     try {
@@ -88,7 +85,9 @@ public class AddressServiceImpl implements AddressService {
             addressResult.getStatus().getCode(),
             addressResult.getStatus().getMessage());
       }
-      address = addressResult.getResponse().getAddress();
+      AddressIndexAddressSplitDTO address = addressResult.getResponse().getAddress();
+      log.with("uprn", uprn).debug("UPRN search is returning address");
+      return address;
     } catch (ResponseStatusException ex) {
       log.with("uprn", uprn)
           .with("status", ex.getStatus())
@@ -96,9 +95,6 @@ public class AddressServiceImpl implements AddressService {
           .warn("UPRN not found calling Address Index");
       throw ex;
     }
-
-    log.with("uprn", uprn).debug("UPRN search is returning address");
-    return Optional.ofNullable(address);
   }
 
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
