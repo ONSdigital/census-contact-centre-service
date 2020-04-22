@@ -10,10 +10,10 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.util.StringUtils;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
@@ -66,12 +66,12 @@ public class AddressServiceImpl implements AddressService {
   }
 
   @Override
-  public AddressIndexAddressSplitDTO uprnQuery(long uprn) throws CTPException {
+  public AddressIndexAddressCompositeDTO uprnQuery(long uprn) throws CTPException {
     log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
 
     // Delegate the query to Address Index
     try {
-      AddressIndexSearchResultsSplitDTO addressResult = addressServiceClient.searchByUPRN(uprn);
+      AddressIndexSearchResultsCompositeDTO addressResult = addressServiceClient.searchByUPRN(uprn);
       // No result for UPRN from Address Index search
       if (addressResult.getStatus().getCode() != 200) {
         log.with("uprn", uprn)
@@ -85,7 +85,7 @@ public class AddressServiceImpl implements AddressService {
             addressResult.getStatus().getCode(),
             addressResult.getStatus().getMessage());
       }
-      AddressIndexAddressSplitDTO address = addressResult.getResponse().getAddress();
+      AddressIndexAddressCompositeDTO address = addressResult.getResponse().getAddress();
       log.with("uprn", uprn).debug("UPRN search is returning address");
       return address;
     } catch (ResponseStatusException ex) {

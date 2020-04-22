@@ -17,9 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
@@ -67,12 +67,12 @@ public class AddressServiceImplTest {
   @Test
   public void testUPRNQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsSplitDTO addressIndexResults =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsSplitDTO[].class).get(0);
+    AddressIndexSearchResultsCompositeDTO addressIndexResults =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    AddressIndexAddressSplitDTO address = addressService.uprnQuery(100041045018L);
+    AddressIndexAddressCompositeDTO address = addressService.uprnQuery(100041045018L);
 
     assertEquals("100041045018", address.getUprn());
     assertEquals("39 Sandford Walk", address.getAddressLine1());
@@ -87,8 +87,8 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     final String message = "Server too busy";
     final int status = 429;
-    AddressIndexSearchResultsSplitDTO addressIndexResults =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsSplitDTO[].class).get(0);
+    AddressIndexSearchResultsCompositeDTO addressIndexResults =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     addressIndexResults.getStatus().setCode(status);
     addressIndexResults.getStatus().setMessage(message);
     Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);

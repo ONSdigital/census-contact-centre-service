@@ -6,11 +6,11 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties({"apiVersion"})
-public class AddressIndexSearchResultsSplitDTO {
+public class AddressIndexSearchResultsCompositeDTO {
 
   private String dataVersion;
 
-  private AddressIndexResponseSplitDTO response;
+  private AddressIndexResponseCompositeDTO response;
 
   private ResponseStatusData status;
 

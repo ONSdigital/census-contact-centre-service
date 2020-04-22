@@ -43,7 +43,7 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
@@ -419,7 +419,8 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
-  private void publishNewAddressReportedEvent(UUID caseId, AddressIndexAddressSplitDTO address) {
+  private void publishNewAddressReportedEvent(
+      UUID caseId, AddressIndexAddressCompositeDTO address) {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
@@ -671,7 +672,7 @@ public class CaseServiceImpl implements CaseService {
   private CachedCase createNewCase(Long uprn) throws CTPException {
 
     // Query AIMS for UPRN
-    AddressIndexAddressSplitDTO address = addressSvc.uprnQuery(uprn);
+    AddressIndexAddressCompositeDTO address = addressSvc.uprnQuery(uprn);
 
     if (address.getCountryCode() == SCOTTISH_COUNTRY_CODE) {
       log.with("uprn", uprn)
