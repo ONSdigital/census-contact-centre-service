@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.EstabType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 
@@ -22,6 +23,7 @@ public final class CaseServiceFixture {
   public static final String A_POSTCODE = "OL3 5DJ";
   public static final Region A_REGION = Region.E;
   public static final String A_RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
+  public static final String AN_AGENT_ID = "123";
 
   public static ModifyCaseRequestDTO createModifyCaseRequestDTO() {
     ModifyCaseRequestDTO dto =
@@ -39,5 +41,12 @@ public final class CaseServiceFixture {
     dto.setPostcode(A_POSTCODE);
     dto.setRegion(A_REGION);
     return dto;
+  }
+
+  public static LaunchRequestDTO createLaunchRequestDTO(boolean individual) {
+    LaunchRequestDTO tdo = new LaunchRequestDTO();
+    tdo.setAgentId(AN_AGENT_ID);
+    tdo.setIndividual(individual);
+    return tdo;
   }
 }
