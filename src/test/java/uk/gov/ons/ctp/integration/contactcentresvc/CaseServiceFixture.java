@@ -24,6 +24,7 @@ public final class CaseServiceFixture {
   public static final Region A_REGION = Region.E;
   public static final String A_RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
   public static final String AN_AGENT_ID = "123";
+  public static final String A_QUESTIONNAIRE_ID = "566786126";
 
   public static ModifyCaseRequestDTO createModifyCaseRequestDTO() {
     ModifyCaseRequestDTO dto =
