@@ -225,7 +225,7 @@ public class CaseServiceImpl implements CaseService {
     }
 
     // Return stored case details if present
-    Optional<CachedCase> cachedCase = dataRepo.readCaseByUPRN(uprn);
+    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
     if (cachedCase.isPresent()) {
       log.with("uprn", uprn).debug("Returning stored case details for UPRN");
       return Collections.singletonList(caseDTOMapper.map(cachedCase.get(), CaseDTO.class));
@@ -428,7 +428,7 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setId(caseId.toString());
     newAddress.setSurvey("CENSUS");
 
-    // TO DO Derivation of addressLevel to be clarified. For now set to value covering majority of
+    // TODO Derivation of addressLevel to be clarified. For now set to value covering majority of
     // cases
     newAddress.getAddress().setAddressLevel("U");
 
@@ -687,7 +687,7 @@ public class CaseServiceImpl implements CaseService {
     CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
     cachedCase.setId(newCaseId.toString());
     try {
-      dataRepo.storeCaseByUPRN(cachedCase);
+      dataRepo.writeCachedCase(cachedCase);
     } catch (DataStoreContentionException e) {
       log.error("Retries exhausted for storage of new address case: " + newCaseId.toString());
       throw new CTPException(

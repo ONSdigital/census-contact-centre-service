@@ -14,16 +14,17 @@ public interface CaseDataRepository {
    *
    * @param newCase Skeleton case to be stored in repository
    * @throws CTPException undefined system error on storing case to repository
-   * @throws DataStoreContentionException repository store operation failing due to excess load
+   * @throws DataStoreContentionException repository store operation failing
    */
-  void storeCaseByUPRN(CachedCase newCase) throws CTPException, DataStoreContentionException;
+  void writeCachedCase(CachedCase newCase) throws CTPException, DataStoreContentionException;
 
   /**
-   * Read Case for an address by Unique Property Reference Number
+   * Read a Case for an address by Unique Property Reference Number
    *
    * @param uprn of case to read
    * @return Optional containing case for UPRN if available
    * @throws CTPException error reading case
    */
-  Optional<CachedCase> readCaseByUPRN(final UniquePropertyReferenceNumber uprn) throws CTPException;
+  Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
+      throws CTPException;
 }
