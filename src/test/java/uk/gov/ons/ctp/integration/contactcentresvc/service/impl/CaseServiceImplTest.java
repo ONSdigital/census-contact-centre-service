@@ -633,7 +633,7 @@ public class CaseServiceImplTest {
   }
 
   @SneakyThrows
-  private void checkRejectInvalidLaunchCombo(String expectedMsg) {
+  private void assertThatInvalidLaunchComboIsRejected(String expectedMsg) {
     formType = "CE";
     try {
       doLaunchTest(UUID_0, "CE", false);
@@ -645,35 +645,35 @@ public class CaseServiceImplTest {
   }
 
   @SneakyThrows
-  private void checkRejectCeManagerFormFromUnitRegion() {
+  private void assertThatCeManagerFormFromUnitRegionIsRejected() {
     addressLevel = "U";
-    checkRejectInvalidLaunchCombo(
+    assertThatInvalidLaunchComboIsRejected(
         "A CE Manager form can only be launched against an establishment address not a UNIT.");
   }
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionEast() {
     region = Region.E;
-    checkRejectCeManagerFormFromUnitRegion();
+    assertThatCeManagerFormFromUnitRegionIsRejected();
   }
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionWest() {
     region = Region.W;
-    checkRejectCeManagerFormFromUnitRegion();
+    assertThatCeManagerFormFromUnitRegionIsRejected();
   }
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionNorth() {
     region = Region.N;
-    checkRejectCeManagerFormFromUnitRegion();
+    assertThatCeManagerFormFromUnitRegionIsRejected();
   }
 
   @Test
   public void shouldRejectNorthernIslandCallsFromCeManagers() throws Exception {
     region = Region.N;
     addressLevel = "E";
-    checkRejectInvalidLaunchCombo(
+    assertThatInvalidLaunchComboIsRejected(
         "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
   }
 
