@@ -1,7 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.getJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
@@ -11,13 +14,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -52,7 +56,7 @@ public class CaseEndpointCaseLaunchTest {
   @Test
   public void getLaunchURL_ValidInvocation() throws Exception {
     String fakeResponse = "{\"url\": \"https://www.google.co.uk/search?q=FAKE\"}";
-    Mockito.when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
+    when(caseService.getLaunchURLForCaseId(any(), any())).thenReturn(fakeResponse);
 
     ResultActions actions =
         mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
@@ -96,5 +100,16 @@ public class CaseEndpointCaseLaunchTest {
     ResultActions actions =
         mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=123&individual=x"));
     actions.andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void shouldRejectServiceBadRequestException() throws Exception {
+    CTPException ex = new CTPException(Fault.BAD_REQUEST, "a message");
+    when(caseService.getLaunchURLForCaseId(any(), any())).thenThrow(ex);
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
+    actions
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("a message")));
   }
 }

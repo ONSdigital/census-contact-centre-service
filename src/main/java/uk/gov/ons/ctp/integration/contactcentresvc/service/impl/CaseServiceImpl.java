@@ -6,12 +6,14 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +71,14 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 public class CaseServiceImpl implements CaseService {
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
+  private static final Collection<String> VALID_REGIONS =
+      Stream.of(uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.values())
+          .map(Enum::name)
+          .collect(Collectors.toList());
+  private static final String NI_LAUNCH_ERR_MSG =
+      "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
+  private static final String UNIT_LAUNCH_ERR_MSG =
+      "A CE Manager form can only be launched against an establishment address not a UNIT.";
 
   private static final String SCOTTISH_COUNTRY_CODE = "S";
 
@@ -307,18 +317,11 @@ public class CaseServiceImpl implements CaseService {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
 
-    // Create a new case if for a HH individual
-    boolean individual = requestParamsDTO.getIndividual();
-    UUID individualCaseId = null;
-    if (caseType == CaseType.HH && individual == true) {
-      individualCaseId = UUID.randomUUID();
-      caseDetails.setId(individualCaseId);
-      caseDetails.setCaseType(CaseType.HI.name());
-      log.with("individualCaseId", individualCaseId).info("Creating new HI case");
-    }
+    UUID individualCaseId = createIndividualCaseId(caseType, caseDetails, requestParamsDTO);
 
     // Get RM to allocate a new questionnaire ID
     log.info("Before new QID");
+    boolean individual = requestParamsDTO.getIndividual();
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
         caseServiceClient.getSingleUseQuestionnaireId(caseId, individual, individualCaseId);
     String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
@@ -327,7 +330,48 @@ public class CaseServiceImpl implements CaseService {
         .with("formType", formType)
         .info("Have generated new questionnaireId");
 
-    // Finally, build the url needed to launch the survey
+    if (caseType == CaseType.CE && !individual && "CE".contentEquals(formType)) {
+      rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
+    }
+
+    String eqUrl = createLaunchUrl(formType, caseDetails, requestParamsDTO, questionnaireId);
+    publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
+    return eqUrl;
+  }
+
+  private void rejectInvalidLaunchCombinations(String region, String addressLevel)
+      throws CTPException {
+    if ("E".equals(addressLevel)) {
+      if ("N".equals(region)) {
+        throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
+      }
+    } else if ("U".equals(addressLevel)) {
+      if (VALID_REGIONS.contains(region)) {
+        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
+      }
+    }
+  }
+
+  // Create a new case if for a HH individual
+  private UUID createIndividualCaseId(
+      CaseType caseType, CaseContainerDTO caseDetails, LaunchRequestDTO requestParamsDTO) {
+    boolean individual = requestParamsDTO.getIndividual();
+    UUID individualCaseId = null;
+    if (caseType == CaseType.HH && individual) {
+      individualCaseId = UUID.randomUUID();
+      caseDetails.setId(individualCaseId);
+      caseDetails.setCaseType(CaseType.HI.name());
+      log.with("individualCaseId", individualCaseId).info("Creating new HI case");
+    }
+    return individualCaseId;
+  }
+
+  private String createLaunchUrl(
+      String formType,
+      CaseContainerDTO caseDetails,
+      LaunchRequestDTO requestParamsDTO,
+      String questionnaireId)
+      throws CTPException {
     String encryptedPayload = "";
     try {
       encryptedPayload =
@@ -346,14 +390,8 @@ public class CaseServiceImpl implements CaseService {
       log.with(e).error("Failed to create JWE payload for eq launch");
       throw e;
     }
-
-    // Create full launch URL
     String eqUrl = "https://" + appConfig.getEq().getHost() + "/session?token=" + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
-
-    // Finally tell RM that a survey has been launched
-    publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
-
     return eqUrl;
   }
 
