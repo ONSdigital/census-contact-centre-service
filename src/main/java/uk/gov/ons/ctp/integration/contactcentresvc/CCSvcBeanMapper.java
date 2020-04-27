@@ -13,7 +13,7 @@ import uk.gov.ons.ctp.common.util.StringToUPRNConverter;
 import uk.gov.ons.ctp.common.util.StringToUUIDConverter;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -49,7 +49,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .register();
 
     factory
-        .classMap(AddressIndexAddressSplitDTO.class, CollectionCaseNewAddress.class)
+        .classMap(AddressIndexAddressCompositeDTO.class, CollectionCaseNewAddress.class)
         .field("uprn", "address.uprn")
         .field("addressLine1", "address.addressLine1")
         .field("addressLine2", "address.addressLine2")
@@ -62,7 +62,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .register();
 
     factory
-        .classMap(AddressIndexAddressSplitDTO.class, CachedCase.class)
+        .classMap(AddressIndexAddressCompositeDTO.class, CachedCase.class)
         .field("censusAddressType", "addressType")
         .field("censusEstabType", "estabType")
         .field("countryCode", "region")

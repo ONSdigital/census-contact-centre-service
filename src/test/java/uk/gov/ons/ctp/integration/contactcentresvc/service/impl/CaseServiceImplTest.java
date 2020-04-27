@@ -70,8 +70,9 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
@@ -384,19 +385,19 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByUprn_householdIndividualCase_emptyResultSet_NoCachedCase()
+  public void testGetCaseByUprn_householdIndividualCase_emptyResultSet_noCachedCase()
       throws Exception {
 
     List<CaseContainerDTO> caseFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     caseFromCaseService.get(0).setCaseType("HI");
     caseFromCaseService.get(1).setCaseType("HI");
-    AddressIndexAddressSplitDTO addressFromAI =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+    AddressIndexAddressCompositeDTO addressFromAI =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     Mockito.when(caseServiceClient.getCaseByUprn(eq(UPRN.getValue()), any()))
         .thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(Optional.of(addressFromAI));
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
 
     List<CaseDTO> results = target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(true));
     assertEquals(1, results.size());
@@ -404,15 +405,15 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase() throws Exception {
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase() throws Exception {
 
-    AddressIndexAddressSplitDTO addressFromAI =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+    AddressIndexAddressCompositeDTO addressFromAI =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(Optional.of(addressFromAI));
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
 
     List<CaseDTO> results = target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
     assertEquals(1, results.size());
@@ -420,50 +421,69 @@ public class CaseServiceImplTest {
   }
 
   @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_NoAddressFound()
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_addressServiceNotFound()
       throws Exception {
 
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(Optional.empty());
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.doThrow(new CTPException(Fault.RESOURCE_NOT_FOUND))
+        .when(addressSvc)
+        .uprnQuery(UPRN.getValue());
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1)).readCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).storeCaseByUPRN(any());
+    Mockito.verify(dataRepo, times(1))
+        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
+    Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
     Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
-  @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_ScottishAddress()
+  @Test(expected = ResponseStatusException.class)
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_addressSvcRestClientException()
       throws Exception {
 
-    AddressIndexAddressSplitDTO addressFromAI =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseByUprn(eq(UPRN.getValue()), any());
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(addressSvc)
+        .uprnQuery(eq(UPRN.getValue()));
+
+    target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
+  }
+
+  @Test(expected = CTPException.class)
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_scottishAddress()
+      throws Exception {
+
+    AddressIndexAddressCompositeDTO addressFromAI =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     addressFromAI.setCountryCode("S");
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(Optional.of(addressFromAI));
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1)).readCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).storeCaseByUPRN(any());
+    Mockito.verify(dataRepo, times(1))
+        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
+    Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
     Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
   @Test
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_CachedCase() throws Exception {
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_cachedCase() throws Exception {
 
     CachedCase cachedCase = FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCaseByUPRN(UPRN)).thenReturn(Optional.of(cachedCase));
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.of(cachedCase));
     List<CaseDTO> results = target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
     assertEquals(1, results.size());
     verifyCachedCase(cachedCase, results.get(0));
@@ -476,6 +496,25 @@ public class CaseServiceImplTest {
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
 
+    target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
+  }
+
+  @Test(expected = CTPException.class)
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_DataStoreContentionException()
+      throws Exception {
+
+    AddressIndexAddressCompositeDTO addressFromAI =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseByUprn(eq(UPRN.getValue()), any());
+    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
+    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
+    Mockito.doThrow(
+            new DataStoreContentionException(
+                "Test repository contention exception", new Exception()))
+        .when(dataRepo)
+        .writeCachedCase(any());
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
   }
 
@@ -1189,16 +1228,18 @@ public class CaseServiceImplTest {
     }
 
     assertEquals(expectedCaseResult, results);
-    Mockito.verify(dataRepo, never()).readCaseByUPRN(any());
-    Mockito.verify(dataRepo, never()).storeCaseByUPRN(any());
+    Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
+    Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
     Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
-  private void verifyNewCase(AddressIndexAddressSplitDTO address, CaseDTO result) throws Exception {
+  private void verifyNewCase(AddressIndexAddressCompositeDTO address, CaseDTO result)
+      throws Exception {
 
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1)).readCaseByUPRN(any(UniquePropertyReferenceNumber.class));
+    Mockito.verify(dataRepo, times(1))
+        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
 
     CachedCase cachedCase = mapperFacade.map(address, CachedCase.class);
@@ -1206,7 +1247,7 @@ public class CaseServiceImplTest {
         UUID.class.isInstance(result.getId())
             ? result.getId().toString()
             : UUID.randomUUID().toString());
-    Mockito.verify(dataRepo, times(1)).storeCaseByUPRN(cachedCase);
+    Mockito.verify(dataRepo, times(1)).writeCachedCase(cachedCase);
 
     CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
     assertEquals(expectedNewCaseResult, result);
@@ -1230,8 +1271,9 @@ public class CaseServiceImplTest {
     assertEquals(expectedResult, result);
 
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1)).readCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).storeCaseByUPRN(any());
+    Mockito.verify(dataRepo, times(1))
+        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
+    Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
     Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }

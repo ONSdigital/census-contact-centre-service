@@ -9,7 +9,7 @@ import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressSplitDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -44,9 +44,9 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void AddressIndexAddressSplitDTO_CollectionCaseNewAddress() throws Exception {
-    AddressIndexAddressSplitDTO source =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+  public void AddressIndexAddressCompositeDTO_CollectionCaseNewAddress() throws Exception {
+    AddressIndexAddressCompositeDTO source =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CollectionCaseNewAddress destination = mapperFacade.map(source, CollectionCaseNewAddress.class);
     Address destAddr = destination.getAddress();
     assertEquals(source.getUprn(), destAddr.getUprn());
@@ -61,9 +61,9 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void AddressIndexAddressSplitDTO_CachedCase() throws Exception {
-    AddressIndexAddressSplitDTO source =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressSplitDTO[].class).get(0);
+  public void AddressIndexAddressCompositeDTO_CachedCase() throws Exception {
+    AddressIndexAddressCompositeDTO source =
+        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CachedCase destination = mapperFacade.map(source, CachedCase.class);
     assertEquals(source.getUprn(), destination.getUprn());
     assertEquals(source.getFormattedAddress(), destination.getFormattedAddress());

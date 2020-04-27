@@ -1,4 +1,4 @@
-google-cloud-project: census-rh-test
+google-cloud-project: gcp-project
 
 info:
   name: ${project.artifactId}
@@ -112,9 +112,9 @@ address-index-settings:
   rest-client-config:
     username:
     password:
-    scheme: https
+    scheme: http
     host: rh-dev-ai-api.ai.census-gcp.onsdigital.uk
-    port: 443
+    port: 80
     
 case-service-settings:
   rest-client-config:
@@ -176,7 +176,7 @@ report-settings:
 
 cloud-storage:
   case-schema-name: new-case
-  backoff-initial: 100
-  backoff-multiplier: 1.2
-  backoff-max: 3000
-  backoff-max-attempts: 2
+  backoff-initial: 500
+  backoff-multiplier: 2
+  backoff-max: 3500
+  backoff-max-attempts: 3

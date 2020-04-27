@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AddressIndexResponseSplitDTO {
+public class AddressIndexResponseCompositeDTO {
 
-  private AddressIndexAddressSplitDTO address;
+  private AddressIndexAddressCompositeDTO address;
 }

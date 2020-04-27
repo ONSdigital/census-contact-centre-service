@@ -10,8 +10,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import uk.gov.ons.ctp.common.rest.RestClient;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -79,7 +79,7 @@ public class AddressServiceClientServiceImpl {
     return addressIndexResponse;
   }
 
-  public AddressIndexSearchResultsSplitDTO searchByUPRN(Long uprn) {
+  public AddressIndexSearchResultsCompositeDTO searchByUPRN(Long uprn) {
     log.debug("Delegating UPRN search to AddressIndex service");
 
     // Build map for query params
@@ -88,9 +88,9 @@ public class AddressServiceClientServiceImpl {
 
     // Ask Address Index to do uprn search
     String path = appConfig.getAddressIndexSettings().getUprnLookupPath();
-    AddressIndexSearchResultsSplitDTO addressIndexResponse =
+    AddressIndexSearchResultsCompositeDTO addressIndexResponse =
         addressIndexClient.getResource(
-            path, AddressIndexSearchResultsSplitDTO.class, null, queryParams, uprn.toString());
+            path, AddressIndexSearchResultsCompositeDTO.class, null, queryParams, uprn.toString());
 
     log.with("uprn", uprn)
         .with("status", addressIndexResponse.getStatus().getCode())

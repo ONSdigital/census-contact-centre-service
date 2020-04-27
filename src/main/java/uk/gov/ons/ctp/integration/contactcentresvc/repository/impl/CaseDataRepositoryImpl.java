@@ -1,5 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.repository.impl;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +11,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CloudDataStore;
@@ -16,6 +20,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
 
 @Service
 public class CaseDataRepositoryImpl implements CaseDataRepository {
+
+  private static final Logger log = LoggerFactory.getLogger(CaseDataRepositoryImpl.class);
 
   @Value("${google-cloud-project}")
   private String gcpProject;
@@ -33,11 +39,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
     this.cloudDataStore.connect();
   }
 
-  /**
-   * Store a New Address Case object into the data store
-   *
-   * @param CollectionCaseNewAddress to store
-   */
   @Retryable(
       label = "writeNewCase",
       include = DataStoreContentionException.class,
@@ -49,20 +50,26 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       maxAttemptsExpression = "#{${cloud-storage.backoff-max-attempts}}",
       listeners = "ccRetryListener")
   @Override
-  public void storeCaseByUPRN(CachedCase caze) throws CTPException, DataStoreContentionException {
-    cloudDataStore.storeObject(caseSchema, caze.getUprn(), caze);
+  public void writeCachedCase(CachedCase caze) throws CTPException, DataStoreContentionException {
+    cloudDataStore.storeObject(caseSchema, caze.getId(), caze);
   }
 
-  /**
-   * Read a New Address Case object from data store
-   *
-   * @param Unique Property Reference Number under which the case is stored
-   * @return Case stored for UPRN
-   */
   @Override
-  public Optional<CachedCase> readCaseByUPRN(final UniquePropertyReferenceNumber uprn)
+  public Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
       throws CTPException {
-    return cloudDataStore.retrieveObject(
-        CachedCase.class, caseSchema, String.valueOf(uprn.getValue()));
+    String key = String.valueOf(uprn.getValue());
+    String[] searchByUprnPath = new String[] {"uprn"};
+    List<CachedCase> results =
+        cloudDataStore.search(CachedCase.class, caseSchema, searchByUprnPath, key);
+
+    if (results.isEmpty()) {
+      return Optional.empty();
+    } else if (results.size() > 1) {
+      log.with("uprn", key).error("More than one cached skeleton case for UPRN");
+      throw new CTPException(
+          Fault.SYSTEM_ERROR, "More than one cached skeleton case for UPRN: " + key);
+    } else {
+      return Optional.ofNullable(results.get(0));
+    }
   }
 }

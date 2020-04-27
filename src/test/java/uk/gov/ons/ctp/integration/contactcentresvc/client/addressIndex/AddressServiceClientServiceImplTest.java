@@ -17,8 +17,8 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsSplitDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AddressIndexSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -117,20 +117,20 @@ public class AddressServiceClientServiceImplTest {
   @Test
   public void testUPRNQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsSplitDTO resultsFromAddressIndex =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsSplitDTO[].class, null).get(0);
+    AddressIndexSearchResultsCompositeDTO resultsFromAddressIndex =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("addresstype", ADDRESS_TYPE);
     Mockito.when(
             restClient.getResource(
                 eq(UPRN_QUERY_PATH),
-                eq(AddressIndexSearchResultsSplitDTO.class),
+                eq(AddressIndexSearchResultsCompositeDTO.class),
                 Mockito.isNull(),
                 eq(queryParams),
                 eq(Long.toString(UPRN))))
         .thenReturn(resultsFromAddressIndex);
 
-    AddressIndexSearchResultsSplitDTO results = addressClientService.searchByUPRN(UPRN);
+    AddressIndexSearchResultsCompositeDTO results = addressClientService.searchByUPRN(UPRN);
     assertEquals("72", results.getDataVersion());
     assertEquals(Long.toString(UPRN), results.getResponse().getAddress().getUprn());
     assertEquals("39 Sandford Walk", results.getResponse().getAddress().getAddressLine1());
