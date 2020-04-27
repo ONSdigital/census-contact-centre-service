@@ -12,6 +12,9 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
@@ -29,6 +32,7 @@ import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -38,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -74,7 +79,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequ
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -100,6 +104,10 @@ public class CaseServiceImplTest {
 
   @InjectMocks CaseService target = new CaseServiceImpl();
 
+  @Captor private ArgumentCaptor<UUID> individualCaseIdCaptor;
+  @Captor private ArgumentCaptor<CaseContainerDTO> caseCaptor;
+  @Captor private ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor;
+
   private static final EventType REFUSAL_EVENT_TYPE_FIELD_VALUE = EventType.REFUSAL_RECEIVED;
   private static final Source REFUSAL_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
   private static final Channel REFUSAL_CHANNEL_FIELD_VALUE = Channel.CC;
@@ -115,8 +123,6 @@ public class CaseServiceImplTest {
   private static final boolean CASE_EVENTS_FALSE = false;
   private static final String A_UPRN = "1234";
   private static final String AN_ESTAB_UPRN = "334111111111";
-
-  private Reason reason = Reason.EXTRAORDINARY;
 
   @Before
   public void initMocks() {
@@ -541,8 +547,8 @@ public class CaseServiceImplTest {
     UUID caseId = UUID.randomUUID();
     UUID expectedEventCaseId = caseId;
     String expectedResponseCaseId = caseId.toString();
-    this.reason = Reason.EXTRAORDINARY;
-    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+    doRespondentRefusalTest(
+        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
   }
 
   @Test
@@ -551,8 +557,8 @@ public class CaseServiceImplTest {
     UUID caseId = UUID.randomUUID();
     UUID expectedEventCaseId = caseId;
     String expectedResponseCaseId = caseId.toString();
-    this.reason = Reason.HARD;
-    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+    doRespondentRefusalTest(
+        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.HARD);
   }
 
   @Test
@@ -561,7 +567,8 @@ public class CaseServiceImplTest {
     UUID caseId = UUID.randomUUID();
     UUID expectedEventCaseId = caseId;
     String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+    doRespondentRefusalTest(
+        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
   }
 
   @Test
@@ -570,7 +577,8 @@ public class CaseServiceImplTest {
     UUID caseId = UUID.randomUUID();
     UUID expectedEventCaseId = caseId;
     String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(caseId, expectedEventCaseId, expectedResponseCaseId, dateTime);
+    doRespondentRefusalTest(
+        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
   }
 
   @Test
@@ -578,47 +586,95 @@ public class CaseServiceImplTest {
     UUID unknownCaseId = null;
     UUID expectedEventCaseId = UUID.fromString("00000000-0000-0000-0000-000000000000");
     String expectedResponseCaseId = "unknown";
-    doRespondentRefusalTest(unknownCaseId, expectedEventCaseId, expectedResponseCaseId, new Date());
+    doRespondentRefusalTest(
+        unknownCaseId,
+        expectedEventCaseId,
+        expectedResponseCaseId,
+        new Date(),
+        Reason.EXTRAORDINARY);
   }
 
   @Test
   public void testLaunchCECase() throws Exception {
-    doLaunchTest(UUID_0, "CE", false);
+    doLaunchTest("CE", false);
   }
 
   @Test
   public void testLaunchCECaseForIndividual() throws Exception {
-    doLaunchTest(UUID_0, "CE", true);
+    doLaunchTest("CE", true);
   }
 
   @Test
   public void testLaunchHHCase() throws Exception {
-    doLaunchTest(UUID_0, "HH", false);
+    doLaunchTest("HH", false);
   }
 
   @Test
   public void testLaunchSPGCase() throws Exception {
-    doLaunchTest(UUID_0, "SPG", false);
+    doLaunchTest("SPG", false);
   }
 
   @Test
   public void testLaunchSPGCaseForIndividual() throws Exception {
-    doLaunchTest(UUID_0, "SPG", true);
+    doLaunchTest("SPG", true);
   }
 
   @Test
   public void testLaunchHHCaseForIndividual() throws Exception {
-    doLaunchTest(UUID_0, "HH", true);
+    doLaunchTest("HH", true);
   }
 
   @Test
   public void testLaunchHICase() throws Exception {
     try {
-      doLaunchTest(UUID_0, "HI", false);
+      doLaunchTest("HI", false);
       fail();
     } catch (Exception e) {
       assertTrue(e.getMessage(), e.getMessage().contains("must be SPG, CE or HH"));
     }
+  }
+
+  @SneakyThrows
+  private void assertThatInvalidLaunchComboIsRejected(CaseContainerDTO dto, String expectedMsg) {
+    try {
+      doLaunchTest(false, dto, "CE");
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(e.getMessage(), e.getMessage().contains(expectedMsg));
+    }
+  }
+
+  @SneakyThrows
+  private void assertThatCeManagerFormFromUnitRegionIsRejected(CaseContainerDTO dto) {
+    assertThatInvalidLaunchComboIsRejected(
+        dto, "A CE Manager form can only be launched against an establishment address not a UNIT.");
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromUnitRegionEast() {
+    CaseContainerDTO dto = mockGetCaseById("CE", "U", "E");
+    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromUnitRegionWest() {
+    CaseContainerDTO dto = mockGetCaseById("CE", "U", "W");
+    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromUnitRegionNorth() {
+    CaseContainerDTO dto = mockGetCaseById("CE", "U", "N");
+    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+  }
+
+  @Test
+  public void shouldRejectNorthernIslandCallsFromCeManagers() throws Exception {
+    CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
+    assertThatInvalidLaunchComboIsRejected(
+        dto,
+        "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
   }
 
   @SneakyThrows
@@ -691,26 +747,7 @@ public class CaseServiceImplTest {
     verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
-  private void doLaunchTest(UUID caseId, String caseType, boolean individual) throws Exception {
-    // Build case details to be returned from case search
-    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    caseFromCaseService.setCaseType(caseType);
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
-
-    // Fake RM response for creating questionnaire ID
-    String questionnaireId = "566786126";
-    String formType = "H";
-    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();
-    newQuestionnaireIdDto.setQuestionnaireId(questionnaireId);
-    newQuestionnaireIdDto.setFormType(formType);
-    Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(UUID_0), eq(individual), any()))
-        .thenReturn(newQuestionnaireIdDto);
-
-    // Mock appConfig data
-    EqConfig eqConfig = new EqConfig();
-    eqConfig.setHost("localhost");
-    Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
-
+  private void mockEqLaunchJwe() throws Exception {
     // Mock out building of launch payload
     Mockito.when(
             eqLaunchService.getEqLaunchJwe(
@@ -725,42 +762,24 @@ public class CaseServiceImplTest {
                 any(),
                 isNull())) // keystore
         .thenReturn("simulated-encrypted-payload");
+  }
 
-    // Build DTO for launch request
-    LaunchRequestDTO launchRequestDTO = new LaunchRequestDTO();
-    launchRequestDTO.setAgentId("1234");
-    launchRequestDTO.setIndividual(individual);
-
-    // Invoke method under test, and check returned url
-    String launchUrl = target.getLaunchURLForCaseId(caseId, launchRequestDTO);
-    assertEquals("https://localhost/session?token=simulated-encrypted-payload", launchUrl);
-
-    // Verify call to RM to get qid is using the correct individual case id
-    ArgumentCaptor<UUID> individualCaseIdCaptor = ArgumentCaptor.forClass(UUID.class);
-    Mockito.verify(caseServiceClient)
-        .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
-    if (caseType.equals("HH") && individual) {
-      assertNotEquals(UUID_0, individualCaseIdCaptor.getValue()); // expecting newly allocated uuid
-    } else {
-      assertNull(individualCaseIdCaptor.getValue());
-    }
-
-    // Verify correct data passed to eqLauncher
-    ArgumentCaptor<CaseContainerDTO> caseCaptor = ArgumentCaptor.forClass(CaseContainerDTO.class);
+  private void verifyEqLaunchJwe(
+      String questionnaireId, boolean individual, String caseType, String formType)
+      throws Exception {
     Mockito.verify(eqLaunchService)
         .getEqLaunchJwe(
             eq(Language.ENGLISH),
             eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
             eq(uk.gov.ons.ctp.common.model.Channel.CC),
             caseCaptor.capture(),
-            eq("1234"), // agent
+            eq(AN_AGENT_ID), // agent
             eq(questionnaireId),
             eq(formType),
             isNull(), // accountServiceUrl
             isNull(),
             any()); // keystore
 
-    // Verify case details passed to eqLauncher
     CaseContainerDTO capturedCase = caseCaptor.getValue();
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
@@ -768,10 +787,10 @@ public class CaseServiceImplTest {
     } else {
       assertEquals(UUID_0, capturedCase.getId());
     }
+  }
 
-    // Verify surveyLaunched event published
-    ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor =
-        ArgumentCaptor.forClass(SurveyLaunchedResponse.class);
+  private void verifySurveyLaunchedEventPublished(
+      String caseType, boolean individual, UUID caseId, String questionnaireId) {
     Mockito.verify(eventPublisher)
         .sendEvent(
             eq(EventType.SURVEY_LAUNCHED),
@@ -779,7 +798,6 @@ public class CaseServiceImplTest {
             eq(Channel.CC),
             (EventPayload) surveyLaunchedResponseCaptor.capture());
 
-    // Verify payload for surveyLaunched event
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
       assertNotEquals(UUID_0, surveyLaunchedResponseCaptor.getValue().getCaseId());
@@ -787,11 +805,69 @@ public class CaseServiceImplTest {
       assertEquals(caseId, surveyLaunchedResponseCaptor.getValue().getCaseId());
     }
     assertEquals(questionnaireId, surveyLaunchedResponseCaptor.getValue().getQuestionnaireId());
-    assertEquals("1234", surveyLaunchedResponseCaptor.getValue().getAgentId());
+    assertEquals(AN_AGENT_ID, surveyLaunchedResponseCaptor.getValue().getAgentId());
+  }
+
+  private void verifyCorrectIndividualCaseId(String caseType, boolean individual) {
+    // Verify call to RM to get qid is using the correct individual case id
+    Mockito.verify(caseServiceClient)
+        .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
+    if (caseType.equals("HH") && individual) {
+      assertNotEquals(UUID_0, individualCaseIdCaptor.getValue()); // expecting newly allocated uuid
+    } else {
+      assertNull(individualCaseIdCaptor.getValue());
+    }
+  }
+
+  private CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setCaseType(caseType);
+    caseFromCaseService.setAddressLevel(addressLevel);
+    caseFromCaseService.setRegion(region);
+    when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    return caseFromCaseService;
+  }
+
+  private void doLaunchTest(String caseType, boolean individual) throws Exception {
+    CaseContainerDTO caseFromCaseService = mockGetCaseById(caseType, "U", A_REGION.name());
+    doLaunchTest(individual, caseFromCaseService, "H");
+  }
+
+  private void doLaunchTest(
+      boolean individual, CaseContainerDTO caseFromCaseService, String formType) throws Exception {
+    String caseType = caseFromCaseService.getCaseType();
+
+    // Fake RM response for creating questionnaire ID
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();
+    newQuestionnaireIdDto.setQuestionnaireId(A_QUESTIONNAIRE_ID);
+    newQuestionnaireIdDto.setFormType(formType);
+    Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(UUID_0), eq(individual), any()))
+        .thenReturn(newQuestionnaireIdDto);
+
+    // Mock appConfig data
+    EqConfig eqConfig = new EqConfig();
+    eqConfig.setHost("localhost");
+    Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
+
+    mockEqLaunchJwe();
+
+    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(individual);
+
+    // Invoke method under test, and check returned url
+    String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+    assertEquals("https://localhost/session?token=simulated-encrypted-payload", launchUrl);
+
+    verifyCorrectIndividualCaseId(caseType, individual);
+    verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
+    verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
   }
 
   private void doRespondentRefusalTest(
-      UUID caseId, UUID expectedEventCaseId, String expectedResponseCaseId, Date dateTime)
+      UUID caseId,
+      UUID expectedEventCaseId,
+      String expectedResponseCaseId,
+      Date dateTime,
+      Reason reason)
       throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(A_UPRN);
     RefusalRequestDTO refusalPayload =
@@ -809,7 +885,7 @@ public class CaseServiceImplTest {
             .townName("Manchester")
             .postcode("OL3 5DJ")
             .uprn(uprn)
-            .region(Region.E)
+            .region(A_REGION)
             .reason(reason)
             .dateTime(dateTime)
             .build();
@@ -862,7 +938,7 @@ public class CaseServiceImplTest {
     assertEquals("Oldham", address.getAddressLine3());
     assertEquals("Manchester", address.getTownName());
     assertEquals("OL3 5DJ", address.getPostcode());
-    assertEquals("E", address.getRegion());
+    assertEquals(A_REGION.name(), address.getRegion());
     assertEquals(A_UPRN, address.getUprn());
   }
 
