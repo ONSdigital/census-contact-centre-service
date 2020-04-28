@@ -12,10 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AddressIndexSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
@@ -26,7 +28,8 @@ public class AddressServiceClientServiceImplTest {
 
   private static final String ADDRESS_QUERY_PATH = "/addresses";
   private static final String POSTCODE_QUERY_PATH = "/addresses/postcode";
-  private static final String UPRN_QUERY_PATH = "/addresses/uprn/{uprn}";
+  private static final String UPRN_QUERY_PATH = "/addresses/rh/uprn/{uprn}";
+  private static final String ADDRESS_TYPE = "paf";
   private static final long UPRN = 100041045018L;
 
   @Mock AppConfig appConfig = new AppConfig();
@@ -49,6 +52,7 @@ public class AddressServiceClientServiceImplTest {
     addressIndexSettings.setAddressQueryPath(ADDRESS_QUERY_PATH);
     addressIndexSettings.setPostcodeLookupPath(POSTCODE_QUERY_PATH);
     addressIndexSettings.setUprnLookupPath(UPRN_QUERY_PATH);
+    addressIndexSettings.setAddressType(ADDRESS_TYPE);
     Mockito.when(appConfig.getAddressIndexSettings()).thenReturn(addressIndexSettings);
   }
 
@@ -113,18 +117,29 @@ public class AddressServiceClientServiceImplTest {
   @Test
   public void testUPRNQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO resultsFromAddressIndex =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsDTO[].class, null).get(0);
+    AddressIndexSearchResultsCompositeDTO resultsFromAddressIndex =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    queryParams.add("addresstype", ADDRESS_TYPE);
     Mockito.when(
             restClient.getResource(
                 eq(UPRN_QUERY_PATH),
-                eq(AddressIndexSearchResultsDTO.class),
+                eq(AddressIndexSearchResultsCompositeDTO.class),
+                Mockito.isNull(),
+                eq(queryParams),
                 eq(Long.toString(UPRN))))
         .thenReturn(resultsFromAddressIndex);
 
-    AddressIndexSearchResultsDTO results = addressClientService.searchByUPRN(UPRN);
-    assertEquals("39", results.getDataVersion());
-    assertEquals(1, results.getResponse().getAddresses().size());
-    assertEquals(Long.toString(UPRN), results.getResponse().getAddresses().get(0).getUprn());
+    AddressIndexSearchResultsCompositeDTO results = addressClientService.searchByUPRN(UPRN);
+    assertEquals("72", results.getDataVersion());
+    assertEquals(Long.toString(UPRN), results.getResponse().getAddress().getUprn());
+    assertEquals("39 Sandford Walk", results.getResponse().getAddress().getAddressLine1());
+    assertEquals("", results.getResponse().getAddress().getAddressLine2());
+    assertEquals("", results.getResponse().getAddress().getAddressLine3());
+    assertEquals("Exeter", results.getResponse().getAddress().getTownName());
+    assertEquals("EX1 2ET", results.getResponse().getAddress().getPostcode());
+    assertEquals("HH", results.getResponse().getAddress().getCensusAddressType());
+    assertEquals("Household", results.getResponse().getAddress().getCensusEstabType());
+    assertEquals("E", results.getResponse().getAddress().getCountryCode());
   }
 }

@@ -1,0 +1,13 @@
+{
+  "uprn": "334999999999",
+  "formattedAddress": "39 Sandford Walk, Exeter, EX1 2ET",
+  "addressLine1": "39 Sandford Walk",
+  "addressLine2": "",
+  "addressLine3": "",
+  "townName": "Exeter",
+  "postcode": "EX1 2ET",
+  "foundAddressType": "PAF",
+  "censusAddressType": "HH",
+  "censusEstabType": "Household",
+  "countryCode": "E"
+}

@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service;
 
+import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -24,10 +26,11 @@ public interface AddressService {
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest);
 
   /**
-   * Search for an address by uprn
+   * Search for an address by Unique Property Reference No
    *
-   * @param uprn Unique Property Reference No.
-   * @return result object as for other searches but with only ever 0 or 1 result
+   * @param uprn for which to return address
+   * @return result object splitting address into census component fields
+   * @throws CTPException error querying for address
    */
-  public AddressQueryResponseDTO uprnQuery(Long uprn);
+  public AddressIndexAddressCompositeDTO uprnQuery(long uprn) throws CTPException;
 }

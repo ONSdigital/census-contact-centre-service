@@ -8,5 +8,6 @@ public class AddressIndexSettings {
   private String addressQueryPath;
   private String postcodeLookupPath;
   private String uprnLookupPath;
+  private String addressType;
   private RestClientConfig restClientConfig;
 }

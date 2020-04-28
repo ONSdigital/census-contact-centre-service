@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.util.StringUtils;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -62,19 +66,35 @@ public class AddressServiceImpl implements AddressService {
   }
 
   @Override
-  public AddressQueryResponseDTO uprnQuery(Long uprn) {
+  public AddressIndexAddressCompositeDTO uprnQuery(long uprn) throws CTPException {
     log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
 
     // Delegate the query to Address Index
-    AddressIndexSearchResultsDTO addressIndexResponse = addressServiceClient.searchByUPRN(uprn);
-
-    // Summarise the returned addresses
-    AddressQueryResponseDTO results =
-        convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
-
-    log.with("addresses", results.getAddresses().size())
-        .debug("Postcode search is returning addresses");
-    return results;
+    try {
+      AddressIndexSearchResultsCompositeDTO addressResult = addressServiceClient.searchByUPRN(uprn);
+      // No result for UPRN from Address Index search
+      if (addressResult.getStatus().getCode() != 200) {
+        log.with("uprn", uprn)
+            .with("status", addressResult.getStatus().getCode())
+            .with("message", addressResult.getStatus().getMessage())
+            .warn("UPRN not found calling Address Index");
+        throw new CTPException(
+            CTPException.Fault.RESOURCE_NOT_FOUND,
+            "UPRN: %s, status: %s, message: %s",
+            uprn,
+            addressResult.getStatus().getCode(),
+            addressResult.getStatus().getMessage());
+      }
+      AddressIndexAddressCompositeDTO address = addressResult.getResponse().getAddress();
+      log.with("uprn", uprn).debug("UPRN search is returning address");
+      return address;
+    } catch (ResponseStatusException ex) {
+      log.with("uprn", uprn)
+          .with("status", ex.getStatus())
+          .with("message", ex.getMessage())
+          .warn("UPRN not found calling Address Index");
+      throw ex;
+    }
   }
 
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(

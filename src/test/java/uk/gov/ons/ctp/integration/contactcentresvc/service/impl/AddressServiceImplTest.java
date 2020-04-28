@@ -12,8 +12,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -62,20 +67,43 @@ public class AddressServiceImplTest {
   @Test
   public void testUPRNQueryProcessing() throws Exception {
     // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsDTO[].class, null).get(0);
+    AddressIndexSearchResultsCompositeDTO addressIndexResults =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
-    AddressQueryResponseDTO results = addressService.uprnQuery(100041045018L);
+    AddressIndexAddressCompositeDTO address = addressService.uprnQuery(100041045018L);
 
-    assertEquals("39", results.getDataVersion());
-    assertEquals(1, results.getTotal());
-    ArrayList<AddressDTO> addresses = results.getAddresses();
-    assertEquals(1, addresses.size());
-    assertThat(addresses.get(0).getFormattedAddress(), startsWith("Unit 11p,"));
-    assertThat(addresses.get(0).getWelshFormattedAddress(), startsWith("Unit 11wp,"));
-    assertEquals("100041045018", addresses.get(0).getUprn());
+    assertEquals("100041045018", address.getUprn());
+    assertEquals("39 Sandford Walk", address.getAddressLine1());
+    assertEquals("", address.getAddressLine2());
+    assertEquals("", address.getAddressLine3());
+    assertEquals("Exeter", address.getTownName());
+    assertEquals("EX1 2ET", address.getPostcode());
+  }
+
+  @Test(expected = CTPException.class)
+  public void testUPRNQueryJSONStatusNot200() throws Exception {
+    // Build results to be returned from search
+    final String message = "Server too busy";
+    final int status = 429;
+    AddressIndexSearchResultsCompositeDTO addressIndexResults =
+        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
+    addressIndexResults.getStatus().setCode(status);
+    addressIndexResults.getStatus().setMessage(message);
+    Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
+
+    addressService.uprnQuery(100041045018L);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void testUPRNQueryRestClientException() throws Exception {
+
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(addressClientService)
+        .searchByUPRN(100041045018L);
+
+    addressService.uprnQuery(100041045018L);
   }
 
   /**

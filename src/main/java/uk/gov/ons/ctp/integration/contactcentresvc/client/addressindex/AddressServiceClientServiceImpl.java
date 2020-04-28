@@ -10,6 +10,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import uk.gov.ons.ctp.common.rest.RestClient;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
@@ -70,23 +71,29 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.with("status", addressIndexResponse.getStatus().getCode())
+    log.with("postcode", postcode)
+        .with("status", addressIndexResponse.getStatus().getCode())
         .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
         .debug("Postcode query response received");
 
     return addressIndexResponse;
   }
 
-  public AddressIndexSearchResultsDTO searchByUPRN(Long uprn) {
+  public AddressIndexSearchResultsCompositeDTO searchByUPRN(Long uprn) {
     log.debug("Delegating UPRN search to AddressIndex service");
+
+    // Build map for query params
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    queryParams.add("addresstype", appConfig.getAddressIndexSettings().getAddressType());
 
     // Ask Address Index to do uprn search
     String path = appConfig.getAddressIndexSettings().getUprnLookupPath();
+    AddressIndexSearchResultsCompositeDTO addressIndexResponse =
+        addressIndexClient.getResource(
+            path, AddressIndexSearchResultsCompositeDTO.class, null, queryParams, uprn.toString());
 
-    AddressIndexSearchResultsDTO addressIndexResponse =
-        addressIndexClient.getResource(path, AddressIndexSearchResultsDTO.class, uprn.toString());
-    log.with("status", addressIndexResponse.getStatus().getCode())
-        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+    log.with("uprn", uprn)
+        .with("status", addressIndexResponse.getStatus().getCode())
         .debug("UPRN query response received");
 
     return addressIndexResponse;

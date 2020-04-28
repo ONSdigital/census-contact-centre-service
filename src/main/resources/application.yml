@@ -1,3 +1,5 @@
+google-cloud-project: gcp-project
+
 info:
   name: ${project.artifactId}
   version: ${project.version}
@@ -105,10 +107,13 @@ channel: CC
 address-index-settings:
   address-query-path: /addresses
   postcode-lookup-path: /addresses/postcode/{postcode}
-  uprn-lookup-path: /addresses/uprn/{uprn}
+  uprn-lookup-path: /addresses/rh/uprn/{uprn}
+  address-type: paf
   rest-client-config:
+    username:
+    password:
     scheme: http
-    host: addressindex-api-beta.apps.devtest.onsclofo.uk
+    host: rh-dev-ai-api.ai.census-gcp.onsdigital.uk
     port: 80
     
 case-service-settings:
@@ -168,3 +173,10 @@ eq:
   
 report-settings:
   cron-expression: "0 * * * * *"
+
+cloud-storage:
+  case-schema-name: new-case
+  backoff-initial: 500
+  backoff-multiplier: 2
+  backoff-max: 3500
+  backoff-max-attempts: 3
