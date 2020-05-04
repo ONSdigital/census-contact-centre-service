@@ -767,6 +767,35 @@ public class CaseServiceImplTest {
     }
   }
 
+  @Test(expected = CTPException.class)
+  public void testLaunch_caseServiceNotFoundException_cachedCase() throws Exception {
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseById(UUID_0, false);
+    Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.of(new CachedCase()));
+    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(false);
+    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void testLaunch_caseServiceNotFoundException_noCachedCase() throws Exception {
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseById(UUID_0, false);
+    Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.empty());
+    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(true);
+    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void testLaunch_caseServiceResponseStatusException() throws Exception {
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(caseServiceClient)
+        .getCaseById(UUID_0, false);
+    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(true);
+    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+  }
+
   @SneakyThrows
   private void assertThatInvalidLaunchComboIsRejected(CaseContainerDTO dto, String expectedMsg) {
     try {

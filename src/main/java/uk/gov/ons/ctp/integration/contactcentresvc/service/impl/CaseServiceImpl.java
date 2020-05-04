@@ -314,8 +314,8 @@ public class CaseServiceImpl implements CaseService {
         .with("request", requestParamsDTO)
         .debug("Processing request to create launch URL");
 
-    // Validate case known and is for CE or HH
-    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+    CaseContainerDTO caseDetails = getLaunchCase(caseId);
+
     CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
@@ -341,6 +341,39 @@ public class CaseServiceImpl implements CaseService {
     String eqUrl = createLaunchUrl(formType, caseDetails, requestParamsDTO, questionnaireId);
     publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
     return eqUrl;
+  }
+
+  /**
+   * Get the Case for which the client has requested a launch URL
+   *
+   * @param caseId of case to get
+   * @return CaseContainerDTO for case requested
+   * @throws CTPException if case not available to call (not in case service), but new skeleton case
+   *     details available
+   */
+  private CaseContainerDTO getLaunchCase(UUID caseId) throws CTPException {
+    try {
+      CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+      return caseDetails;
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
+        if (cachedCase.isPresent()) {
+          log.with("caseid", caseId)
+              .with("status", ex.getStatus())
+              .with("message", ex.getMessage())
+              .warn("New skeleton case created but launch URL not available.");
+          throw new CTPException(
+              Fault.ACCEPTED_UNABLE_TO_PROCESS,
+              "Unable to provide launch URL at present, please try again later.");
+        }
+      }
+      log.with("caseid", caseId)
+          .with("status", ex.getStatus())
+          .with("message", ex.getMessage())
+          .error("Unable to provide launch URL, failed to call case service");
+      throw ex;
+    }
   }
 
   private void rejectInvalidLaunchCombinations(String region, String addressLevel)

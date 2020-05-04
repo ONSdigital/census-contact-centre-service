@@ -4,6 +4,7 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +51,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       maxAttemptsExpression = "#{${cloud-storage.backoff-max-attempts}}",
       listeners = "ccRetryListener")
   @Override
-  public void writeCachedCase(CachedCase caze) throws CTPException, DataStoreContentionException {
+  public void writeCachedCase(final CachedCase caze)
+      throws CTPException, DataStoreContentionException {
     cloudDataStore.storeObject(caseSchema, caze.getId(), caze);
   }
 
@@ -71,5 +73,10 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
     } else {
       return Optional.ofNullable(results.get(0));
     }
+  }
+
+  @Override
+  public Optional<CachedCase> readCachedCaseById(final UUID caseId) throws CTPException {
+    return cloudDataStore.retrieveObject(CachedCase.class, caseSchema, caseId.toString());
   }
 }
