@@ -16,10 +16,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
@@ -111,5 +113,27 @@ public class CaseEndpointCaseLaunchTest {
     actions
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("a message")));
+  }
+
+  @Test
+  public void shouldRejectServiceAcceptedUnableToProcessException() throws Exception {
+    CTPException ex = new CTPException(Fault.ACCEPTED_UNABLE_TO_PROCESS, "a message");
+    when(caseService.getLaunchURLForCaseId(any(), any())).thenThrow(ex);
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
+    actions
+        .andExpect(status().isAccepted())
+        .andExpect(content().string(containsString("a message")));
+  }
+
+  @Test
+  public void shouldRejectServiceResponseStatusException() throws Exception {
+    ResponseStatusException ex = new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT);
+    when(caseService.getLaunchURLForCaseId(any(), any())).thenThrow(ex);
+    ResultActions actions =
+        mockMvc.perform(getJson("/cases/" + uuid + "/launch?agentId=12345&individual=false"));
+    actions
+        .andExpect(status().isIAmATeapot())
+        .andExpect(content().string(containsString("SYSTEM_ERROR")));
   }
 }
