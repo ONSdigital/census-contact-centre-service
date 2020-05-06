@@ -44,6 +44,9 @@ import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.domain.CaseType;
+import uk.gov.ons.ctp.common.domain.Language;
+import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
@@ -60,8 +63,6 @@ import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
-import uk.gov.ons.ctp.common.model.Language;
-import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
@@ -81,7 +82,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
@@ -914,8 +914,8 @@ public class CaseServiceImplTest {
     Mockito.when(
             eqLaunchService.getEqLaunchJwe(
                 eq(Language.ENGLISH),
-                eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
-                eq(uk.gov.ons.ctp.common.model.Channel.CC),
+                eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
+                eq(uk.gov.ons.ctp.common.domain.Channel.CC),
                 any(),
                 any(),
                 any(),
@@ -932,8 +932,8 @@ public class CaseServiceImplTest {
     Mockito.verify(eqLaunchService)
         .getEqLaunchJwe(
             eq(Language.ENGLISH),
-            eq(uk.gov.ons.ctp.common.model.Source.CONTACT_CENTRE_API),
-            eq(uk.gov.ons.ctp.common.model.Channel.CC),
+            eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
+            eq(uk.gov.ons.ctp.common.domain.Channel.CC),
             caseCaptor.capture(),
             eq(AN_AGENT_ID), // agent
             eq(questionnaireId),

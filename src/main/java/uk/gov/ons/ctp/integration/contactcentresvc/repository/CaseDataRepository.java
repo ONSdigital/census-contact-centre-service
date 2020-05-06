@@ -2,8 +2,8 @@ package uk.gov.ons.ctp.integration.contactcentresvc.repository;
 
 import java.util.Optional;
 import java.util.UUID;
+import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
-import uk.gov.ons.ctp.common.model.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 
