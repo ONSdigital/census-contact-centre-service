@@ -20,7 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.domain.AddressLevel;
+import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
+import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -187,6 +190,7 @@ public class CaseServiceImpl implements CaseService {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
     caseServiceResponse.setAllowedDeliveryChannels(
         calculateAllowedDeliveryChannels(caseServiceResponse));
+    caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
 
     return caseServiceResponse;
   }
@@ -197,6 +201,8 @@ public class CaseServiceImpl implements CaseService {
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
       caseServiceResponse.setAllowedDeliveryChannels(
           calculateAllowedDeliveryChannels(caseServiceResponse));
+      caseServiceResponse.setEstabType(
+          EstabType.forCode(caseServiceResponse.getEstabDescription()));
     }
 
     return caseServiceListResponse;
@@ -238,15 +244,15 @@ public class CaseServiceImpl implements CaseService {
     Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
     if (cachedCase.isPresent()) {
       log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      return Collections.singletonList(caseDTOMapper.map(cachedCase.get(), CaseDTO.class));
+      return createNewCaseResponse(cachedCase.get());
     }
 
     // New Case
-    CaseDTO result = caseDTOMapper.map(createNewCase(uprn.getValue()), CaseDTO.class);
+    CachedCase newcase = createNewCase(uprn.getValue());
     log.with("uprn", uprn)
-        .with("caseId", result.getId())
+        .with("caseId", newcase.getId())
         .debug("Returning new skeleton case for UPRN");
-    return Collections.singletonList(result);
+    return createNewCaseResponse(newcase);
   }
 
   @Override
@@ -499,9 +505,18 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setId(caseId.toString());
     newAddress.setSurvey("CENSUS");
 
-    // TODO Derivation of addressLevel to be clarified. For now set to value covering majority of
-    // cases
-    newAddress.getAddress().setAddressLevel("U");
+    EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
+    Optional<AddressType> addressTypePresent = aimsEstabType.getAddressType();
+    if (addressTypePresent.isPresent()) {
+      AddressType addressType = addressTypePresent.get();
+      if (addressType == AddressType.HH || addressType == AddressType.SPG) {
+        newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+      } else {
+        newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
+      }
+    } else {
+      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+    }
 
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
@@ -745,18 +760,30 @@ public class CaseServiceImpl implements CaseService {
     // Query AIMS for UPRN
     AddressIndexAddressCompositeDTO address = addressSvc.uprnQuery(uprn);
 
-    if (address.getCountryCode() == SCOTTISH_COUNTRY_CODE) {
+    if (SCOTTISH_COUNTRY_CODE.equals(address.getCountryCode())) {
       log.with("uprn", uprn)
           .with("countryCode", address.getCountryCode())
           .warn("Scottish address retrieved");
       throw new CTPException(Fault.VALIDATION_FAILED, "Scottish address found for UPRN: " + uprn);
     }
 
+    CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
+
+    try {
+      cachedCase.setCaseType(CaseType.valueOf(address.getCensusAddressType()));
+    } catch (IllegalArgumentException e) {
+      log.with("uprn", uprn)
+          .with("AddressType", address.getCensusAddressType())
+          .warn("AIMs AddressType not valid");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, e, "AIMs AddressType not valid: " + uprn);
+    }
+
     UUID newCaseId = UUID.randomUUID();
+    cachedCase.setId(newCaseId.toString());
+    cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
+
     publishNewAddressReportedEvent(newCaseId, address);
 
-    CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
-    cachedCase.setId(newCaseId.toString());
     try {
       dataRepo.writeCachedCase(cachedCase);
     } catch (DataStoreContentionException e) {
@@ -767,5 +794,14 @@ public class CaseServiceImpl implements CaseService {
           "Retries exhausted for storage of new address case: " + newCaseId.toString());
     }
     return cachedCase;
+  }
+
+  private List<CaseDTO> createNewCaseResponse(CachedCase newCase) throws CTPException {
+
+    CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
+    response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+    response.setEstabType(EstabType.forCode(newCase.getEstabType()));
+
+    return Collections.singletonList(response);
   }
 }

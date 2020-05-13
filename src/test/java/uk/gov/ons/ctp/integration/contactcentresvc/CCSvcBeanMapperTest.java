@@ -25,6 +25,8 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getId(), destination.getId());
     assertEquals(source.getCaseRef(), destination.getCaseRef());
     assertEquals(source.getAddressType(), destination.getAddressType());
+    assertEquals(null, destination.getEstabType());
+    assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getAddressLine1(), destination.getAddressLine1());
     assertEquals(source.getAddressLine2(), destination.getAddressLine2());
     assertEquals(source.getAddressLine3(), destination.getAddressLine3());
@@ -83,12 +85,16 @@ public class CCSvcBeanMapperTest {
     CaseDTO destination = mapperFacade.map(source, CaseDTO.class);
     assertEquals(source.getId(), destination.getId().toString());
     assertEquals(source.getUprn(), String.valueOf(destination.getUprn().getValue()));
+    assertEquals(source.getCreatedDateTime(), destination.getCreatedDateTime());
     assertEquals(source.getAddressLine1(), destination.getAddressLine1());
     assertEquals(source.getAddressLine2(), destination.getAddressLine2());
     assertEquals(source.getAddressLine3(), destination.getAddressLine3());
     assertEquals(source.getTownName(), destination.getTownName());
     assertEquals(source.getPostcode(), destination.getPostcode());
     assertEquals(source.getAddressType(), destination.getAddressType());
+    assertEquals(source.getCaseType().name(), destination.getCaseType());
+    assertEquals(null, destination.getEstabType());
+    assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getRegion(), destination.getRegion());
   }
 }
