@@ -83,7 +83,7 @@ public class CaseServiceImpl implements CaseService {
   private static final String UNIT_LAUNCH_ERR_MSG =
       "A CE Manager form can only be launched against an establishment address not a UNIT.";
 
-  private static final String SCOTTISH_COUNTRY_CODE = "S";
+  private static final String SCOTLAND_COUNTRY_CODE = "S";
 
   @Autowired private AppConfig appConfig;
 
@@ -244,15 +244,15 @@ public class CaseServiceImpl implements CaseService {
     Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
     if (cachedCase.isPresent()) {
       log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      return createNewCaseResponse(cachedCase.get());
+      return createNewCachedCaseResponse(cachedCase.get());
     }
 
     // New Case
-    CachedCase newcase = createNewCase(uprn.getValue());
+    CachedCase newcase = createNewCachedCase(uprn.getValue());
     log.with("uprn", uprn)
         .with("caseId", newcase.getId())
         .debug("Returning new skeleton case for UPRN");
-    return createNewCaseResponse(newcase);
+    return createNewCachedCaseResponse(newcase);
   }
 
   @Override
@@ -496,8 +496,8 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
-  private void publishNewAddressReportedEvent(
-      UUID caseId, AddressIndexAddressCompositeDTO address) {
+  private void publishNewAddressReportedEvent(UUID caseId, AddressIndexAddressCompositeDTO address)
+      throws CTPException {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
@@ -506,16 +506,27 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setSurvey("CENSUS");
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
-    Optional<AddressType> addressTypePresent = aimsEstabType.getAddressType();
-    if (addressTypePresent.isPresent()) {
-      AddressType addressType = addressTypePresent.get();
+    Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
+
+    try {
+      AddressType addressType =
+          addressTypeMaybe.isPresent()
+              ? addressTypeMaybe.get()
+              : AddressType.valueOf(address.getCensusAddressType());
       if (addressType == AddressType.HH || addressType == AddressType.SPG) {
         newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
       } else {
         newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
       }
-    } else {
-      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+    } catch (IllegalArgumentException e) {
+      log.with("uprn", address.getUprn())
+          .with("AddressType", address.getCensusAddressType())
+          .warn("AIMs AddressType not valid");
+      throw new CTPException(
+          Fault.RESOURCE_NOT_FOUND,
+          e,
+          "AddressType of '%s' not valid for Census",
+          address.getCensusAddressType());
     }
 
     NewAddress payload = new NewAddress();
@@ -755,12 +766,12 @@ public class CaseServiceImpl implements CaseService {
    * @return CachedCase details of created skeleton case
    * @throws CTPException
    */
-  private CachedCase createNewCase(Long uprn) throws CTPException {
+  private CachedCase createNewCachedCase(Long uprn) throws CTPException {
 
     // Query AIMS for UPRN
     AddressIndexAddressCompositeDTO address = addressSvc.uprnQuery(uprn);
 
-    if (SCOTTISH_COUNTRY_CODE.equals(address.getCountryCode())) {
+    if (SCOTLAND_COUNTRY_CODE.equals(address.getCountryCode())) {
       log.with("uprn", uprn)
           .with("countryCode", address.getCountryCode())
           .warn("Scottish address retrieved");
@@ -775,7 +786,11 @@ public class CaseServiceImpl implements CaseService {
       log.with("uprn", uprn)
           .with("AddressType", address.getCensusAddressType())
           .warn("AIMs AddressType not valid");
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, e, "AIMs AddressType not valid: " + uprn);
+      throw new CTPException(
+          Fault.RESOURCE_NOT_FOUND,
+          e,
+          "AddressType of '%s' not valid for Census",
+          address.getCensusAddressType());
     }
 
     UUID newCaseId = UUID.randomUUID();
@@ -796,7 +811,7 @@ public class CaseServiceImpl implements CaseService {
     return cachedCase;
   }
 
-  private List<CaseDTO> createNewCaseResponse(CachedCase newCase) throws CTPException {
+  private List<CaseDTO> createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
 
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));

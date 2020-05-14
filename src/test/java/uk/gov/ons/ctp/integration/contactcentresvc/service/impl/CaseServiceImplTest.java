@@ -427,7 +427,7 @@ public class CaseServiceImplTest {
 
     AddressIndexAddressCompositeDTO addressFromAI =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
-    addressFromAI.setCensusEstabType("Marina");
+    addressFromAI.setCensusEstabType("marina");
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
