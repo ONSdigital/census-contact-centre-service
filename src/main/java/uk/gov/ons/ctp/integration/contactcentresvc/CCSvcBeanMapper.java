@@ -36,6 +36,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
 
     factory
         .classMap(CaseContainerDTO.class, CaseDTO.class)
+        .field("estabType", "estabDescription")
         .byDefault()
         .fieldMap("region", "region")
         .converter("regionConverter")
@@ -69,7 +70,11 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .byDefault()
         .register();
 
-    factory.classMap(CachedCase.class, CaseDTO.class).byDefault().register();
+    factory
+        .classMap(CachedCase.class, CaseDTO.class)
+        .field("estabType", "estabDescription")
+        .byDefault()
+        .register();
   }
 
   private class RegionConverter extends BidirectionalConverter<String, String> {
