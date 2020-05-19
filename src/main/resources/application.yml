@@ -86,6 +86,8 @@ server:
   port: 8171
   undertow.worker-threads: 40
   undertow.io-threads: 6
+  shutdown:
+    grace-period: 30s  
 
 spring:
   mvc:
