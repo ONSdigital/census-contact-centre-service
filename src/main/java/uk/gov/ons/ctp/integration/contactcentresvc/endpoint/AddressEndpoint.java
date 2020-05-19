@@ -11,12 +11,11 @@ import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.VersionResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
 @RestController
-@RequestMapping(value = "/", produces = "application/json")
+@RequestMapping(value = "/addresses", produces = "application/json")
 public final class AddressEndpoint implements CTPEndpoint {
   private static final Logger log = LoggerFactory.getLogger(AddressEndpoint.class);
 
@@ -40,7 +39,7 @@ public final class AddressEndpoint implements CTPEndpoint {
    * @param addressQueryRequest is a DTO specify details on the address to search for.
    * @return an object listing the addresses matching the address search string.
    */
-  @RequestMapping(value = "/addresses", method = RequestMethod.GET)
+  @RequestMapping(value = "", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesBySearchQuery(
       @Valid AddressQueryRequestDTO addressQueryRequest) {
     log.with("requestParams", addressQueryRequest).info("Entering GET getAddressesBySearchQuery");
@@ -53,23 +52,10 @@ public final class AddressEndpoint implements CTPEndpoint {
    * @param postcodeQueryRequest is a DTO specify details on the postcode to search for.
    * @return an object listing the addresses for the postcode.
    */
-  @RequestMapping(value = "/addresses/postcode", method = RequestMethod.GET)
+  @RequestMapping(value = "/postcode", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesByPostcode(
       @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
     log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
     return addressService.postcodeQuery(postcodeQueryRequest);
-  }
-
-  /**
-   * the GET endpoint to get contact centre Details
-   *
-   * @return the contact centre details found
-   */
-  @RequestMapping(value = "/version", method = RequestMethod.GET)
-  public VersionResponseDTO getVersion() {
-    log.info("Entering GET getVersion");
-    VersionResponseDTO fakeVersion =
-        VersionResponseDTO.builder().apiVersion("4.0.2").dataVersion("60").build();
-    return fakeVersion;
   }
 }
