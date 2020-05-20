@@ -153,7 +153,7 @@ public class AddressServiceImplTest {
     assertEquals("100041133344", addresses.get(3).getUprn());
     assertEquals("E", addresses.get(3).getRegion());
     assertEquals("HH", addresses.get(3).getAddressType());
-    assertEquals("OTHER", addresses.get(3).getEstabType());  // Not known estab type, so becomes 'other'
+    assertEquals("OTHER", addresses.get(3).getEstabType()); // Test uses an unknown estab type
     assertEquals("OLD RAILWAY CARRIAGE", addresses.get(3).getEstabDescription());
   }
 }
