@@ -126,7 +126,8 @@ public class AddressServiceImplTest {
     assertEquals("100041045018", addresses.get(0).getUprn());
     assertEquals("E", addresses.get(0).getRegion());
     assertEquals("HH", addresses.get(0).getAddressType());
-    assertEquals("Household", addresses.get(0).getEstabType());
+    assertEquals("HOUSEHOLD", addresses.get(0).getEstabType());
+    assertEquals("HOUSEHOLD", addresses.get(0).getEstabDescription());
 
     // Nag addresses used when there is no Paf address
     assertThat(addresses.get(1).getFormattedAddress(), startsWith("Unit 14n,"));
@@ -134,7 +135,8 @@ public class AddressServiceImplTest {
     assertEquals("100041045021", addresses.get(1).getUprn());
     assertEquals("E", addresses.get(1).getRegion());
     assertEquals("CE", addresses.get(1).getAddressType());
-    assertEquals("Care Home", addresses.get(1).getEstabType());
+    assertEquals("CARE_HOME", addresses.get(1).getEstabType());
+    assertEquals("CARE HOME", addresses.get(1).getEstabDescription());
 
     // Formatted address used when there is no Paf or Nag address
     assertThat(addresses.get(2).getFormattedAddress(), startsWith("Unit 19f,"));
@@ -142,7 +144,8 @@ public class AddressServiceImplTest {
     assertEquals("100041045024", addresses.get(2).getUprn());
     assertEquals("E", addresses.get(2).getRegion());
     assertEquals("SPG", addresses.get(2).getAddressType());
-    assertEquals("Prison", addresses.get(2).getEstabType());
+    assertEquals("PRISON", addresses.get(2).getEstabType());
+    assertEquals("PRISON", addresses.get(2).getEstabDescription());
 
     // Pathological case in which none of the addresses are set
     assertEquals("", addresses.get(3).getFormattedAddress());
@@ -150,6 +153,7 @@ public class AddressServiceImplTest {
     assertEquals("100041133344", addresses.get(3).getUprn());
     assertEquals("E", addresses.get(3).getRegion());
     assertEquals("HH", addresses.get(3).getAddressType());
-    assertEquals("Household", addresses.get(3).getEstabType());
+    assertEquals("OTHER", addresses.get(3).getEstabType());  // Not known estab type, so becomes 'other'
+    assertEquals("OLD RAILWAY CARRIAGE", addresses.get(3).getEstabDescription());
   }
 }

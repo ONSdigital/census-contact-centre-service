@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.util.StringUtils;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
@@ -106,12 +107,14 @@ public class AddressServiceImpl implements AddressService {
       String addressNag = fullAddress.getFormattedAddressNag();
       String welshAddressPaf = fullAddress.getWelshFormattedAddressPaf();
       String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
+      String estabDescription = fullAddress.getCensusEstabType();
 
       AddressDTO addressSummary = new AddressDTO();
       addressSummary.setUprn(fullAddress.getUprn());
       addressSummary.setRegion(fullAddress.getCountryCode());
       addressSummary.setAddressType(fullAddress.getCensusAddressType());
-      addressSummary.setEstabType(fullAddress.getCensusEstabType());
+      addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
+      addressSummary.setEstabDescription(estabDescription);
       addressSummary.setFormattedAddress(
           StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
       addressSummary.setWelshFormattedAddress(
