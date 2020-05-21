@@ -97,4 +97,23 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getRegion(), destination.getRegion());
   }
+
+  @Test
+  public void testCaseContainerDTO_Address() throws Exception {
+    CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    Address destination = mapperFacade.map(source, Address.class);
+    assertEquals(source.getAddressLine1(), destination.getAddressLine1());
+    assertEquals(source.getAddressLine2(), destination.getAddressLine2());
+    assertEquals(source.getAddressLine3(), destination.getAddressLine3());
+    assertEquals(source.getTownName(), destination.getTownName());
+    assertEquals(source.getPostcode(), destination.getPostcode());
+    assertEquals(source.getRegion(), destination.getRegion());
+    assertEquals(source.getUprn(), destination.getUprn());
+    assertEquals(source.getLatitude(), destination.getLatitude());
+    assertEquals(source.getLongitude(), destination.getLongitude());
+    assertEquals(source.getEstabUprn(), destination.getEstabUprn());
+    assertEquals(source.getAddressType(), destination.getAddressType());
+    assertEquals(source.getAddressLevel(), destination.getAddressLevel());
+    assertEquals(source.getEstabType(), destination.getEstabType());
+  }
 }

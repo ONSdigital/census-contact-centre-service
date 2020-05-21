@@ -178,21 +178,26 @@ public class CaseServiceImplTest {
   @Test
   public void testFulfilmentRequestByPost_nonIndividualAllowsNullContactDetails() throws Exception {
     // Test that non-individual cases allow null/empty contact details
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, null, null, false);
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "", "", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, null, null, false, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "", "", false, false);
 
-    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, null, null, false);
-    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "", "", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, null, null, false, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "", "", false, false);
   }
 
   @Test
   public void testFulfilmentRequestByPostSuccess_withCaseTypeHH() throws Exception {
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", false, false);
   }
 
   @Test
   public void testFulfilmentRequestByPostSuccess_withIndividualTrue() throws Exception {
-    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", true);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", true, false);
+  }
+
+  @Test
+  public void testFulfilmentRequestByPost_caseSvcNotFoundResponse_cachedCase() throws Exception {
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", true, true);
   }
 
   @Test
@@ -203,11 +208,13 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseData);
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseData, "Mr", "Mickey", "Mouse");
+        getPostalFulfilmentRequestDTO(UUID_0, "Mr", "Mickey", "Mouse");
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.POST);
+            Product.Region.E,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.POST);
 
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
@@ -234,11 +241,11 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseFromCaseService, "Mrs", "Sally", "Smurf");
+        getPostalFulfilmentRequestDTO(UUID_0, "Mrs", "Sally", "Smurf");
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseFromCaseService,
+            Product.Region.E,
             requestBodyDTOFixture.getFulfilmentCode(),
             Product.DeliveryChannel.POST);
 
@@ -258,14 +265,45 @@ public class CaseServiceImplTest {
     }
   }
 
+  @Test(expected = CTPException.class)
+  public void testFulfilmentRequestByPost_caseSvcNotFoundResponse_noCachedCase() throws Exception {
+
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseById(eq(UUID_0), any());
+    Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.empty());
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(UUID_0, "Mrs", "Sally", "Smurf");
+    target.fulfilmentRequestByPost(requestBodyDTOFixture);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void testFulfilmentRequestByPost_caseSvcRestClientException() throws Exception {
+
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(caseServiceClient)
+        .getCaseById(eq(UUID_0), any());
+
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(UUID_0, "Mrs", "Sally", "Smurf");
+
+    target.fulfilmentRequestByPost(requestBodyDTOFixture);
+  }
+
   @Test
   public void testFulfilmentRequestBySMSSuccess_withCaseTypeHH() throws Exception {
-    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, false);
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, false, false);
   }
 
   @Test
   public void testFulfilmentRequestBySMSSuccess_withIndividualTrue() throws Exception {
-    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true);
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true, false);
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_cachedCase() throws Exception {
+    doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true, true);
   }
 
   @Test
@@ -279,7 +317,9 @@ public class CaseServiceImplTest {
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseData, requestBodyDTOFixture.getFulfilmentCode(), Product.DeliveryChannel.SMS);
+            Product.Region.E,
+            requestBodyDTOFixture.getFulfilmentCode(),
+            Product.DeliveryChannel.SMS);
 
     Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
         .thenReturn(new ArrayList<Product>());
@@ -292,6 +332,31 @@ public class CaseServiceImplTest {
       assertEquals("Compatible product cannot be found", e.getMessage());
       assertEquals("BAD_REQUEST", e.getFault().name());
     }
+  }
+
+  @Test(expected = CTPException.class)
+  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase() throws Exception {
+    CaseContainerDTO caseData = casesFromCaseService().get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseById(eq(UUID_0), any());
+    Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.empty());
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+
+    target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+  }
+
+  @Test(expected = ResponseStatusException.class)
+  public void testFulfilmentRequestBySMS_caseSvcRestClientException() throws Exception {
+    CaseContainerDTO caseData = casesFromCaseService().get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(caseServiceClient)
+        .getCaseById(eq(UUID_0), any());
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+
+    target.fulfilmentRequestBySMS(requestBodyDTOFixture);
   }
 
   @Test
@@ -553,7 +618,7 @@ public class CaseServiceImplTest {
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_cachedCase() throws Exception {
 
-    CachedCase cachedCase = FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
+    CachedCase cachedCase = caseFromRepository();
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
@@ -1404,9 +1469,9 @@ public class CaseServiceImplTest {
   }
 
   private PostalFulfilmentRequestDTO getPostalFulfilmentRequestDTO(
-      CaseContainerDTO caseFromCaseService, String title, String forename, String surname) {
+      UUID caseId, String title, String forename, String surname) {
     PostalFulfilmentRequestDTO requestBodyDTOFixture = new PostalFulfilmentRequestDTO();
-    requestBodyDTOFixture.setCaseId(caseFromCaseService.getId());
+    requestBodyDTOFixture.setCaseId(caseId);
     requestBodyDTOFixture.setTitle(title);
     requestBodyDTOFixture.setForename(forename);
     requestBodyDTOFixture.setSurname(surname);
@@ -1442,12 +1507,12 @@ public class CaseServiceImplTest {
   }
 
   private Product getExpectedSearchCriteria(
-      CaseContainerDTO caseData, String fulfilmentCode, Product.DeliveryChannel deliveryChannel) {
+      Product.Region region, String fulfilmentCode, Product.DeliveryChannel deliveryChannel) {
     return Product.builder()
         .fulfilmentCode(fulfilmentCode)
         .requestChannels(Arrays.asList(Product.RequestChannel.CC))
         .deliveryChannel(deliveryChannel)
-        .regions(Arrays.asList(Product.Region.valueOf(caseData.getRegion().substring(0, 1))))
+        .regions(Arrays.asList(region))
         .build();
   }
 
@@ -1459,11 +1524,11 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
+        getPostalFulfilmentRequestDTO(UUID_0, title, forename, surname);
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseFromCaseService,
+            Product.Region.valueOf(caseFromCaseService.getRegion().substring(0, 1)),
             requestBodyDTOFixture.getFulfilmentCode(),
             Product.DeliveryChannel.POST);
 
@@ -1483,20 +1548,34 @@ public class CaseServiceImplTest {
   }
 
   private void doFulfilmentRequestByPostSuccess(
-      Product.CaseType caseType, String title, String forename, String surname, boolean individual)
+      Product.CaseType caseType,
+      String title,
+      String forename,
+      String surname,
+      boolean individual,
+      boolean cached)
       throws Exception {
     Mockito.clearInvocations(eventPublisher);
 
-    // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    CachedCase cachedCase = caseFromRepository();
+
+    if (cached) {
+      Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+          .when(caseServiceClient)
+          .getCaseById(eq(UUID_0), any());
+      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(cachedCase));
+    } else {
+      Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any()))
+          .thenReturn(caseFromCaseService);
+    }
 
     PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(caseFromCaseService, title, forename, surname);
+        getPostalFulfilmentRequestDTO(UUID_0, title, forename, surname);
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseFromCaseService,
+            Product.Region.E,
             requestBodyDTOFixture.getFulfilmentCode(),
             Product.DeliveryChannel.POST);
 
@@ -1550,32 +1629,57 @@ public class CaseServiceImplTest {
     assertEquals(null, actualContact.getTelNo());
 
     Address actualAddress = actualFulfilmentRequest.getAddress();
-    assertEquals(caseFromCaseService.getAddressLine1(), actualAddress.getAddressLine1());
-    assertEquals(caseFromCaseService.getAddressLine2(), actualAddress.getAddressLine2());
-    assertEquals(caseFromCaseService.getAddressLine3(), actualAddress.getAddressLine3());
-    assertEquals(caseFromCaseService.getTownName(), actualAddress.getTownName());
-    assertEquals(caseFromCaseService.getPostcode(), actualAddress.getPostcode());
-    assertEquals(caseFromCaseService.getRegion(), actualAddress.getRegion());
-    assertEquals(caseFromCaseService.getLatitude(), actualAddress.getLatitude());
-    assertEquals(caseFromCaseService.getLongitude(), actualAddress.getLongitude());
-    assertEquals(caseFromCaseService.getUprn(), actualAddress.getUprn());
-    assertEquals(caseFromCaseService.getArid(), actualAddress.getArid());
-    assertEquals(caseFromCaseService.getAddressType(), actualAddress.getAddressType());
-    assertEquals(caseFromCaseService.getEstabType(), actualAddress.getEstabType());
+    assertEquals(
+        cached ? cachedCase.getAddressLine1() : caseFromCaseService.getAddressLine1(),
+        actualAddress.getAddressLine1());
+    assertEquals(
+        cached ? cachedCase.getAddressLine2() : caseFromCaseService.getAddressLine2(),
+        actualAddress.getAddressLine2());
+    assertEquals(
+        cached ? cachedCase.getAddressLine3() : caseFromCaseService.getAddressLine3(),
+        actualAddress.getAddressLine3());
+    assertEquals(
+        cached ? cachedCase.getTownName() : caseFromCaseService.getTownName(),
+        actualAddress.getTownName());
+    assertEquals(
+        cached ? cachedCase.getPostcode() : caseFromCaseService.getPostcode(),
+        actualAddress.getPostcode());
+    assertEquals(
+        cached ? cachedCase.getRegion() : caseFromCaseService.getRegion(),
+        actualAddress.getRegion());
+    assertEquals(cached ? null : caseFromCaseService.getLatitude(), actualAddress.getLatitude());
+    assertEquals(cached ? null : caseFromCaseService.getLongitude(), actualAddress.getLongitude());
+    assertEquals(
+        cached ? cachedCase.getUprn() : caseFromCaseService.getUprn(), actualAddress.getUprn());
+    assertEquals(
+        cached ? cachedCase.getAddressType() : caseFromCaseService.getAddressType(),
+        actualAddress.getAddressType());
+    assertEquals(
+        cached ? cachedCase.getEstabType() : caseFromCaseService.getEstabType(),
+        actualAddress.getEstabType());
   }
 
-  private void doFulfilmentRequestBySMSSuccess(Product.CaseType caseType, boolean individual)
-      throws Exception {
+  private void doFulfilmentRequestBySMSSuccess(
+      Product.CaseType caseType, boolean individual, boolean cached) throws Exception {
 
-    // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    CachedCase cachedCase = caseFromRepository();
+
+    if (cached) {
+      Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+          .when(caseServiceClient)
+          .getCaseById(eq(UUID_0), any());
+      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(cachedCase));
+    } else {
+      Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any()))
+          .thenReturn(caseFromCaseService);
+    }
 
     SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseFromCaseService);
 
     Product expectedSearchCriteria =
         getExpectedSearchCriteria(
-            caseFromCaseService,
+            Product.Region.E,
             requestBodyDTOFixture.getFulfilmentCode(),
             Product.DeliveryChannel.SMS);
 
@@ -1632,5 +1736,10 @@ public class CaseServiceImplTest {
   @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+  }
+
+  @SneakyThrows
+  private CachedCase caseFromRepository() {
+    return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
   }
 }
