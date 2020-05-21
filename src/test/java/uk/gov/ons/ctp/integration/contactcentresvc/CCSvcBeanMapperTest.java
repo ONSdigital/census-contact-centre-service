@@ -35,6 +35,8 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getRegion().substring(0, 1), destination.getRegion());
     assertEquals(source.getUprn(), String.valueOf(destination.getUprn().getValue()));
     assertEquals(source.getEstabUprn(), String.valueOf(destination.getEstabUprn().getValue()));
+    assertEquals(source.getCreatedDateTime(), destination.getCreatedDateTime());
+    assertEquals(source.getLastUpdated(), destination.getLastUpdated());
     assertEquals(source.isHandDelivery(), destination.isHandDelivery());
     for (int i = 0; i < source.getCaseEvents().size(); i++) {
       EventDTO sourceEvent = source.getCaseEvents().get(i);

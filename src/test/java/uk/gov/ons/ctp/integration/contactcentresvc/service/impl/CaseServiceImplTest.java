@@ -1339,6 +1339,7 @@ public class CaseServiceImplTest {
             .estabDescription(caseFromCaseService.getEstabType())
             .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
             .createdDateTime(caseFromCaseService.getCreatedDateTime())
+            .lastUpdated(caseFromCaseService.getLastUpdated())
             .addressLine1(caseFromCaseService.getAddressLine1())
             .addressLine2(caseFromCaseService.getAddressLine2())
             .addressLine3(caseFromCaseService.getAddressLine3())
