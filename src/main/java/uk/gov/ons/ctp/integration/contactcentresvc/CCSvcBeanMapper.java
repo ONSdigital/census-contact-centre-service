@@ -8,6 +8,7 @@ import ma.glasnost.orika.impl.ConfigurableMapper;
 import ma.glasnost.orika.metadata.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.util.StringToUPRNConverter;
 import uk.gov.ons.ctp.common.util.StringToUUIDConverter;
@@ -75,6 +76,10 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .field("estabType", "estabDescription")
         .byDefault()
         .register();
+
+    factory.classMap(CachedCase.class, CaseContainerDTO.class).byDefault().register();
+
+    factory.classMap(CaseContainerDTO.class, Address.class).byDefault().register();
   }
 
   private class RegionConverter extends BidirectionalConverter<String, String> {
