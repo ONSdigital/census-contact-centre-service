@@ -19,7 +19,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-cc")
-@TestPropertySource(properties = {"GOOGLE_CLOUD_PROJECT=census-cc-test"})
+@TestPropertySource(properties = {"google-cloud-project=gcp-project"})
 public class CCEndpointSecurityTest extends EndpointSecurityTest {
 
   TestRestTemplate restTemplate;
