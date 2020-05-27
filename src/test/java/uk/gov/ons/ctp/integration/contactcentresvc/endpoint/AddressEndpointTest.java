@@ -20,6 +20,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
@@ -41,7 +42,8 @@ public final class AddressEndpointTest {
 
   private static final String COUNTRY_CODE = "E";
   private static final String ADDRESS_TYPE = "HH";
-  private static final String ESTAB_TYPE = "Household";
+  private static final String ESTAB_TYPE = EstabType.ROYAL_HOUSEHOLD.name();
+  private static final String ESTAB_DESCRIPTION = EstabType.ROYAL_HOUSEHOLD.getCode();
 
   @InjectMocks private AddressEndpoint addressEndpoint;
 
@@ -207,6 +209,7 @@ public final class AddressEndpointTest {
     address1.setRegion(COUNTRY_CODE);
     address1.setAddressType(ADDRESS_TYPE);
     address1.setEstabType(ESTAB_TYPE);
+    address1.setEstabDescription(ESTAB_DESCRIPTION);
 
     AddressDTO address2 = new AddressDTO();
     address2.setUprn(UPRN2);
@@ -215,6 +218,7 @@ public final class AddressEndpointTest {
     address2.setRegion(COUNTRY_CODE);
     address2.setAddressType(ADDRESS_TYPE);
     address2.setEstabType(ESTAB_TYPE);
+    address2.setEstabDescription(ESTAB_DESCRIPTION);
 
     AddressQueryResponseDTO addresses = new AddressQueryResponseDTO();
     addresses.setDataVersion(DATA_VERSION);
@@ -233,6 +237,7 @@ public final class AddressEndpointTest {
     actions.andExpect(jsonPath("$.addresses[0].region", is(COUNTRY_CODE)));
     actions.andExpect(jsonPath("$.addresses[0].addressType", is(ADDRESS_TYPE)));
     actions.andExpect(jsonPath("$.addresses[0].estabType", is(ESTAB_TYPE)));
+    actions.andExpect(jsonPath("$.addresses[0].estabDescription", is(ESTAB_DESCRIPTION)));
     actions.andExpect(jsonPath("$.addresses[1].uprn", is(UPRN2)));
     actions.andExpect(jsonPath("$.addresses[1].formattedAddress", is(FORMATTED_ADDRESS2)));
     actions.andExpect(
@@ -240,6 +245,7 @@ public final class AddressEndpointTest {
     actions.andExpect(jsonPath("$.addresses[1].region", is(COUNTRY_CODE)));
     actions.andExpect(jsonPath("$.addresses[1].addressType", is(ADDRESS_TYPE)));
     actions.andExpect(jsonPath("$.addresses[1].estabType", is(ESTAB_TYPE)));
+    actions.andExpect(jsonPath("$.addresses[1].estabDescription", is(ESTAB_DESCRIPTION)));
     actions.andExpect(jsonPath("$.total", is(2)));
   }
 }

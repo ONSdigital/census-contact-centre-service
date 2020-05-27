@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Iterator;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ public final class AddressEndpointIT {
    * This test submits a generic address query and validates that some data is returned in the
    * expected format. Without a fixed test data set this is really as much validation as it can do.
    */
+  @Ignore
   @Test
   public void validateAddressQueryResponse() throws Exception {
     MvcResult result =
@@ -62,6 +64,7 @@ public final class AddressEndpointIT {
    * is working. It firstly captures the result of a query and then confirms that subsets of these
    * results can be fetched.
    */
+  @Ignore
   @Test
   public void validateAddressQueryPagination() throws Exception {
     String baseUrl = "/addresses?input=Street";
@@ -69,6 +72,7 @@ public final class AddressEndpointIT {
   }
 
   /** This test runs an address query which should get 0 results. */
+  @Ignore
   @Test
   public void validateAddressQueryEmptyResponse() throws Exception {
     MvcResult result =
@@ -85,6 +89,7 @@ public final class AddressEndpointIT {
    * This test submits a generic address query and validates that some data is returned in the
    * expected format. Without a fixed test data set this is really as much validation as it can do.
    */
+  @Ignore
   @Test
   public void validatePostcodeQueryResponse() throws Exception {
     MvcResult result =
@@ -102,6 +107,7 @@ public final class AddressEndpointIT {
    * is working. It firstly captures the result of a query and then confirms that subsets of these
    * results can be fetched.
    */
+  @Ignore
   @Test
   public void validatePostcodeQueryPagination() throws Exception {
     String baseUrl = "/addresses/postcode?postcode=EX2 4LU";
@@ -109,6 +115,7 @@ public final class AddressEndpointIT {
   }
 
   /** This test submits a postcode query which should get 0 results */
+  @Ignore
   @Test
   public void validatePostcodeQueryEmptyResponse() throws Exception {
     MvcResult result =
