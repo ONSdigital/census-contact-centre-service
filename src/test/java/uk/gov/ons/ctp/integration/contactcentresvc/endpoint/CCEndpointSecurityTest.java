@@ -11,6 +11,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -18,6 +19,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-cc")
+@TestPropertySource(properties = {"GOOGLE_CLOUD_PROJECT=census-cc-test"})
 public class CCEndpointSecurityTest extends EndpointSecurityTest {
 
   TestRestTemplate restTemplate;

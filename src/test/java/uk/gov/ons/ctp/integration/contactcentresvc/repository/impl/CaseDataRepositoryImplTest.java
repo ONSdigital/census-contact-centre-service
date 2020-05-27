@@ -2,12 +2,17 @@ package uk.gov.ons.ctp.integration.contactcentresvc.repository.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +38,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
     classes = {CcRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
 @TestPropertySource(
     properties = {
-      "google-cloud-project=census-cc-test",
+      "GOOGLE_CLOUD_PROJECT=census-cc-test",
       "cloud-storage.case-schema-name=new-case",
       "cloud-storage.backoff-initial=10",
       "cloud-storage.backoff-multiplier=1.2",
@@ -42,12 +47,53 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
     })
 public class CaseDataRepositoryImplTest {
 
-  @Value("${google-cloud-project}-${cloud-storage.case-schema-name}")
+  @Value("${GOOGLE_CLOUD_PROJECT}-${cloud-storage.case-schema-name}")
   private String caseSchema;
 
   @MockBean CloudDataStore dataStore;
 
   @Autowired private CaseDataRepository repo;
+
+  @Test
+  public void init_withExistingNewCaseCollection() throws Exception {
+    // Firestore already has the new-case collection
+    Set<String> collectionNames = new HashSet<>(Arrays.asList("x", "y", caseSchema));
+    Mockito.when(dataStore.getCollectionNames()).thenReturn(collectionNames);
+
+    repo.init();
+
+    // Verify no attempt made to populate new-case collection
+    Mockito.verify(dataStore, times(0)).storeObject(any(), any(), any());
+  }
+
+  @Test
+  public void init_andCreateNewCaseCollection() throws Exception {
+    Set<String> collectionNames = new HashSet<>(Arrays.asList("x", "y"));
+    Mockito.when(dataStore.getCollectionNames()).thenReturn(collectionNames);
+
+    repo.init();
+
+    Mockito.verify(dataStore, times(1))
+        .storeObject(eq("census-cc-test-new-case"), eq("placeholder"), any());
+  }
+
+  @Test
+  public void init_failedToCreateNewCaseCollection() throws Exception {
+    // Firestore doesn't have the new-case collection
+    Set<String> collectionNames = new HashSet<>(Arrays.asList("x", "y"));
+    Mockito.when(dataStore.getCollectionNames()).thenReturn(collectionNames);
+
+    // Simulate Firestore failing to create collection
+    RuntimeException firestoreException = new RuntimeException("Firestore couldn't create");
+    Mockito.doThrow(firestoreException).when(dataStore).storeObject(any(), any(), any());
+
+    try {
+      repo.init();
+      fail();
+    } catch (CTPException e) {
+      assertTrue(e.getMessage(), e.getMessage().contains("Firestore couldn't create"));
+    }
+  }
 
   @Test
   public void writeCachedCaseWithRetry() throws Exception {

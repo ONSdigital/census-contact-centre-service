@@ -1,5 +1,3 @@
-google-cloud-project: gcp-project
-
 info:
   name: ${project.artifactId}
   version: ${project.version}

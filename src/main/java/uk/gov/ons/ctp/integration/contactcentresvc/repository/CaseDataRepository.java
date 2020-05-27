@@ -10,6 +10,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionExce
 /** Repository for Case Data */
 public interface CaseDataRepository {
 
+  void init() throws CTPException;
+
   /**
    * Store newly created skeleton case to repository
    *

@@ -4,6 +4,7 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
 
   private static final Logger log = LoggerFactory.getLogger(CaseDataRepositoryImpl.class);
 
-  @Value("${google-cloud-project}")
+  @Value("${GOOGLE_CLOUD_PROJECT}")
   private String gcpProject;
 
   @Value("${cloud-storage.case-schema-name}")
@@ -34,10 +35,39 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
 
   @Autowired private CloudDataStore cloudDataStore;
 
+  // This is the name of the document that is used to create and retain the new-case collection
+  private static String PLACEHOLDER_CASE_NAME = "placeholder";
+
   @PostConstruct
-  public void init() {
+  @Override
+  public void init() throws CTPException {
     caseSchema = gcpProject + "-" + caseSchemaName.toLowerCase();
     this.cloudDataStore.connect();
+    ensureCollectionExists(caseSchema);
+  }
+
+  private void ensureCollectionExists(String collectionName) throws CTPException {
+    log.with("collectionName", collectionName).info("Checking if collection exists");
+
+    Set<String> collectionNames = cloudDataStore.getCollectionNames();
+
+    if (!collectionNames.contains(collectionName)) {
+      log.with("collectionName", collectionName).info("Creating collection");
+
+      try {
+        // Force collection creation by adding an object.
+        // Firestore doesn't have the concept of an empty collection. A collection only exists
+        // when it holds at least one document. So we therefore have to leave the placeholder
+        // object to keep the collection.
+        CachedCase dummyCase = new CachedCase();
+        cloudDataStore.storeObject(collectionName, PLACEHOLDER_CASE_NAME, dummyCase);
+      } catch (Exception e) {
+        log.error("Failed to create collection", e);
+        throw new CTPException(Fault.SYSTEM_ERROR, e);
+      }
+    }
+
+    log.with("collectionName", collectionName).info("Collection check completed");
   }
 
   @Retryable(
@@ -59,6 +89,7 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   @Override
   public Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
       throws CTPException {
+
     String key = String.valueOf(uprn.getValue());
     String[] searchByUprnPath = new String[] {"uprn"};
     List<CachedCase> results =
