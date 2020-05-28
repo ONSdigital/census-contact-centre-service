@@ -38,7 +38,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
     classes = {CcRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
 @TestPropertySource(
     properties = {
-      "google-cloud-project=census-cc-test",
       "GOOGLE_CLOUD_PROJECT=census-cc-test",
       "cloud-storage.case-schema-name=new-case",
       "cloud-storage.backoff-initial=10",

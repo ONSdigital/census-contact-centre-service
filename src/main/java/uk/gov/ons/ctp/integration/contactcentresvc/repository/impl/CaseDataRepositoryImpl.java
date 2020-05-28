@@ -25,7 +25,7 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
 
   private static final Logger log = LoggerFactory.getLogger(CaseDataRepositoryImpl.class);
 
-  @Value("${google-cloud-project}")
+  @Value("${GOOGLE_CLOUD_PROJECT}")
   private String gcpProject;
 
   @Value("${cloud-storage.case-schema-name}")
