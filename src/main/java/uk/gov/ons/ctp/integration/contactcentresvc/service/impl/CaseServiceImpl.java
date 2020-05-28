@@ -577,7 +577,8 @@ public class CaseServiceImpl implements CaseService {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
-    CaseContainerDTO caze = caseServiceClient.getCaseById(caseId, false);
+    CaseContainerDTO caze = retrieveCaseById(caseId);
+
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
@@ -612,23 +613,7 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequest.setFulfilmentCode(product.getFulfilmentCode());
     fulfilmentRequest.setCaseId(caseId.toString());
     fulfilmentRequest.setContact(contact);
-
-    // Get the case address details from the case service
-    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
-    Address address = new Address();
-    address.setAddressLine1(caseDetails.getAddressLine1());
-    address.setAddressLine2(caseDetails.getAddressLine2());
-    address.setAddressLine3(caseDetails.getAddressLine3());
-    address.setTownName(caseDetails.getTownName());
-    address.setPostcode(caseDetails.getPostcode());
-    address.setRegion(caseDetails.getRegion());
-    address.setLatitude(caseDetails.getLatitude());
-    address.setLongitude(caseDetails.getLongitude());
-    address.setUprn(caseDetails.getUprn());
-    address.setArid(caseDetails.getArid());
-    address.setAddressType(caseDetails.getAddressType());
-    address.setEstabType(caseDetails.getEstabType());
-    fulfilmentRequest.setAddress(address);
+    fulfilmentRequest.setAddress(caseDTOMapper.map(caze, Address.class));
 
     return fulfilmentRequest;
   }
@@ -664,6 +649,41 @@ public class CaseServiceImpl implements CaseService {
     }
 
     return products.get(0);
+  }
+
+  /**
+   * Return a case by Id, if Not Found calling Case Service query repository for new skeleton cached
+   * case
+   *
+   * @param caseId for which to request case
+   * @return the requested case
+   * @throws CTPException if case Not Found
+   */
+  private CaseContainerDTO retrieveCaseById(UUID caseId) throws CTPException {
+
+    CaseContainerDTO caze = null;
+    try {
+      caze = caseServiceClient.getCaseById(caseId, false);
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with("caseId", caseId).debug("Fulfilment case Id Not Found calling Case Service");
+        Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
+        if (cachedCase.isPresent()) {
+          log.with("caseId", caseId).debug("Fulfilment using stored case details");
+          caze = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
+        } else {
+          log.with("caseId", caseId).warn("Fulfilment request Not Found");
+          throw new CTPException(
+              Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
+        }
+      } else {
+        log.with("caseId", caseId)
+            .with("status", ex.getStatus())
+            .error("Error calling Case Service");
+        throw ex;
+      }
+    }
+    return caze;
   }
 
   /**
