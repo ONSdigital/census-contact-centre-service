@@ -12,6 +12,7 @@ public interface CaseDataRepository {
 
   /**
    * Initialise the connection to the repository.
+   *
    * @throws CTPException if there was any problems.
    */
   void init() throws CTPException;
