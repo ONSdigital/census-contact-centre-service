@@ -12,6 +12,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -26,6 +27,7 @@ public class CCEndpointSecurityTest extends EndpointSecurityTest {
 
   @MockBean CaseService caseService;
   @MockBean AddressService addressService;
+  @MockBean CaseDataRepository caseDataRepository;
 
   @Test
   public void ccOkGetAddresses() throws IllegalStateException, IOException {

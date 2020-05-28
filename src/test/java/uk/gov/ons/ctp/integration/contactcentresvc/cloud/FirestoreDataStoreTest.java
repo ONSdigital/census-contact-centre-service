@@ -17,8 +17,10 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import org.junit.Before;
@@ -41,6 +43,25 @@ public class FirestoreDataStoreTest {
   @Before
   public void setUp() {
     ReflectionTestUtils.setField(firestoreDataStore, "firestore", firestore);
+  }
+
+  @Test
+  public void testGetCollectionNames() {
+    // Build names of collections that mock Firestore will list
+    CollectionReference collectionA = Mockito.mock(CollectionReference.class);
+    Mockito.when(collectionA.getId()).thenReturn("collectionA");
+    CollectionReference collectionB = Mockito.mock(CollectionReference.class);
+    Mockito.when(collectionB.getId()).thenReturn("collectionB");
+
+    // Create results from listCollections
+    Iterable<CollectionReference> collections = Arrays.asList(collectionA, collectionB);
+    Mockito.when(firestore.listCollections()).thenReturn(collections);
+
+    Set<String> collectionNames = firestoreDataStore.getCollectionNames();
+
+    assertTrue(collectionNames.toString(), collectionNames.contains("collectionA"));
+    assertTrue(collectionNames.toString(), collectionNames.contains("collectionB"));
+    assertEquals(2, collectionNames.size());
   }
 
   @Test
