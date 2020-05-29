@@ -162,12 +162,13 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO)
+      throws CTPException {
     log.debug("Fetching case details by caseId: {}", caseId);
 
-    // Get the case details from the case service
+    // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
+    CaseContainerDTO caseDetails = retrieveCaseById(caseId, getCaseEvents);
 
     // Do not return HI cases
     if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
@@ -577,7 +578,7 @@ public class CaseServiceImpl implements CaseService {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
-    CaseContainerDTO caze = retrieveCaseById(caseId);
+    CaseContainerDTO caze = retrieveCaseById(caseId, false);
 
     Region region = Region.valueOf(caze.getRegion().substring(0, 1));
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
@@ -656,14 +657,16 @@ public class CaseServiceImpl implements CaseService {
    * case
    *
    * @param caseId for which to request case
+   * @param getCaseEvents should be set to true if the caller wants case events returned.
    * @return the requested case
    * @throws CTPException if case Not Found
    */
-  private CaseContainerDTO retrieveCaseById(UUID caseId) throws CTPException {
+  private CaseContainerDTO retrieveCaseById(UUID caseId, boolean getCaseEvents)
+      throws CTPException {
 
     CaseContainerDTO caze = null;
     try {
-      caze = caseServiceClient.getCaseById(caseId, false);
+      caze = caseServiceClient.getCaseById(caseId, getCaseEvents);
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with("caseId", caseId).debug("Fulfilment case Id Not Found calling Case Service");

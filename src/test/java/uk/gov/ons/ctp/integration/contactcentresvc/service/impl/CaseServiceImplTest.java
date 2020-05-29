@@ -415,7 +415,7 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void shouldGetSecureEstablishmentByCaseId() {
+  public void shouldGetSecureEstablishmentByCaseId() throws CTPException {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(1);
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_1), any())).thenReturn(caseFromCaseService);
 
@@ -425,7 +425,7 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseId_householdIndividualCase() {
+  public void testGetCaseByCaseId_householdIndividualCase() throws CTPException {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType("HI"); // Household Individual case
