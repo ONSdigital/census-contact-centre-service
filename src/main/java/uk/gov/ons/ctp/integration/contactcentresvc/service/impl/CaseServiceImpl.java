@@ -57,10 +57,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -444,29 +443,28 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
-    UUID caseId = modifyRequestDTO.getCaseId();
+  public ResponseDTO invalidate(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
+      throws CTPException {
+    UUID caseId = invalidateCaseRequestDTO.getCaseId();
 
-    log.with("caseId", caseId).with("status", modifyRequestDTO.getStatus()).debug("Modify Case");
+    log.with("caseId", caseId)
+        .with("status", invalidateCaseRequestDTO.getStatus())
+        .debug("Invalidate Case");
 
     verifyCaseExists(caseId);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
-    if (CaseStatus.UNCHANGED == modifyRequestDTO.getStatus()) {
-      log.with("caseId", caseId).debug("No event published since status is UNCHANGED");
-    } else {
-      log.debug("Case modified: publishing AddressNotValid event");
-      AddressNotValid payload =
-          AddressNotValid.builder()
-              .collectionCase(collectionCase)
-              .notes(modifyRequestDTO.getNotes())
-              .reason(modifyRequestDTO.getStatus().name())
-              .build();
+    log.debug("Case invalidated: publishing AddressNotValid event");
+    AddressNotValid payload =
+        AddressNotValid.builder()
+            .collectionCase(collectionCase)
+            .notes(invalidateCaseRequestDTO.getNotes())
+            .reason(invalidateCaseRequestDTO.getStatus().name())
+            .build();
 
-      eventPublisher.sendEvent(
-          EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
-    }
+    eventPublisher.sendEvent(
+        EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
