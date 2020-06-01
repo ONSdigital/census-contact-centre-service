@@ -339,8 +339,7 @@ public class CaseServiceImplTest {
   }
 
   @Test(expected = CTPException.class)
-  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase_pmb()
-      throws Exception {
+  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase() throws Exception {
     CaseContainerDTO caseData = casesFromCaseService().get(0);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
@@ -484,19 +483,6 @@ public class CaseServiceImplTest {
       assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
-  }
-
-  @Test(expected = CTPException.class)
-  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase() throws Exception {
-    CaseContainerDTO caseData = casesFromCaseService().get(0);
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
-        .when(caseServiceClient)
-        .getCaseById(eq(UUID_0), any());
-    Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.empty());
-
-    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
-
-    target.fulfilmentRequestBySMS(requestBodyDTOFixture);
   }
 
   @Test
