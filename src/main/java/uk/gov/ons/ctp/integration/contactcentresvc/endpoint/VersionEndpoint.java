@@ -12,7 +12,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.VersionRespons
 @RestController
 @RequestMapping(value = "/", produces = "application/json")
 public final class VersionEndpoint implements CTPEndpoint {
-  public static final String CC_API_VERSION = "5.10.1";
+  public static final String CC_API_VERSION = "5.10.4";
   private static final Logger log = LoggerFactory.getLogger(VersionEndpoint.class);
 
   /**
