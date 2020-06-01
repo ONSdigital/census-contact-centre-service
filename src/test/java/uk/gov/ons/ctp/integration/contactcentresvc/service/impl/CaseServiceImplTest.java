@@ -137,6 +137,10 @@ public class CaseServiceImplTest {
 
   private static final boolean CASE_EVENTS_TRUE = true;
   private static final boolean CASE_EVENTS_FALSE = false;
+
+  private static final boolean USE_CACHED_CASE = true;
+  private static final boolean NO_CACHED_CASE = false;
+
   private static final String A_UPRN = "1234";
   private static final String AN_ESTAB_UPRN = "334111111111";
   private static final UniquePropertyReferenceNumber UPRN =
@@ -335,7 +339,8 @@ public class CaseServiceImplTest {
   }
 
   @Test(expected = CTPException.class)
-  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase() throws Exception {
+  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase_pmb()
+      throws Exception {
     CaseContainerDTO caseData = casesFromCaseService().get(0);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
@@ -364,7 +369,11 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+        CaseType.HH,
+        HAND_DELIVERY_FALSE,
+        CASE_EVENTS_TRUE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -372,7 +381,11 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.HH,
+        HAND_DELIVERY_FALSE,
+        CASE_EVENTS_FALSE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -380,7 +393,11 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.HH,
+        HAND_DELIVERY_TRUE,
+        CASE_EVENTS_FALSE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -388,7 +405,11 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+        CaseType.CE,
+        HAND_DELIVERY_TRUE,
+        CASE_EVENTS_TRUE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -396,14 +417,22 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.CE, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.CE,
+        HAND_DELIVERY_TRUE,
+        CASE_EVENTS_FALSE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
   public void testGetCaseByCaseId_caseSPGhandDeliveryTrue() {
     List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.SPG,
+        HAND_DELIVERY_TRUE,
+        CASE_EVENTS_FALSE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -411,7 +440,23 @@ public class CaseServiceImplTest {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseId(
-        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+        CaseType.SPG,
+        HAND_DELIVERY_FALSE,
+        CASE_EVENTS_FALSE,
+        NO_CACHED_CASE,
+        expectedDeliveryChannels);
+  }
+
+  @Test
+  public void testGetCaseByCaseId_caseSPGhandDeliveryFalse_fromCache() {
+    List<DeliveryChannel> expectedDeliveryChannels =
+        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
+    doTestGetCaseByCaseId(
+        CaseType.SPG,
+        HAND_DELIVERY_FALSE,
+        CASE_EVENTS_FALSE,
+        USE_CACHED_CASE,
+        expectedDeliveryChannels);
   }
 
   @Test
@@ -439,6 +484,19 @@ public class CaseServiceImplTest {
       assertEquals("Case is not suitable", e.getReason());
       assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
     }
+  }
+
+  @Test(expected = CTPException.class)
+  public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_noCachedCase() throws Exception {
+    CaseContainerDTO caseData = casesFromCaseService().get(0);
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCaseById(eq(UUID_0), any());
+    Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.empty());
+
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+
+    target.fulfilmentRequestBySMS(requestBodyDTOFixture);
   }
 
   @Test
@@ -1254,19 +1312,39 @@ public class CaseServiceImplTest {
       CaseType caseType,
       boolean handDelivery,
       boolean caseEvents,
+      boolean cached,
       List<DeliveryChannel> expectedAllowedDeliveryChannels) {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType(caseType.name());
     caseFromCaseService.setHandDelivery(handDelivery);
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    CaseDTO expectedCaseResult;
+
+    if (cached) {
+      Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+          .when(caseServiceClient)
+          .getCaseById(eq(UUID_0), any());
+
+      CachedCase caseFromRepository = caseFromRepository();
+      caseFromRepository.setCreatedDateTime(caseFromCaseService.getCreatedDateTime());
+      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
+          .thenReturn(Optional.of(caseFromRepository));
+
+      CaseContainerDTO expectedCase = mapperFacade.map(caseFromRepository, CaseContainerDTO.class);
+      expectedCaseResult =
+          createExpectedCaseDTO(expectedCase, caseEvents, expectedAllowedDeliveryChannels);
+
+    } else {
+      Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any()))
+          .thenReturn(caseFromCaseService);
+      expectedCaseResult =
+          createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
+    }
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(UUID_0, requestParams);
 
-    CaseDTO expectedCaseResult =
-        createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
     verifyCase(results, expectedCaseResult, caseEvents);
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
   }
@@ -1343,6 +1421,7 @@ public class CaseServiceImplTest {
             .addressLine1(caseFromCaseService.getAddressLine1())
             .addressLine2(caseFromCaseService.getAddressLine2())
             .addressLine3(caseFromCaseService.getAddressLine3())
+            .addressType(caseFromCaseService.getAddressType())
             .townName(caseFromCaseService.getTownName())
             .region(caseFromCaseService.getRegion().substring(0, 1))
             .postcode(caseFromCaseService.getPostcode())
