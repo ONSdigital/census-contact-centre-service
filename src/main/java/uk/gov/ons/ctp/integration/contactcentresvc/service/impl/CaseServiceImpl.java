@@ -1,9 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
-
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,12 +11,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.domain.AddressLevel;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
@@ -61,6 +60,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -159,6 +159,14 @@ public class CaseServiceImpl implements CaseService {
         .debug("Now returning from the fulfilmentRequestBySMS method in class CaseServiceImpl.");
 
     return response;
+  }
+
+  @Override
+  public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) {
+    EstabType e;
+    
+    CaseDTO newCase = new CaseDTO();
+    return newCase;
   }
 
   @Override

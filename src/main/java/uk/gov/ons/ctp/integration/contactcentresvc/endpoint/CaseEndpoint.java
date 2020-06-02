@@ -55,6 +55,25 @@ public class CaseEndpoint implements CTPEndpoint {
   }
 
   /**
+   * POST endpoint to create a new case for a new address.
+   * 
+   * @param newCaseRequest contains details about the new address.
+   * @return a CaseDTO containing details about the new case
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "", method = RequestMethod.POST)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<CaseDTO> newCase(@Valid @RequestBody NewCaseRequestDTO newCaseRequest)
+      throws CTPException {
+
+    log.with("newCaseRequest", newCaseRequest).info("Entering POST newCase");
+
+    CaseDTO response = caseService.createCaseForNewAddress(newCaseRequest);
+    
+    return ResponseEntity.ok(response);
+  }
+
+  /**
    * the GET end point to get a Case by caseId
    *
    * @param caseId the id of the case
@@ -280,27 +299,6 @@ public class CaseEndpoint implements CTPEndpoint {
   // ---------------------------------------------------------------
   // DUMMY ENDPOINTS FROM HERE
   // ---------------------------------------------------------------
-
-  /**
-   * DUMMY ENDPOINT FOR CC
-   *
-   * <p>the POST end point to create a new case
-   *
-   * @param requestBodyDTO the request body
-   * @return response entity
-   * @throws CTPException something went wrong
-   */
-  @RequestMapping(value = "", method = RequestMethod.POST)
-  @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<CaseDTO> newCase(@Valid @RequestBody NewCaseRequestDTO requestBodyDTO)
-      throws CTPException {
-
-    log.with("requestBody", requestBodyDTO).info("Entering POST newCase");
-
-    CaseDTO response = new CaseDTO();
-
-    return ResponseEntity.ok(response);
-  }
 
   /**
    * DUMMY ENDPOINT FOR CC
