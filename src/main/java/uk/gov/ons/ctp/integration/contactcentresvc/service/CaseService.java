@@ -17,7 +17,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 /** Service responsible for dealing with Cases */
 public interface CaseService {
 
-  CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO);
+  CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO) throws CTPException;
 
   /**
    * Return HH, CE and SPG cases but filter out any HI cases at address
