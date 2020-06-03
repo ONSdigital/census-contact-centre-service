@@ -18,8 +18,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 /** Service responsible for dealing with Cases */
 public interface CaseService {
 
-  CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO);
-  
+  CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException;
+
   CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO) throws CTPException;
 
   /**

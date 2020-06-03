@@ -32,7 +32,6 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
-import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
@@ -56,7 +55,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
@@ -162,11 +160,37 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) {
-    EstabType e;
+  public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
+    UUID newCaseId = UUID.randomUUID();
+    CaseType caseType = caseRequestDTO.getCaseType();
+
+    String censusAddressType;
+    if (caseRequestDTO.getEstabType() == EstabType.OTHER) {
+      // Only data available is the case type, so use that
+      censusAddressType = caseRequestDTO.getEstabType().name();
+    } else {
+      AddressType addressType = caseRequestDTO.getEstabType().getAddressType().get();
+      if (!addressType.name().equals(caseType.name())) {
+        throw new CTPException(Fault.BAD_REQUEST, "Mismatch between caseType and the address type of the nameed estabType. "
+            + "Expected caseType of '" + addressType.name() + "'");
+      }
+      censusAddressType = addressType.name();
+    }
     
-    CaseDTO newCase = new CaseDTO();
-    return newCase;
+    AddressIndexAddressCompositeDTO address = caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
+    address.setCensusAddressType(censusAddressType);
+    address.setCensusEstabType(caseRequestDTO.getEstabType().name());
+    address.setCountryCode(caseRequestDTO.getRegion().name());
+    publishNewAddressReportedEvent(newCaseId, caseType, address);
+
+    CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
+    cachedCase.setId(newCaseId.toString());
+    cachedCase.setAddressType(censusAddressType);
+    cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
+    
+    storeCaseInCache(cachedCase);
+
+    return createNewCachedCaseResponse(cachedCase);
   }
 
   @Override
@@ -253,7 +277,8 @@ public class CaseServiceImpl implements CaseService {
     Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
     if (cachedCase.isPresent()) {
       log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      return createNewCachedCaseResponse(cachedCase.get());
+      CaseDTO response = createNewCachedCaseResponse(cachedCase.get());
+      return Collections.singletonList(response);
     }
 
     // New Case
@@ -261,7 +286,8 @@ public class CaseServiceImpl implements CaseService {
     log.with("uprn", uprn)
         .with("caseId", newcase.getId())
         .debug("Returning new skeleton case for UPRN");
-    return createNewCachedCaseResponse(newcase);
+    CaseDTO response = createNewCachedCaseResponse(newcase);
+    return Collections.singletonList(response);
   }
 
   @Override
@@ -505,13 +531,14 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
-  private void publishNewAddressReportedEvent(UUID caseId, AddressIndexAddressCompositeDTO address)
+  private void publishNewAddressReportedEvent(UUID caseId, CaseType caseType, AddressIndexAddressCompositeDTO address)
       throws CTPException {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
         caseDTOMapper.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(caseId.toString());
+    newAddress.setCaseType(caseType.name());
     newAddress.setSurvey("CENSUS");
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
@@ -828,26 +855,34 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    publishNewAddressReportedEvent(newCaseId, address);
+    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), address);
 
+    storeCaseInCache(cachedCase);
+
+    return cachedCase;
+  }
+  
+  private void storeCaseInCache(CachedCase cachedCase) throws CTPException {
     try {
       dataRepo.writeCachedCase(cachedCase);
     } catch (DataStoreContentionException e) {
-      log.error("Retries exhausted for storage of new address case: " + newCaseId.toString());
+      log.error("Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
       throw new CTPException(
           Fault.SYSTEM_ERROR,
           e,
-          "Retries exhausted for storage of new address case: " + newCaseId.toString());
+          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
     }
-    return cachedCase;
   }
 
-  private List<CaseDTO> createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
+  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
+    EstabType estabType = EstabType.valueOf(newCase.getEstabType());
 
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
-    response.setEstabType(EstabType.forCode(newCase.getEstabType()));
+    response.setEstabType(estabType);
+    response.setEstabDescription(estabType.getCode());
+    response.setSecureEstablishment(estabType.isSecure());
 
-    return Collections.singletonList(response);
+    return response;
   }
 }
