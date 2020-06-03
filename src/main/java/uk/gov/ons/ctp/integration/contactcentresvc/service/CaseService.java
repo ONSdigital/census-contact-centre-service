@@ -36,7 +36,7 @@ public interface CaseService {
   String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
       throws CTPException;
 
-  ResponseDTO invalidate(InvalidateCaseRequestDTO invalidateCaseRequestDTO) throws CTPException;
+  ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO) throws CTPException;
 
   ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException;

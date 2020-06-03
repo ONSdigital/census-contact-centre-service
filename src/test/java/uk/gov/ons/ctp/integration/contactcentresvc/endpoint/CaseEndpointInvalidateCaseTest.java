@@ -90,17 +90,17 @@ public final class CaseEndpointInvalidateCaseTest {
   private void doPostExpectingRejection() {
     ResultActions actions = doPost();
     actions.andExpect(status().isBadRequest());
-    verify(caseService, never()).invalidate(any());
+    verify(caseService, never()).invalidateCase(any());
   }
 
   @Test
   public void shouldModifyCase() throws Exception {
-    when(caseService.invalidate(any())).thenReturn(responseDTO);
+    when(caseService.invalidateCase(any())).thenReturn(responseDTO);
     ResultActions actions = doPost();
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.id", is(caseId)));
     actions.andExpect(jsonPath("$.dateTime", is(A_RESPONSE_DATE_TIME)));
-    verify(caseService).invalidate(any());
+    verify(caseService).invalidateCase(any());
   }
 
   @Test

@@ -1026,7 +1026,7 @@ public class CaseServiceImplTest {
   private void checkInvalidateCaseForStatus(CaseStatus status) {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
-    ResponseDTO response = target.invalidate(dto);
+    ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
 
@@ -1090,7 +1090,7 @@ public class CaseServiceImplTest {
     when(caseServiceClient.getCaseById(any(), any()))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
-    target.invalidate(dto);
+    target.invalidateCase(dto);
   }
 
   private void mockEqLaunchJwe() throws Exception {

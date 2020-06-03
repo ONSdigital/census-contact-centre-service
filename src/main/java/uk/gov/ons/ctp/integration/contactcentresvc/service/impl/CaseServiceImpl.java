@@ -444,7 +444,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public ResponseDTO invalidate(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
+  public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
       throws CTPException {
     UUID caseId = invalidateCaseRequestDTO.getCaseId();
 
@@ -469,7 +469,7 @@ public class CaseServiceImpl implements CaseService {
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
-    log.with(response).debug("Return from modify case");
+    log.with(response).debug("Return from invalidate case");
     return response;
   }
 
