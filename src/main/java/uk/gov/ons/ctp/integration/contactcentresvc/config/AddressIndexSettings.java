@@ -9,5 +9,6 @@ public class AddressIndexSettings {
   private String postcodeLookupPath;
   private String uprnLookupPath;
   private String addressType;
+  private String epoch;
   private RestClientConfig restClientConfig;
 }

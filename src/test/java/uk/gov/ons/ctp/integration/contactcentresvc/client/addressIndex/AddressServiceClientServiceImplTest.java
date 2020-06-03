@@ -31,6 +31,7 @@ public class AddressServiceClientServiceImplTest {
   private static final String UPRN_QUERY_PATH = "/addresses/rh/uprn/{uprn}";
   private static final String ADDRESS_TYPE = "paf";
   private static final long UPRN = 100041045018L;
+  private static final String EPOCH = "99";
 
   @Mock AppConfig appConfig = new AppConfig();
 
@@ -43,21 +44,55 @@ public class AddressServiceClientServiceImplTest {
 
   @Captor ArgumentCaptor<MultiValueMap<String, String>> queryParamsCaptor;
 
+  private AddressIndexSettings addressIndexSettings;
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
-
+    addressIndexSettings = new AddressIndexSettings();
     // Mock the address index settings
-    AddressIndexSettings addressIndexSettings = new AddressIndexSettings();
     addressIndexSettings.setAddressQueryPath(ADDRESS_QUERY_PATH);
     addressIndexSettings.setPostcodeLookupPath(POSTCODE_QUERY_PATH);
     addressIndexSettings.setUprnLookupPath(UPRN_QUERY_PATH);
     addressIndexSettings.setAddressType(ADDRESS_TYPE);
+    addressIndexSettings.setEpoch(EPOCH);
     Mockito.when(appConfig.getAddressIndexSettings()).thenReturn(addressIndexSettings);
   }
 
   @Test
   public void testAddressQueryProcessing() throws Exception {
+    // Build results to be returned from search
+    AddressIndexSearchResultsDTO resultsFromAddressIndex =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+    Mockito.when(
+            restClient.getResource(
+                eq(ADDRESS_QUERY_PATH),
+                eq(AddressIndexSearchResultsDTO.class),
+                any(),
+                any(),
+                any()))
+        .thenReturn(resultsFromAddressIndex);
+
+    // Run the request and sanity check the results. We can't thoroughly check the data as it
+    // is not coming from a fixed test data set
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
+    AddressIndexSearchResultsDTO results = addressClientService.searchByAddress(request);
+    assertEquals("39", results.getDataVersion());
+    assertEquals(4, results.getResponse().getAddresses().size());
+
+    // Verify that the query parameters being passed to AddressIndex are as expected
+    Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
+    MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
+    assertEquals("[Michael]", queryParams.get("input").toString());
+    assertEquals("[0]", queryParams.get("offset").toString());
+    assertEquals("[100]", queryParams.get("limit").toString());
+    assertEquals("[99]", queryParams.get("epoch").toString());
+    assertEquals(4, queryParams.keySet().size());
+  }
+
+  @Test
+  public void testAddressQueryProcessingNoEpoch() throws Exception {
+    addressIndexSettings.setEpoch("");
     // Build results to be returned from search
     AddressIndexSearchResultsDTO resultsFromAddressIndex =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
@@ -111,7 +146,8 @@ public class AddressServiceClientServiceImplTest {
     MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
-    assertEquals(2, queryParams.keySet().size());
+    assertEquals("[99]", queryParams.get("epoch").toString());
+    assertEquals(3, queryParams.keySet().size());
   }
 
   @Test
@@ -121,6 +157,7 @@ public class AddressServiceClientServiceImplTest {
         FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("addresstype", ADDRESS_TYPE);
+    queryParams.add("epoch", EPOCH);
     Mockito.when(
             restClient.getResource(
                 eq(UPRN_QUERY_PATH),

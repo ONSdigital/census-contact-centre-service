@@ -113,6 +113,7 @@ address-index-settings:
   postcode-lookup-path: /addresses/postcode/{postcode}
   uprn-lookup-path: /addresses/rh/uprn/{uprn}
   address-type: paf
+  epoch:
   rest-client-config:
     username:
     password:
