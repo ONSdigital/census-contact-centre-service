@@ -259,7 +259,7 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{caseId}/invalidate", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<ResponseDTO> invalidate(
+  public ResponseEntity<ResponseDTO> invalidateCase(
       @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody InvalidateCaseRequestDTO requestBodyDTO)
       throws CTPException {
