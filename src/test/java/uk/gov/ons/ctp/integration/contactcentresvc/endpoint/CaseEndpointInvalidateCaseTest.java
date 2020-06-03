@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.ons.ctp.common.MvcHelper.putJson;
+import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_RESPONSE_DATE_TIME;
 
@@ -30,13 +30,13 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
-/** Test the PUT endpoint to modify case details. */
+/** Test the POST endpoint to invalidate case details. */
 @RunWith(MockitoJUnitRunner.class)
-public final class CaseEndpointModifyCaseTest {
+public final class CaseEndpointInvalidateCaseTest {
 
   @Mock private CaseService caseService;
 
@@ -65,9 +65,9 @@ public final class CaseEndpointModifyCaseTest {
             .build();
 
     loadTestJson();
-    ModifyCaseRequestDTO dto = mapper.convertValue(json, ModifyCaseRequestDTO.class);
+    InvalidateCaseRequestDTO dto = mapper.convertValue(json, InvalidateCaseRequestDTO.class);
     this.caseId = dto.getCaseId().toString();
-    createValidResponse(dto);
+    createValidResponse();
   }
 
   @SneakyThrows
@@ -76,120 +76,78 @@ public final class CaseEndpointModifyCaseTest {
   }
 
   @SneakyThrows
-  private void createValidResponse(ModifyCaseRequestDTO dto) {
+  private void createValidResponse() {
     this.responseDTO =
         ResponseDTO.builder().id(caseId).dateTime(dateFormat.parse(A_RESPONSE_DATE_TIME)).build();
   }
 
   @SneakyThrows
-  private ResultActions doPut() {
-    return mockMvc.perform(putJson("/cases/" + caseId, json.toString()));
+  private ResultActions doPost() {
+    return mockMvc.perform(postJson("/cases/" + caseId + "/invalidate", json.toString()));
   }
 
   @SneakyThrows
-  private void doPutExpectingRejection() {
-    ResultActions actions = doPut();
+  private void doPostExpectingRejection() {
+    ResultActions actions = doPost();
     actions.andExpect(status().isBadRequest());
-    verify(caseService, never()).modifyCase(any());
+    verify(caseService, never()).invalidateCase(any());
   }
 
   @Test
   public void shouldModifyCase() throws Exception {
-    when(caseService.modifyCase(any())).thenReturn(responseDTO);
-    ResultActions actions = doPut();
+    when(caseService.invalidateCase(any())).thenReturn(responseDTO);
+    ResultActions actions = doPost();
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.id", is(caseId)));
     actions.andExpect(jsonPath("$.dateTime", is(A_RESPONSE_DATE_TIME)));
-    verify(caseService).modifyCase(any());
+    verify(caseService).invalidateCase(any());
   }
 
   @Test
   public void shouldRejectBadPathCaseId() {
     caseId = "123456789";
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectBadBodyCaseId() {
     json.put("caseId", "foo");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectMismatchingCaseId() {
     json.put("caseId", UUID.randomUUID().toString());
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectBadDate() {
     json.put("dateTime", "2019:12:25 12:34:56");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectBadStatus() {
     json.put("status", "FOO");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectBadRegion() {
-    json.put("region", "X");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectBadEstabType() {
-    json.put("estabType", "FOO");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectMissingRegion() {
-    json.remove("region");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectMissingStatus() {
     json.remove("status");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectMissingCaseId() {
     json.remove("caseId");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectMissingAddressLine1() {
-    json.remove("addressLine1");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectMissingTownName() {
-    json.remove("townName");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectMissingEstabType() {
-    json.remove("estabType");
-    doPutExpectingRejection();
-  }
-
-  @Test
-  public void shouldRejectMissingPostcode() {
-    json.remove("postcode");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 
   @Test
   public void shouldRejectMissingDateTime() {
     json.remove("dateTime");
-    doPutExpectingRejection();
+    doPostExpectingRejection();
   }
 }

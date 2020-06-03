@@ -3,7 +3,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
@@ -24,8 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.ons.ctp.common.domain.CaseType;
-import uk.gov.ons.ctp.common.domain.EstabType;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
+import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
@@ -50,8 +49,7 @@ public abstract class EndpointSecurityTest {
   }
 
   @Test
-  public void whenLoggedUserRequestsInfoPageThenSuccess()
-      throws IllegalStateException, IOException {
+  public void whenLoggedUserRequestsInfoPageThenSuccess() {
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/info", String.class);
 
@@ -60,8 +58,7 @@ public abstract class EndpointSecurityTest {
   }
 
   @Test
-  public void whenAnonymousUserRequestsInfoPageThenSuccess()
-      throws IllegalStateException, IOException {
+  public void whenAnonymousUserRequestsInfoPageThenSuccess() {
     restTemplate = new TestRestTemplate();
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/info", String.class);
@@ -91,7 +88,7 @@ public abstract class EndpointSecurityTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
-  void testGetUACForCase(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetUACForCase(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     ResponseEntity<String> response =
         restTemplate.getForEntity(
@@ -104,29 +101,28 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testAccessCasesByUPRN(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testAccessCasesByUPRN(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/cases/uprn/123456789012", String.class);
 
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetAddresses(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetAddresses(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(
             base.toString() + "/addresses?input=2A%20Priors%20Way", String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetAddressesPostcode(HttpStatus expectedStatus)
-      throws IllegalStateException, IOException {
+  void testGetAddressesPostcode(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(
             base.toString() + "/addresses/postcode?postcode=EX10 1BD", String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testPostCase(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testPostCase(HttpStatus expectedStatus) {
     NewCaseRequestDTO requestBody = new NewCaseRequestDTO();
     requestBody.setCaseType(CaseType.HH);
     requestBody.setDateTime(new Date());
@@ -140,7 +136,7 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testPostRefusal(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testPostRefusal(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     RefusalRequestDTO requestBody = new RefusalRequestDTO();
     requestBody.setCaseId(caseId.toString());
@@ -154,19 +150,19 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testPutCase(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testPostInvalidateCase(HttpStatus expectedStatus) {
+    InvalidateCaseRequestDTO requestBody = CaseServiceFixture.createInvalidateCaseRequestDTO();
 
-    UUID caseId = UUID.randomUUID();
-    ModifyCaseRequestDTO requestBody = new ModifyCaseRequestDTO();
-    requestBody.setCaseId(caseId);
-    requestBody.setStatus(CaseStatus.UNCHANGED);
-    requestBody.setEstabType(EstabType.HOUSEHOLD);
-    requestBody.setDateTime(new Date());
-    requestBody.setAddressLine1("1 Contagion Street");
-    requestBody.setTownName("Coronaville");
-    requestBody.setPostcode("SO22 4HJ");
-    requestBody.setRegion(Region.E);
-    requestBody.setNotes("some notes");
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(
+            base.toString() + "/cases/" + requestBody.getCaseId() + "/invalidate",
+            requestBody,
+            String.class);
+    assertEquals(expectedStatus, response.getStatusCode());
+  }
+
+  void testPutCase(HttpStatus expectedStatus) {
+    ModifyCaseRequestDTO requestBody = CaseServiceFixture.createModifyCaseRequestDTO();
 
     HttpHeaders headers = new HttpHeaders();
     Map<String, String> param = new HashMap<String, String>();
@@ -174,7 +170,7 @@ public abstract class EndpointSecurityTest {
         new HttpEntity<ModifyCaseRequestDTO>(requestBody, headers);
     ResponseEntity<ResponseDTO> response =
         restTemplate.exchange(
-            base.toString() + "/cases/" + caseId,
+            base.toString() + "/cases/" + requestBody.getCaseId(),
             HttpMethod.PUT,
             requestEntity,
             ResponseDTO.class,
@@ -183,27 +179,26 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetCCSCaseByPostcode(HttpStatus expectedStatus)
-      throws IllegalStateException, IOException {
+  void testGetCCSCaseByPostcode(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/cases/ccs/postcode/SO22 4HJ", String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetCaseByCaseId(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetCaseByCaseId(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/cases/" + caseId, String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetCaseByCaseRef(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetCaseByCaseRef(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/cases/ref/123456789", String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetCaseLaunch(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetCaseLaunch(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     ResponseEntity<String> response =
         restTemplate.getForEntity(
@@ -212,13 +207,13 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testGetFulfilfments(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testGetFulfilfments(HttpStatus expectedStatus) {
     ResponseEntity<String> response =
         restTemplate.getForEntity(base.toString() + "/fulfilments", String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testPostFulfilmentPost(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testPostFulfilmentPost(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     PostalFulfilmentRequestDTO requestBody = new PostalFulfilmentRequestDTO();
     requestBody.setDateTime(new Date());
@@ -231,7 +226,7 @@ public abstract class EndpointSecurityTest {
     assertEquals(expectedStatus, response.getStatusCode());
   }
 
-  void testPostFulfilmentSMS(HttpStatus expectedStatus) throws IllegalStateException, IOException {
+  void testPostFulfilmentSMS(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     SMSFulfilmentRequestDTO requestBody = new SMSFulfilmentRequestDTO();
     requestBody.setDateTime(new Date());

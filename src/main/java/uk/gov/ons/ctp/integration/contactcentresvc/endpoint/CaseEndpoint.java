@@ -24,6 +24,7 @@ import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.contactcentresvc.Constants;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
@@ -249,7 +250,42 @@ public class CaseEndpoint implements CTPEndpoint {
   }
 
   /**
-   * the PUT end point to modify an existing case
+   * the POST end point to invalidate an existing case due to address status change.
+   *
+   * @param caseId case ID
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/{caseId}/invalidate", method = RequestMethod.POST)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<ResponseDTO> invalidateCase(
+      @PathVariable(value = "caseId") final UUID caseId,
+      @Valid @RequestBody InvalidateCaseRequestDTO requestBodyDTO)
+      throws CTPException {
+
+    log.with("requestBody", requestBodyDTO).info("Entering POST invalidate");
+
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
+      log.with(caseId)
+          .warn(
+              "The caseid in the URL does not match the caseid "
+                  + "in the invalidateCase request body");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
+    }
+    ResponseDTO response = caseService.invalidateCase(requestBodyDTO);
+    return ResponseEntity.ok(response);
+  }
+
+  // ---------------------------------------------------------------
+  // DUMMY ENDPOINTS FROM HERE
+  // ---------------------------------------------------------------
+
+  /**
+   * DUMMY ENDPOINT FOR CC
+   *
+   * <p>the PUT end point to modify an existing case
    *
    * @param caseId case ID
    * @param requestBodyDTO the request body
@@ -258,28 +294,13 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/{caseId}", method = RequestMethod.PUT)
   @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<ResponseDTO> modifyCase(
+  public ResponseEntity<CaseDTO> modifyCase(
       @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody ModifyCaseRequestDTO requestBodyDTO)
       throws CTPException {
-
     log.with("requestBody", requestBodyDTO).info("Entering PUT modifyCase");
-
-    if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId)
-          .warn(
-              "The caseid in the URL does not match the caseid "
-                  + "in the modifyCase request body");
-      throw new CTPException(
-          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
-    }
-    ResponseDTO response = caseService.modifyCase(requestBodyDTO);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(new CaseDTO());
   }
-
-  // ---------------------------------------------------------------
-  // DUMMY ENDPOINTS FROM HERE
-  // ---------------------------------------------------------------
 
   /**
    * DUMMY ENDPOINT FOR CC

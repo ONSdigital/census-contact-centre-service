@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
-import java.io.IOException;
 import java.net.URL;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,72 +29,77 @@ public class CCEndpointSecurityTest extends EndpointSecurityTest {
   @MockBean CaseDataRepository caseDataRepository;
 
   @Test
-  public void ccOkGetAddresses() throws IllegalStateException, IOException {
+  public void ccOkGetAddresses() {
     testGetAddresses(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetAddressesPostcode() throws IllegalStateException, IOException {
+  public void ccOkGetAddressesPostcode() {
     testGetAddressesPostcode(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetCaseByUPRN() throws IllegalStateException, IOException {
+  public void ccOkGetCaseByUPRN() {
     testAccessCasesByUPRN(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetCCSCaseByPostcode() throws IllegalStateException, IOException {
+  public void ccOkGetCCSCaseByPostcode() {
     testGetCCSCaseByPostcode(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetCaseByCaseId() throws IllegalStateException, IOException {
+  public void ccOkGetCaseByCaseId() {
     testGetCaseByCaseId(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetCaseByCaseRef() throws IllegalStateException, IOException {
+  public void ccOkGetCaseByCaseRef() {
     testGetCaseByCaseRef(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetCaseLaunch() throws IllegalStateException, IOException {
+  public void ccOkGetCaseLaunch() {
     testGetCaseLaunch(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkGetFulfilfments() throws IllegalStateException, IOException {
+  public void ccOkGetFulfilfments() {
     testGetFulfilfments(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkPutCase() throws IllegalStateException, IOException {
+  public void ccOkPutCase() {
     testPutCase(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkPostCase() throws IllegalStateException, IOException {
+  public void ccOkPostCase() {
     testPostCase(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkPostRefusal() throws IllegalStateException, IOException {
+  public void ccOkPostRefusal() {
     testPostRefusal(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkPostFulfilfmentPost() throws IllegalStateException, IOException {
+  public void ccOkPostInvalidate() {
+    testPostInvalidateCase(HttpStatus.OK);
+  }
+
+  @Test
+  public void ccOkPostFulfilfmentPost() {
     testPostFulfilmentPost(HttpStatus.OK);
   }
 
   @Test
-  public void ccOkPostFulfilfmentSMS() throws IllegalStateException, IOException {
+  public void ccOkPostFulfilfmentSMS() {
     testPostFulfilmentSMS(HttpStatus.OK);
   }
 
   @Test
-  public void ccForbiddenGetUACForCase() throws IllegalStateException, IOException {
+  public void ccForbiddenGetUACForCase() {
     testGetUACForCase(HttpStatus.FORBIDDEN);
   }
 }
