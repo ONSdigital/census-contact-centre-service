@@ -1,6 +1,9 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
+
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,14 +14,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
-import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.domain.AddressLevel;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
@@ -32,6 +33,7 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
+import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
@@ -56,8 +58,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
@@ -171,13 +173,18 @@ public class CaseServiceImpl implements CaseService {
     } else {
       AddressType addressType = caseRequestDTO.getEstabType().getAddressType().get();
       if (!addressType.name().equals(caseType.name())) {
-        throw new CTPException(Fault.BAD_REQUEST, "Mismatch between caseType and the address type of the nameed estabType. "
-            + "Expected caseType of '" + addressType.name() + "'");
+        throw new CTPException(
+            Fault.BAD_REQUEST,
+            "Mismatch between caseType and the address type of the nameed estabType. "
+                + "Expected caseType of '"
+                + addressType.name()
+                + "'");
       }
       censusAddressType = addressType.name();
     }
-    
-    AddressIndexAddressCompositeDTO address = caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
+
+    AddressIndexAddressCompositeDTO address =
+        caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
     address.setCensusAddressType(censusAddressType);
     address.setCensusEstabType(caseRequestDTO.getEstabType().name());
     address.setCountryCode(caseRequestDTO.getRegion().name());
@@ -187,7 +194,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
-    
+
     storeCaseInCache(cachedCase);
 
     return createNewCachedCaseResponse(cachedCase);
@@ -479,33 +486,32 @@ public class CaseServiceImpl implements CaseService {
   }
 
   @Override
-  public ResponseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
-    UUID caseId = modifyRequestDTO.getCaseId();
+  public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
+      throws CTPException {
+    UUID caseId = invalidateCaseRequestDTO.getCaseId();
 
-    log.with("caseId", caseId).with("status", modifyRequestDTO.getStatus()).debug("Modify Case");
+    log.with("caseId", caseId)
+        .with("status", invalidateCaseRequestDTO.getStatus())
+        .debug("Invalidate Case");
 
     verifyCaseExists(caseId);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
-    if (CaseStatus.UNCHANGED == modifyRequestDTO.getStatus()) {
-      log.with("caseId", caseId).debug("No event published since status is UNCHANGED");
-    } else {
-      log.debug("Case modified: publishing AddressNotValid event");
-      AddressNotValid payload =
-          AddressNotValid.builder()
-              .collectionCase(collectionCase)
-              .notes(modifyRequestDTO.getNotes())
-              .reason(modifyRequestDTO.getStatus().name())
-              .build();
+    log.debug("Case invalidated: publishing AddressNotValid event");
+    AddressNotValid payload =
+        AddressNotValid.builder()
+            .collectionCase(collectionCase)
+            .notes(invalidateCaseRequestDTO.getNotes())
+            .reason(invalidateCaseRequestDTO.getStatus().name())
+            .build();
 
-      eventPublisher.sendEvent(
-          EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
-    }
+    eventPublisher.sendEvent(
+        EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
-    log.with(response).debug("Return from modify case");
+    log.with(response).debug("Return from invalidate case");
     return response;
   }
 
@@ -531,8 +537,8 @@ public class CaseServiceImpl implements CaseService {
         .debug("SurveyLaunch event published");
   }
 
-  private void publishNewAddressReportedEvent(UUID caseId, CaseType caseType, AddressIndexAddressCompositeDTO address)
-      throws CTPException {
+  private void publishNewAddressReportedEvent(
+      UUID caseId, CaseType caseType, AddressIndexAddressCompositeDTO address) throws CTPException {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
@@ -861,12 +867,13 @@ public class CaseServiceImpl implements CaseService {
 
     return cachedCase;
   }
-  
+
   private void storeCaseInCache(CachedCase cachedCase) throws CTPException {
     try {
       dataRepo.writeCachedCase(cachedCase);
     } catch (DataStoreContentionException e) {
-      log.error("Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
+      log.error(
+          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
       throw new CTPException(
           Fault.SYSTEM_ERROR,
           e,
@@ -875,7 +882,13 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
-    EstabType estabType = EstabType.valueOf(newCase.getEstabType());
+    EstabType estabType;
+    try {
+      estabType = EstabType.valueOf(newCase.getEstabType());
+    } catch (IllegalArgumentException e) {
+      log.with("estabType", newCase.getEstabType()).error("Unknown EstabType");
+      throw new CTPException(Fault.SYSTEM_ERROR, "Unknown EstabType: " + newCase.getEstabType());
+    }
 
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));

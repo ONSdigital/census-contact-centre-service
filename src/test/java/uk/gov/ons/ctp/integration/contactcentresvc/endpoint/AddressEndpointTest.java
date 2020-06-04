@@ -26,6 +26,7 @@ import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
+import uk.gov.ons.ctp.integration.contactcentresvc.endpoint.AddressEndpoint;
 
 /** Contact Centre Data endpoint Unit tests */
 public final class AddressEndpointTest {

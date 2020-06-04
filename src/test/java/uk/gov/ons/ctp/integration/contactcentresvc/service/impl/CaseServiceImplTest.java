@@ -85,8 +85,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -536,7 +536,7 @@ public class CaseServiceImplTest {
 
     AddressIndexAddressCompositeDTO addressFromAI =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
-    addressFromAI.setCensusEstabType("marina");
+    addressFromAI.setCensusEstabType("MARINA");
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
@@ -1023,10 +1023,10 @@ public class CaseServiceImplTest {
   }
 
   @SneakyThrows
-  private void checkModifyCaseForStatus(CaseStatus status) {
-    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
+  private void checkInvalidateCaseForStatus(CaseStatus status) {
+    InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
-    ResponseDTO response = target.modifyCase(dto);
+    ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
 
@@ -1046,50 +1046,51 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusDerelict() {
-    checkModifyCaseForStatus(CaseStatus.DERELICT);
+  public void shouldInvalidateCaseWhenStatusDerelict() {
+    checkInvalidateCaseForStatus(CaseStatus.DERELICT);
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusDemolished() {
-    checkModifyCaseForStatus(CaseStatus.DEMOLISHED);
+  public void shouldInvalidateCaseWhenStatusDemolished() {
+    checkInvalidateCaseForStatus(CaseStatus.DEMOLISHED);
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusNonResidential() {
-    checkModifyCaseForStatus(CaseStatus.NON_RESIDENTIAL);
+  public void shouldInvalidateCaseWhenStatusNonResidential() {
+    checkInvalidateCaseForStatus(CaseStatus.NON_RESIDENTIAL);
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusUnderConstruction() {
-    checkModifyCaseForStatus(CaseStatus.UNDER_CONSTRUCTION);
+  public void shouldInvalidateCaseWhenStatusUnderConstruction() {
+    checkInvalidateCaseForStatus(CaseStatus.UNDER_CONSTRUCTION);
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusSplitAddress() {
-    checkModifyCaseForStatus(CaseStatus.SPLIT_ADDRESS);
+  public void shouldInvalidateCaseWhenStatusSplitAddress() {
+    checkInvalidateCaseForStatus(CaseStatus.SPLIT_ADDRESS);
   }
 
   @Test
-  public void shouldModifyCaseWhenStatusMerged() {
-    checkModifyCaseForStatus(CaseStatus.MERGED);
+  public void shouldInvalidateCaseWhenStatusMerged() {
+    checkInvalidateCaseForStatus(CaseStatus.MERGED);
+  }
+
+  @Test
+  public void shouldInvalidateCaseWhenStatusDuplicate() {
+    checkInvalidateCaseForStatus(CaseStatus.DUPLICATE);
+  }
+
+  @Test
+  public void shouldInvalidateCaseWhenStatusDoesNotExist() {
+    checkInvalidateCaseForStatus(CaseStatus.DOES_NOT_EXIST);
   }
 
   @Test(expected = ResponseStatusException.class)
   public void shouldRejectCaseNotFound() throws Exception {
     when(caseServiceClient.getCaseById(any(), any()))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
-    target.modifyCase(dto);
-  }
-
-  @Test
-  public void shouldNotModifyCaseWhenStatusUnchanged() throws Exception {
-    ModifyCaseRequestDTO dto = CaseServiceFixture.createModifyCaseRequestDTO();
-    ResponseDTO response = target.modifyCase(dto);
-    assertEquals(dto.getCaseId().toString(), response.getId());
-    assertNotNull(response.getDateTime());
-    verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
+    target.invalidateCase(dto);
   }
 
   private void mockEqLaunchJwe() throws Exception {
@@ -1495,6 +1496,7 @@ public class CaseServiceImplTest {
 
     CollectionCaseNewAddress newAddress = mapperFacade.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
+    newAddress.setCaseType(address.getCensusAddressType());
     newAddress.setSurvey("CENSUS");
     Optional<AddressType> addressType =
         EstabType.forCode(address.getCensusEstabType()).getAddressType();

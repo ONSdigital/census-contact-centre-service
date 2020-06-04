@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
-import java.io.IOException;
 import java.net.URL;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,72 +29,77 @@ public class ADEndpointSecurityTest extends EndpointSecurityTest {
   @MockBean CaseDataRepository caseDataRepository;
 
   @Test
-  public void adOkGetUACForCase() throws IllegalStateException, IOException {
+  public void adOkGetUACForCase() {
     testGetUACForCase(HttpStatus.OK);
   }
 
   @Test
-  public void adOkAccessCasesByUPRN() throws IllegalStateException, IOException {
+  public void adOkAccessCasesByUPRN() {
     testAccessCasesByUPRN(HttpStatus.OK);
   }
 
   @Test
-  public void adOkGetAddresses() throws IllegalStateException, IOException {
+  public void adOkGetAddresses() {
     testGetAddresses(HttpStatus.OK);
   }
 
   @Test
-  public void adOkGetAddressesPostcode() throws IllegalStateException, IOException {
+  public void adOkGetAddressesPostcode() {
     testGetAddressesPostcode(HttpStatus.OK);
   }
 
   @Test
-  public void adForbiddenPostRefusal() throws IllegalStateException, IOException {
+  public void adForbiddenPostRefusal() {
     testPostRefusal(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenPutCase() throws IllegalStateException, IOException {
+  public void adForbiddenPostInvalidate() {
+    testPostInvalidateCase(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  public void adForbiddenPutCase() {
     testPutCase(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenGetCCSCaseByPostcode() throws IllegalStateException, IOException {
+  public void adForbiddenGetCCSCaseByPostcode() {
     testGetCCSCaseByPostcode(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenGetCaseByCaseId() throws IllegalStateException, IOException {
+  public void adForbiddenGetCaseByCaseId() {
     testGetCaseByCaseId(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenGetCaseByCaseRef() throws IllegalStateException, IOException {
+  public void adForbiddenGetCaseByCaseRef() {
     testGetCaseByCaseRef(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenGetCaseLaunch() throws IllegalStateException, IOException {
+  public void adForbiddenGetCaseLaunch() {
     testGetCaseLaunch(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenGetFulfilfments() throws IllegalStateException, IOException {
+  public void adForbiddenGetFulfilfments() {
     testGetFulfilfments(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenPostFulfilfmentPost() throws IllegalStateException, IOException {
+  public void adForbiddenPostFulfilfmentPost() {
     testPostFulfilmentPost(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adForbiddenPostFulfilfmentSMS() throws IllegalStateException, IOException {
+  public void adForbiddenPostFulfilfmentSMS() {
     testPostFulfilmentSMS(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  public void adOkPostCase() throws IllegalStateException, IOException {
+  public void adOkPostCase() {
     testPostCase(HttpStatus.FORBIDDEN);
   }
 }
