@@ -1520,6 +1520,7 @@ public class CaseServiceImplTest {
     expectedResult.setCaseType(CaseType.HH.name());
     expectedResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+
     assertEquals(expectedResult, result);
 
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));

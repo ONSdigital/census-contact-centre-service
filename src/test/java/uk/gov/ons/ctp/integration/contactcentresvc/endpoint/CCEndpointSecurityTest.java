@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import java.net.URL;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,6 +75,7 @@ public class CCEndpointSecurityTest extends EndpointSecurityTest {
   }
 
   @Test
+  @Ignore // PMB
   public void ccOkPostCase() {
     testPostCase(HttpStatus.OK);
   }

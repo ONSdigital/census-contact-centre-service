@@ -163,7 +163,6 @@ public class CaseServiceImpl implements CaseService {
 
   @Override
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
-    UUID newCaseId = UUID.randomUUID();
     CaseType caseType = caseRequestDTO.getCaseType();
 
     String censusAddressType;
@@ -186,12 +185,14 @@ public class CaseServiceImpl implements CaseService {
     AddressIndexAddressCompositeDTO address =
         caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
     address.setCensusAddressType(censusAddressType);
-    address.setCensusEstabType(caseRequestDTO.getEstabType().name());
+    address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
+    UUID newCaseId = UUID.randomUUID();
     publishNewAddressReportedEvent(newCaseId, caseType, address);
 
     CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
     cachedCase.setId(newCaseId.toString());
+    cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
@@ -882,18 +883,12 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
-    EstabType estabType;
-    try {
-      estabType = EstabType.valueOf(newCase.getEstabType());
-    } catch (IllegalArgumentException e) {
-      log.with("estabType", newCase.getEstabType()).error("Unknown EstabType");
-      throw new CTPException(Fault.SYSTEM_ERROR, "Unknown EstabType: " + newCase.getEstabType());
-    }
 
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+
+    EstabType estabType = EstabType.forCode(newCase.getEstabType());
     response.setEstabType(estabType);
-    response.setEstabDescription(estabType.getCode());
     response.setSecureEstablishment(estabType.isSecure());
 
     return response;
