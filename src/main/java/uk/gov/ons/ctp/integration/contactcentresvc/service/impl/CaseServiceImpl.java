@@ -169,7 +169,7 @@ public class CaseServiceImpl implements CaseService {
     String censusAddressType;
     if (caseRequestDTO.getEstabType() == EstabType.OTHER) {
       // Only data available is the case type, so use that
-      censusAddressType = caseRequestDTO.getEstabType().name();
+      censusAddressType = caseType.name();
     } else {
       AddressType addressType = caseRequestDTO.getEstabType().getAddressType().get();
       if (!addressType.name().equals(caseType.name())) {

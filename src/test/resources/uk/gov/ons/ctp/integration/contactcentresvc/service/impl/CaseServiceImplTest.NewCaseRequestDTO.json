@@ -1,4 +1,5 @@
-{
+[
+ {
   "addressLine1": "8 Newlands Terrace",
   "addressLine2": "Flatfield",
   "addressLine3": "Brumble",
@@ -11,4 +12,29 @@
   "caseType": "SPG",
   "uprn": "3333334",
   "estabType": "ROYAL_HOUSEHOLD"
-}
+ },
+ {
+  "addressLine1": "1 High Street",
+  "townName": "Widemouth",
+  "region": "E",
+  "postcode": "EX2 5AB",
+  "ceOrgName": null,
+  "ceUsualResidents": null,
+  "dateTime": "2016-11-09T11:44:44.797",
+  "caseType": "HH",
+  "uprn": "3333334",
+  "estabType": "OTHER"
+ },
+ {
+  "addressLine1": "1 High Street",
+  "townName": "Widemouth",
+  "region": "E",
+  "postcode": "EX2 5AB",
+  "ceOrgName": null,
+  "ceUsualResidents": null,
+  "dateTime": "2016-11-09T11:44:44.797",
+  "caseType": "HH",
+  "uprn": "3333334",
+  "estabType": "MILITARY_SLA"
+ }
+]
