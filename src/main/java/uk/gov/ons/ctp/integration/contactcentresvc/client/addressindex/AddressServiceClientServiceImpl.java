@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import javax.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class AddressServiceClientServiceImpl {
     queryParams.add("input", input);
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
+    addEpoch(queryParams);
 
     // Ask Address Index to do an address search
     String path = appConfig.getAddressIndexSettings().getAddressQueryPath();
@@ -57,7 +59,6 @@ public class AddressServiceClientServiceImpl {
       PostcodeQueryRequestDTO postcodeQueryRequest) {
     log.debug("Delegating postcode search to the AddressIndex service");
 
-    String postcode = postcodeQueryRequest.getPostcode();
     int offset = postcodeQueryRequest.getOffset();
     int limit = postcodeQueryRequest.getLimit();
 
@@ -65,8 +66,10 @@ public class AddressServiceClientServiceImpl {
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
+    addEpoch(queryParams);
 
     // Ask Address Index to do postcode search
+    String postcode = postcodeQueryRequest.getPostcode();
     String path = appConfig.getAddressIndexSettings().getPostcodeLookupPath();
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
@@ -85,6 +88,7 @@ public class AddressServiceClientServiceImpl {
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("addresstype", appConfig.getAddressIndexSettings().getAddressType());
+    addEpoch(queryParams);
 
     // Ask Address Index to do uprn search
     String path = appConfig.getAddressIndexSettings().getUprnLookupPath();
@@ -97,5 +101,13 @@ public class AddressServiceClientServiceImpl {
         .debug("UPRN query response received");
 
     return addressIndexResponse;
+  }
+
+  private MultiValueMap<String, String> addEpoch(MultiValueMap<String, String> queryParams) {
+    String epoch = appConfig.getAddressIndexSettings().getEpoch();
+    if (!StringUtils.isBlank(epoch)) {
+      queryParams.add("epoch", epoch);
+    }
+    return queryParams;
   }
 }
