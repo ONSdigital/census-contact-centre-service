@@ -164,6 +164,7 @@ public class CaseServiceImplTest {
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
 
+    // Run code under test
     CaseDTO response = target.createCaseForNewAddress(caseRequestDTO);
 
     // Grab created case
@@ -569,7 +570,7 @@ public class CaseServiceImplTest {
 
     AddressIndexAddressCompositeDTO addressFromAI =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
-    addressFromAI.setCensusEstabType("MARINA");
+    addressFromAI.setCensusEstabType("marina");
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
@@ -1533,10 +1534,7 @@ public class CaseServiceImplTest {
       boolean isSecureEstablishment,
       CaseDTO actualCaseDto) {
     CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
-    expectedNewCaseResult.setCreatedDateTime(
-        Date.class.isInstance(actualCaseDto.getCreatedDateTime())
-            ? actualCaseDto.getCreatedDateTime()
-            : null);
+    expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
     expectedNewCaseResult.setCaseType(expectedCaseType);
     expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);

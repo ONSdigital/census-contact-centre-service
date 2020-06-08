@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.ons.ctp.common.domain.CaseType;
+import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
@@ -124,12 +125,13 @@ public abstract class EndpointSecurityTest {
 
   void testPostCase(HttpStatus expectedStatus) {
     NewCaseRequestDTO requestBody = new NewCaseRequestDTO();
-    requestBody.setCaseType(CaseType.HH);
-    requestBody.setDateTime(new Date());
     requestBody.setAddressLine1("1 Contagion Street");
     requestBody.setTownName("Coronaville");
-    requestBody.setPostcode("SO22 4HJ");
     requestBody.setRegion(Region.E);
+    requestBody.setPostcode("SO22 4HJ");
+    requestBody.setDateTime(new Date());
+    requestBody.setCaseType(CaseType.HH);
+    requestBody.setEstabType(EstabType.GATED_APARTMENTS);
 
     ResponseEntity<String> response =
         restTemplate.postForEntity(base.toString() + "/cases", requestBody, String.class);
