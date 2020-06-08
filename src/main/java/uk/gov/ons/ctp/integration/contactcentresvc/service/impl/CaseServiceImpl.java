@@ -165,6 +165,7 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
+    // Validate address type
     String censusAddressType;
     if (caseRequestDTO.getEstabType() == EstabType.OTHER) {
       // Only data available is the case type, so use that
@@ -182,21 +183,23 @@ public class CaseServiceImpl implements CaseService {
       censusAddressType = addressType.name();
     }
 
-    AddressIndexAddressCompositeDTO address =
-        caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
-    address.setCensusAddressType(censusAddressType);
-    address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
-    address.setCountryCode(caseRequestDTO.getRegion().name());
-    UUID newCaseId = UUID.randomUUID();
-    publishNewAddressReportedEvent(newCaseId, caseType, address);
-
+    // Create new case
     CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
+    UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());
     cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
     storeCaseInCache(cachedCase);
+
+    // Publish NewAddress event
+    AddressIndexAddressCompositeDTO address =
+        caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
+    address.setCensusAddressType(censusAddressType);
+    address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
+    address.setCountryCode(caseRequestDTO.getRegion().name());
+    publishNewAddressReportedEvent(newCaseId, caseType, address);
 
     return createNewCachedCaseResponse(cachedCase);
   }
