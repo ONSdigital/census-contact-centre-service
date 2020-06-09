@@ -183,6 +183,11 @@ public class CaseServiceImpl implements CaseService {
       censusAddressType = addressType.name();
     }
 
+    // Reject if CE with non-positive number of residents
+    if (caseRequestDTO.getCaseType() == CaseType.CE && caseRequestDTO.getCeUsualResidents() <= 0) {
+      throw new CTPException(Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
+    }
+    
     // Create new case
     CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
     UUID newCaseId = UUID.randomUUID();

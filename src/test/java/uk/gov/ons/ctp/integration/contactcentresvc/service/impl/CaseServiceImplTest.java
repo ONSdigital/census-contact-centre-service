@@ -169,6 +169,7 @@ public class CaseServiceImplTest {
 
   @Test
   public void testNewCaseForNewAddress_forEstabTypeOfOther() throws Exception {
+    // Load request, which has estabType of Other
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(1);
 
@@ -178,6 +179,7 @@ public class CaseServiceImplTest {
 
   @Test
   public void testNewCaseForNewAddress_mismatchedCaseAndAddressType() throws Exception {
+    // Load request, which has caseType of HH and estabType with a CE addressType
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
 
@@ -190,16 +192,37 @@ public class CaseServiceImplTest {
     }
   }
 
-  private void doTestNewCaseForNewAddress(NewCaseRequestDTO caseRequestDTO, String expectedAddressType, boolean expectedIsSecureEstablishment)
+  @Test
+  public void testNewCaseForNewAddress_ceWithNonPositiveNumberOfResidents() throws Exception {
+    // Load valid request and then update so that it's invalid
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+    // Simulate error by making request a CE with a non-positive number of residents
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setCeUsualResidents(0);
+    
+    try {
+      doTestNewCaseForNewAddress(caseRequestDTO, null, false);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(e.toString(), e.getMessage().matches(".*Number of residents .* for CE"));
+    }
+  }
+
+  private void doTestNewCaseForNewAddress(
+      NewCaseRequestDTO caseRequestDTO,
+      String expectedAddressType,
+      boolean expectedIsSecureEstablishment)
       throws CTPException, DataStoreContentionException {
     // Run code under test
     CaseDTO response = target.createCaseForNewAddress(caseRequestDTO);
-    
+
     // Grab created case
     ArgumentCaptor<CachedCase> caseCaptor = ArgumentCaptor.forClass(CachedCase.class);
     Mockito.verify(dataRepo, times(1)).writeCachedCase(caseCaptor.capture());
     CachedCase storedCase = caseCaptor.getValue();
-    
+
     // Check contents of new case
     CachedCase expectedCase = mapperFacade.map(caseRequestDTO, CachedCase.class);
     expectedCase.setId(storedCase.getId());
@@ -208,18 +231,18 @@ public class CaseServiceImplTest {
     expectedCase.setAddressType(expectedAddressType);
     expectedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     assertEquals(expectedCase, storedCase);
-    
+
     // Verify the NewAddressEvent
     CollectionCaseNewAddress expectedAddress =
         mapperFacade.map(caseRequestDTO, CollectionCaseNewAddress.class);
     expectedAddress.setId(storedCase.getId());
     verifyNewAddressEventSent(
         expectedCase.getAddressType(), caseRequestDTO.getEstabType().getCode(), expectedAddress);
-    
+
     // Verify response
     verifyCaseDTOContent(expectedCase, caseTypeName, expectedIsSecureEstablishment, response);
   }
-  
+
   @Test
   public void testFulfilmentRequestByPost_individualFailsWithNullContactDetails() throws Exception {
     // All of the following fail validation because one of the contact detail fields is always null
