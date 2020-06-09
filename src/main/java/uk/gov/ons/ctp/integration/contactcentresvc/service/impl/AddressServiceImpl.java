@@ -1,8 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
+
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +32,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 @Validated()
 public class AddressServiceImpl implements AddressService {
   private static final Logger log = LoggerFactory.getLogger(AddressServiceImpl.class);
+  private static final String HISTORICAL_ADDRESS_STATUS = "8";
 
   @Autowired private AddressServiceClientServiceImpl addressServiceClient;
 
@@ -98,36 +102,42 @@ public class AddressServiceImpl implements AddressService {
     }
   }
 
+  private AddressDTO convertToSummarised(AddressIndexAddressDTO fullAddress) {
+    String formattedAddress = fullAddress.getFormattedAddress();
+    String addressPaf = fullAddress.getFormattedAddressPaf();
+    String addressNag = fullAddress.getFormattedAddressNag();
+    String welshAddressPaf = fullAddress.getWelshFormattedAddressPaf();
+    String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
+    String estabDescription = fullAddress.getCensusEstabType();
+
+    AddressDTO addressSummary = new AddressDTO();
+    addressSummary.setUprn(fullAddress.getUprn());
+    addressSummary.setRegion(fullAddress.getCountryCode());
+    addressSummary.setAddressType(fullAddress.getCensusAddressType());
+    addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
+    addressSummary.setEstabDescription(estabDescription);
+    addressSummary.setFormattedAddress(
+        StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
+    addressSummary.setWelshFormattedAddress(
+        StringUtils.selectFirstNonBlankString(welshAddressPaf, welshAddressNag, formattedAddress));
+    return addressSummary;
+  }
+
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
       AddressIndexSearchResultsDTO addressIndexResponse) {
-    ArrayList<AddressDTO> summarisedAddresses = new ArrayList<>();
-    for (AddressIndexAddressDTO fullAddress : addressIndexResponse.getResponse().getAddresses()) {
-      String formattedAddress = fullAddress.getFormattedAddress();
-      String addressPaf = fullAddress.getFormattedAddressPaf();
-      String addressNag = fullAddress.getFormattedAddressNag();
-      String welshAddressPaf = fullAddress.getWelshFormattedAddressPaf();
-      String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
-      String estabDescription = fullAddress.getCensusEstabType();
-
-      AddressDTO addressSummary = new AddressDTO();
-      addressSummary.setUprn(fullAddress.getUprn());
-      addressSummary.setRegion(fullAddress.getCountryCode());
-      addressSummary.setAddressType(fullAddress.getCensusAddressType());
-      addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
-      addressSummary.setEstabDescription(estabDescription);
-      addressSummary.setFormattedAddress(
-          StringUtils.selectFirstNonBlankString(addressPaf, addressNag, formattedAddress));
-      addressSummary.setWelshFormattedAddress(
-          StringUtils.selectFirstNonBlankString(
-              welshAddressPaf, welshAddressNag, formattedAddress));
-
-      summarisedAddresses.add(addressSummary);
-    }
+    List<AddressDTO> summarisedAddresses =
+        addressIndexResponse
+            .getResponse()
+            .getAddresses()
+            .stream()
+            .filter(a -> !HISTORICAL_ADDRESS_STATUS.equals(a.getLpiLogicalStatus()))
+            .map(this::convertToSummarised)
+            .collect(toList());
 
     // Complete construction of response objects
     AddressQueryResponseDTO queryResponse = new AddressQueryResponseDTO();
     queryResponse.setDataVersion(addressIndexResponse.getDataVersion());
-    queryResponse.setAddresses(summarisedAddresses);
+    queryResponse.setAddresses(new ArrayList<>(summarisedAddresses));
 
     int total = addressIndexResponse.getResponse().getTotal();
     int arraySize = summarisedAddresses.size();

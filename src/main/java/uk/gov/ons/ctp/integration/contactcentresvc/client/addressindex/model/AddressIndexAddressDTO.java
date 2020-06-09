@@ -24,4 +24,6 @@ public class AddressIndexAddressDTO {
   private String welshFormattedAddressNag;
 
   private String welshFormattedAddressPaf;
+
+  private String lpiLogicalStatus;
 }

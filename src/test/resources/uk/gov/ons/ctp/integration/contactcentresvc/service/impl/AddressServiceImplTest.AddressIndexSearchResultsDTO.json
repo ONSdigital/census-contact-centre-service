@@ -1,120 +1,411 @@
-{
-  "apiVersion": "v_c875fa34fdfa1cf308505b8b6524dbe5e4824595",
-  "dataVersion": "39",
-  "response": {
-    "tokens": {
-      "StreetName": "MICHAEL",
-      "Locality": "BROWNING"
+[
+  {
+    "apiVersion": "v_c875fa34fdfa1cf308505b8b6524dbe5e4824595",
+    "dataVersion": "39",
+    "response": {
+      "tokens": {
+        "StreetName": "MICHAEL",
+        "Locality": "BROWNING"
+      },
+      "addresses": [
+        {
+          "uprn": "100041045018",
+          "parentUprn": "0",
+          "countryCode": "E",
+          "censusAddressType": "HH",
+          "censusEstabType": "HOUSEHOLD",
+          "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
+          "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
+          "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+          "welshFormattedAddressNag": "Unit 11wn, Michael Browning Way, Exeter, EX2 8DD",
+          "welshFormattedAddressPaf": "Unit 11wp, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+          "geo": {
+            "latitude": 50.714314,
+            "longitude": -3.5294223,
+            "easting": 292120,
+            "northing": 91637
+          },
+          "classificationCode": "CI03",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 0.2234,
+          "underlyingScore": 1.3216084241867065
+        },
+        {
+          "uprn": "100041045021",
+          "parentUprn": "0",
+          "countryCode": "E",
+          "censusAddressType": "CE",
+          "censusEstabType": "CARE HOME",
+          "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
+          "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
+          "formattedAddressPaf": "",
+          "welshFormattedAddressNag": "Unit 14wn, Michael Browning Way, Exeter, EX2 8DD",
+          "welshFormattedAddressPaf": "",
+          "geo": {
+            "latitude": 50.714413,
+            "longitude": -3.5296204,
+            "easting": 292106,
+            "northing": 91648
+          },
+          "classificationCode": "CI",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 0.2234,
+          "underlyingScore": 1.3216084241867065
+        },
+        {
+          "uprn": "100041045024",
+          "parentUprn": "0",
+          "countryCode": "E",
+          "censusAddressType": "SPG",
+          "censusEstabType": "PRISON",
+          "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
+          "formattedAddressNag": "",
+          "formattedAddressPaf": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "",
+          "geo": {
+            "latitude": 50.714634,
+            "longitude": -3.530208,
+            "easting": 292065,
+            "northing": 91674
+          },
+          "classificationCode": "CI",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 0.2234,
+          "underlyingScore": 1.3216084241867065
+        },
+        {
+          "uprn": "100041133344",
+          "parentUprn": "0",
+          "countryCode": "E",
+          "censusAddressType": "HH",
+          "censusEstabType": "OLD RAILWAY CARRIAGE",
+          "formattedAddress": "",
+          "formattedAddressNag": "",
+          "formattedAddressPaf": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "",
+          "geo": {
+            "latitude": 50.714497,
+            "longitude": -3.5298667,
+            "easting": 292089,
+            "northing": 91658
+          },
+          "classificationCode": "CI",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 0.2234,
+          "underlyingScore": 1.3216084241867065
+        }
+      ],
+      "filter": "",
+      "historical": true,
+      "epoch": "",
+      "rangekm": "",
+      "latitude": "",
+      "longitude": "",
+      "startDate": "",
+      "endDate": "",
+      "limit": 10,
+      "offset": 3,
+      "total": 23,
+      "sampleSize": 23,
+      "maxScore": 1.4572321,
+      "matchthreshold": 5,
+      "verbose": false
     },
-    "addresses": [
-      {
-        "uprn": "100041045018",
-        "parentUprn": "0",    
-        "countryCode": "E",
-        "censusAddressType":"HH",
-        "censusEstabType":"HOUSEHOLD",       
-        "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
-        "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
-        "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
-        "welshFormattedAddressNag": "Unit 11wn, Michael Browning Way, Exeter, EX2 8DD",
-        "welshFormattedAddressPaf": "Unit 11wp, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
-        "geo": {
-          "latitude": 50.714314,
-          "longitude": -3.5294223,
-          "easting": 292120,
-          "northing": 91637
-        },
-        "classificationCode": "CI03",
-        "lpiLogicalStatus": "1",
-        "confidenceScore": 0.2234,
-        "underlyingScore": 1.3216084241867065
-      },
-      {
-        "uprn": "100041045021",
-        "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType":"CE",
-        "censusEstabType":"CARE HOME",
-        "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
-        "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
-        "formattedAddressPaf": "",
-        "welshFormattedAddressNag": "Unit 14wn, Michael Browning Way, Exeter, EX2 8DD",
-        "welshFormattedAddressPaf": "",
-        "geo": {
-          "latitude": 50.714413,
-          "longitude": -3.5296204,
-          "easting": 292106,
-          "northing": 91648
-        },
-        "classificationCode": "CI",
-        "lpiLogicalStatus": "1",
-        "confidenceScore": 0.2234,
-        "underlyingScore": 1.3216084241867065
-      },
-      {
-        "uprn": "100041045024",
-        "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType":"SPG",
-        "censusEstabType":"PRISON",
-        "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
-        "formattedAddressNag": "",
-        "formattedAddressPaf": "",
-        "welshFormattedAddressNag": "",
-        "welshFormattedAddressPaf": "",
-        "geo": {
-          "latitude": 50.714634,
-          "longitude": -3.530208,
-          "easting": 292065,
-          "northing": 91674
-        },
-        "classificationCode": "CI",
-        "lpiLogicalStatus": "1",
-        "confidenceScore": 0.2234,
-        "underlyingScore": 1.3216084241867065
-      },
-      {
-        "uprn": "100041133344",
-        "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType":"HH",
-        "censusEstabType":"OLD RAILWAY CARRIAGE",
-        "formattedAddress": "",
-        "formattedAddressNag": "",
-        "formattedAddressPaf": "",
-        "welshFormattedAddressNag": "",
-        "welshFormattedAddressPaf": "",
-        "geo": {
-          "latitude": 50.714497,
-          "longitude": -3.5298667,
-          "easting": 292089,
-          "northing": 91658
-        },
-        "classificationCode": "CI",
-        "lpiLogicalStatus": "1",
-        "confidenceScore": 0.2234,
-        "underlyingScore": 1.3216084241867065
-      }
-    ],
-    "filter": "",
-    "historical": true,
-    "epoch": "",
-    "rangekm": "",
-    "latitude": "",
-    "longitude": "",
-    "startDate": "",
-    "endDate": "",
-    "limit": 10,
-    "offset": 3,
-    "total": 23,
-    "sampleSize": 23,
-    "maxScore": 1.4572321,
-    "matchthreshold": 5,
-    "verbose": false
+    "status": {
+      "code": 200,
+      "message": "Ok"
+    },
+    "errors": []
   },
-  "status": {
-    "code": 200,
-    "message": "Ok"
+  {
+    "apiVersion": "1.0.0-SNAPSHOT",
+    "dataVersion": "72",
+    "response": {
+      "tokens": {
+        "BuildingName": "FLIXTON"
+      },
+      "addresses": [
+        {
+          "uprn": "10012978536",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton House, Flixton Road, Flixton East, NR32 5PB",
+          "formattedAddressNag": "Flixton House, Flixton Road, Flixton East, NR32 5PB",
+          "formattedAddressPaf": "Flixton House, Flixton Road, Flixton, Lowestoft, NR32 5PB",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton House, Flixton Road, Flixton, Lowestoft, NR32 5PB",
+          "geo": {
+            "latitude": 52.503605,
+            "longitude": 1.7017744,
+            "easting": 651325,
+            "northing": 295962
+          },
+          "classificationCode": "RD02",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 64.8609,
+          "underlyingScore": 8.500446319580078
+        },
+        {
+          "uprn": "100091402337",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton House, Church Road, Flixton West, NR35 1NU",
+          "formattedAddressNag": "Flixton House, Church Road, Flixton West, NR35 1NU",
+          "formattedAddressPaf": "Flixton House, Church Road, Flixton, Bungay, NR35 1NU",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton House, Church Road, Flixton, Bungay, NR35 1NU",
+          "geo": {
+            "latitude": 52.431355,
+            "longitude": 1.3971736,
+            "easting": 631037,
+            "northing": 286912
+          },
+          "classificationCode": "RD02",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 46.1842,
+          "underlyingScore": 8.222030639648438
+        },
+        {
+          "uprn": "10012982822",
+          "parentUprn": "10013322657",
+          "formattedAddress": "Flat, The Courtyard Flixton Hall Farm, Flixton Hall Estate, Flixton West, NR35 1NP",
+          "formattedAddressNag": "Flat, The Courtyard Flixton Hall Farm, Flixton Hall Estate, Flixton West, NR35 1NP",
+          "formattedAddressPaf": "Flat, Hall, Flixton Hall Estate, Flixton, Bungay, NR35 1NP",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flat, Hall, Flixton Hall Estate, Flixton, Bungay, NR35 1NP",
+          "geo": {
+            "latitude": 52.42251,
+            "longitude": 1.3869603,
+            "easting": 630389,
+            "northing": 285896
+          },
+          "classificationCode": "RD06",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 41.0834,
+          "underlyingScore": 8.146566390991211
+        },
+        {
+          "uprn": "100052151072",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton Ings, Main Street, Flixton, Scarborough, YO11 3UD",
+          "formattedAddressNag": "Flixton Ings, Main Street, Flixton, Scarborough, YO11 3UD",
+          "formattedAddressPaf": "2 Flixton Ings Main Street, Flixton, Scarborough, YO11 3UD",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "2 Flixton Ings Main Street, Flixton, Scarborough, YO11 3UD",
+          "geo": {
+            "latitude": 54.199593,
+            "longitude": -0.4263492,
+            "easting": 502755,
+            "northing": 479345
+          },
+          "classificationCode": "PP",
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E",
+          "lpiLogicalStatus": "8",
+          "confidenceScore": 41.0834,
+          "underlyingScore": 8.146566390991211
+        },
+        {
+          "uprn": "200000334292",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton Girls High School, Flixton Road, Flixton, M41 5DR",
+          "formattedAddressNag": "Flixton Girls High School, Flixton Road, Flixton, M41 5DR",
+          "formattedAddressPaf": "Flixton Girls School, Flixton Road, Urmston, Manchester, M41 5DR",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton Girls School, Flixton Road, Urmston, Manchester, M41 5DR",
+          "geo": {
+            "latitude": 53.449696,
+            "longitude": -2.371093,
+            "easting": 375452,
+            "northing": 394833
+          },
+          "classificationCode": "CE04",
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 41.0834,
+          "underlyingScore": 8.146566390991211
+        },
+        {
+          "uprn": "200002745900",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton Sawmill LTD, Filey Road, Flixton, Scarborough, YO11 3UF",
+          "formattedAddressNag": "Flixton Sawmill LTD, Filey Road, Flixton, Scarborough, YO11 3UF",
+          "formattedAddressPaf": "Flixton Sawmill LTD, Filey Road, Flixton, Scarborough, YO11 3UF",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton Sawmill LTD, Filey Road, Flixton, Scarborough, YO11 3UF",
+          "geo": {
+            "latitude": 54.199425,
+            "longitude": -0.4234695,
+            "easting": 502944,
+            "northing": 479331
+          },
+          "classificationCode": "CI03",
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 41.0834,
+          "underlyingScore": 8.146566390991211
+        },
+        {
+          "uprn": "100091572327",
+          "parentUprn": "0",
+          "formattedAddress": "Poultry Farm Flixton Airfield, Abbey Road, Flixton West, NR35 1NL",
+          "formattedAddressNag": "Poultry Farm Flixton Airfield, Abbey Road, Flixton West, NR35 1NL",
+          "formattedAddressPaf": "Flixton Airfield Poultry Unit, Abbey Road, Flixton, Bungay, NR35 1NL",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton Airfield Poultry Unit, Abbey Road, Flixton, Bungay, NR35 1NL",
+          "geo": {
+            "latitude": 52.42777,
+            "longitude": 1.4089041,
+            "easting": 631853,
+            "northing": 286551
+          },
+          "classificationCode": "RD02",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 36.2923,
+          "underlyingScore": 8.073066711425781
+        },
+        {
+          "uprn": "100012710868",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton Railway Station, Flixton Road, Flixton, M41 6JL",
+          "formattedAddressNag": "Flixton Railway Station, Flixton Road, Flixton, M41 6JL",
+          "formattedAddressPaf": "Northern Rail, Flixton Railway Station, Flixton Road, Urmston, Manchester, M41 6JL",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Northern Rail, Flixton Railway Station, Flixton Road, Urmston, Manchester, M41 6JL",
+          "geo": {
+            "latitude": 53.44382,
+            "longitude": -2.3842492,
+            "easting": 374574,
+            "northing": 394183
+          },
+          "classificationCode": "CT08",
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E",
+          "lpiLogicalStatus": "8",
+          "confidenceScore": 31.8714,
+          "underlyingScore": 8.001455307006836
+        },
+        {
+          "uprn": "124060362",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton, Perth Road, Birnam, PH8 0AA",
+          "formattedAddressNag": "Flixton, Perth Road, Birnam, PH8 0AA",
+          "formattedAddressPaf": "Flixton, Perth Road, Birnam, Dunkeld, PH8 0AA",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton, Perth Road, Birnam, Dunkeld, PH8 0AA",
+          "geo": {
+            "latitude": 56.560787,
+            "longitude": -3.5807488,
+            "easting": 302945,
+            "northing": 742100
+          },
+          "classificationCode": "RD02",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "S",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 14.8778,
+          "underlyingScore": 7.643546104431152
+        },
+        {
+          "uprn": "100110697672",
+          "parentUprn": "0",
+          "formattedAddress": "Flixton House, Fairfield Lane, Kendal, LA9 5ER",
+          "formattedAddressNag": "Flixton House, Fairfield Lane, Kendal, LA9 5ER",
+          "formattedAddressPaf": "Flixton House, Fairfield Lane, Kendal, LA9 5ER",
+          "formattedAddressNisra": "",
+          "welshFormattedAddressNag": "",
+          "welshFormattedAddressPaf": "Flixton House, Fairfield Lane, Kendal, LA9 5ER",
+          "geo": {
+            "latitude": 54.33486,
+            "longitude": -2.7556157,
+            "easting": 350965,
+            "northing": 493518
+          },
+          "classificationCode": "RD02",
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E",
+          "lpiLogicalStatus": "1",
+          "confidenceScore": 14.8778,
+          "underlyingScore": 7.643546104431152
+        }
+      ],
+      "filter": "",
+      "historical": true,
+      "epoch": "",
+      "rangekm": "",
+      "latitude": "",
+      "longitude": "",
+      "limit": 10,
+      "offset": 0,
+      "total": 20,
+      "sampleSize": 20,
+      "maxScore": 8.500446,
+      "matchthreshold": 5,
+      "verbose": false,
+      "fromsource": "all"
+    },
+    "status": {
+      "code": 200,
+      "message": "Ok"
+    },
+    "errors": []
   },
-  "errors": []
-}
+  {
+    "apiVersion": "1.0.0-SNAPSHOT",
+    "dataVersion": "72",
+    "response": {
+      "tokens": {
+        "BuildingName": "PLANETKRYPTON"
+      },
+      "addresses": [],
+      "filter": "",
+      "historical": true,
+      "epoch": "",
+      "rangekm": "",
+      "latitude": "",
+      "longitude": "",
+      "limit": 10,
+      "offset": 0,
+      "total": 0,
+      "sampleSize": 20,
+      "maxScore": 0,
+      "matchthreshold": 5,
+      "verbose": false,
+      "fromsource": "all"
+    },
+    "status": {
+      "code": 200,
+      "message": "Ok"
+    },
+    "errors": []
+  }
+]
