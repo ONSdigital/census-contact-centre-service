@@ -142,6 +142,7 @@ public abstract class EndpointSecurityTest {
     requestBody.setCaseId(caseId.toString());
     requestBody.setReason(Reason.HARD);
     requestBody.setAgentId("12345");
+    requestBody.setCallId("8989-NOW");
     requestBody.setDateTime(new Date());
 
     ResponseEntity<String> response =

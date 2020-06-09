@@ -706,6 +706,7 @@ public class CaseServiceImpl implements CaseService {
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
     refusal.setAgentId(refusalRequest.getAgentId());
+    refusal.setCallId(refusalRequest.getCallId());
 
     // Populate contact
     Contact contact = new Contact();
