@@ -13,10 +13,11 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -30,10 +31,12 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /** Contact Centre Data Endpoint Unit tests */
+@RunWith(MockitoJUnitRunner.class)
 public final class CaseEndpointRefusalTest {
 
   private static final String CASE_ID = "caseId";
   private static final String AGENT_ID = "agentId";
+  private static final String CALL_ID = "callId";
   private static final String TITLE = "title";
   private static final String NOTES = "notes";
   private static final String TEL_NO = "telNo";
@@ -60,15 +63,8 @@ public final class CaseEndpointRefusalTest {
   // UUID_STR must match the UUID in the test fixture
   private static final String UUID_STR = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
 
-  /**
-   * Set up of tests
-   *
-   * @throws Exception exception thrown
-   */
   @Before
-  public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
+  public void setUp() {
     this.mockMvc =
         MockMvcBuilders.standaloneSetup(caseEndpoint)
             .setHandlerExceptionResolvers(mockAdviceFor(RestExceptionHandler.class))
@@ -301,6 +297,16 @@ public final class CaseEndpointRefusalTest {
   @Test
   public void refusalAgentIdOk() throws Exception {
     assertOk(AGENT_ID, "12345");
+  }
+
+  @Test
+  public void refusalCallIdRequired() throws Exception {
+    assertBadRequest(CALL_ID, (String) null);
+  }
+
+  @Test
+  public void refusalCallIdOk() throws Exception {
+    assertOk(CALL_ID, "8989-NOW");
   }
 
   @Test
