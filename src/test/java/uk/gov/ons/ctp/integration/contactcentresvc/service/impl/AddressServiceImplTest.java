@@ -3,7 +3,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -60,7 +59,7 @@ public class AddressServiceImplTest {
   }
 
   @Test
-  public void shouldFilterHistoricalAddresses() throws Exception {
+  public void shouldRedactHistoricalAddresses() throws Exception {
     int numAllAddresses = 10;
     int numHistorical = 2;
     mockSearchByAddress(1, numAllAddresses);
@@ -68,15 +67,22 @@ public class AddressServiceImplTest {
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Flixton", 0, 100);
     AddressQueryResponseDTO results = addressService.addressQuery(request);
 
-    List<AddressDTO> addresses = results.getAddresses();
-    assertEquals(numAllAddresses - numHistorical, addresses.size());
+    var addresses = results.getAddresses();
+    assertEquals(numAllAddresses, addresses.size());
+
+    // historical addresses have the UPRN attribute set to null
+    var numRedactedAddresses = addresses.stream().filter(a -> null == a.getUprn()).count();
+    assertEquals(numHistorical, numRedactedAddresses);
+
+    var numCurrentAddresses = addresses.stream().filter(a -> null != a.getUprn()).count();
+    assertEquals(numAllAddresses - numHistorical, numCurrentAddresses);
 
     // check for an expected non-filtered address
     assertTrue(hasAddress("Flixton Airfield Poultry Unit", addresses));
 
-    // check that the historical addresses have been filtered out.
-    assertFalse(hasAddress("Flixton Ings", addresses));
-    assertFalse(hasAddress("Northern Rail", addresses));
+    // check that the historical addresses still exist in the results.
+    assertTrue(hasAddress("Flixton Ings", addresses));
+    assertTrue(hasAddress("Northern Rail", addresses));
   }
 
   @Test

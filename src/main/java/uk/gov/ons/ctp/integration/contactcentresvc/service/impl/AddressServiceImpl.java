@@ -110,8 +110,9 @@ public class AddressServiceImpl implements AddressService {
     String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
     String estabDescription = fullAddress.getCensusEstabType();
 
+    boolean historical = HISTORICAL_ADDRESS_STATUS.equals(fullAddress.getLpiLogicalStatus());
     AddressDTO addressSummary = new AddressDTO();
-    addressSummary.setUprn(fullAddress.getUprn());
+    addressSummary.setUprn(historical ? null : fullAddress.getUprn());
     addressSummary.setRegion(fullAddress.getCountryCode());
     addressSummary.setAddressType(fullAddress.getCensusAddressType());
     addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
@@ -130,7 +131,6 @@ public class AddressServiceImpl implements AddressService {
             .getResponse()
             .getAddresses()
             .stream()
-            .filter(a -> !HISTORICAL_ADDRESS_STATUS.equals(a.getLpiLogicalStatus()))
             .map(this::convertToSummarised)
             .collect(toList());
 
