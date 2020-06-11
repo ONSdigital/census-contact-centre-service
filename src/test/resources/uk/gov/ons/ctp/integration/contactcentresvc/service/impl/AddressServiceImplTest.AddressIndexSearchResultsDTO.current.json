@@ -1,0 +1,120 @@
+{
+  "apiVersion": "v_c875fa34fdfa1cf308505b8b6524dbe5e4824595",
+  "dataVersion": "39",
+  "response": {
+    "tokens": {
+      "StreetName": "MICHAEL",
+      "Locality": "BROWNING"
+    },
+    "addresses": [
+      {
+        "uprn": "100041045018",
+        "parentUprn": "0",
+        "countryCode": "E",
+        "censusAddressType": "HH",
+        "censusEstabType": "HOUSEHOLD",
+        "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+        "welshFormattedAddressNag": "Unit 11wn, Michael Browning Way, Exeter, EX2 8DD",
+        "welshFormattedAddressPaf": "Unit 11wp, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+        "geo": {
+          "latitude": 50.714314,
+          "longitude": -3.5294223,
+          "easting": 292120,
+          "northing": 91637
+        },
+        "classificationCode": "CI03",
+        "lpiLogicalStatus": "1",
+        "confidenceScore": 0.2234,
+        "underlyingScore": 1.3216084241867065
+      },
+      {
+        "uprn": "100041045021",
+        "parentUprn": "0",
+        "countryCode": "E",
+        "censusAddressType": "CE",
+        "censusEstabType": "CARE HOME",
+        "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressPaf": "",
+        "welshFormattedAddressNag": "Unit 14wn, Michael Browning Way, Exeter, EX2 8DD",
+        "welshFormattedAddressPaf": "",
+        "geo": {
+          "latitude": 50.714413,
+          "longitude": -3.5296204,
+          "easting": 292106,
+          "northing": 91648
+        },
+        "classificationCode": "CI",
+        "lpiLogicalStatus": "1",
+        "confidenceScore": 0.2234,
+        "underlyingScore": 1.3216084241867065
+      },
+      {
+        "uprn": "100041045024",
+        "parentUprn": "0",
+        "countryCode": "E",
+        "censusAddressType": "SPG",
+        "censusEstabType": "PRISON",
+        "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressNag": "",
+        "formattedAddressPaf": "",
+        "welshFormattedAddressNag": "",
+        "welshFormattedAddressPaf": "",
+        "geo": {
+          "latitude": 50.714634,
+          "longitude": -3.530208,
+          "easting": 292065,
+          "northing": 91674
+        },
+        "classificationCode": "CI",
+        "lpiLogicalStatus": "1",
+        "confidenceScore": 0.2234,
+        "underlyingScore": 1.3216084241867065
+      },
+      {
+        "uprn": "100041133344",
+        "parentUprn": "0",
+        "countryCode": "E",
+        "censusAddressType": "HH",
+        "censusEstabType": "OLD RAILWAY CARRIAGE",
+        "formattedAddress": "",
+        "formattedAddressNag": "",
+        "formattedAddressPaf": "",
+        "welshFormattedAddressNag": "",
+        "welshFormattedAddressPaf": "",
+        "geo": {
+          "latitude": 50.714497,
+          "longitude": -3.5298667,
+          "easting": 292089,
+          "northing": 91658
+        },
+        "classificationCode": "CI",
+        "lpiLogicalStatus": "1",
+        "confidenceScore": 0.2234,
+        "underlyingScore": 1.3216084241867065
+      }
+    ],
+    "filter": "",
+    "historical": true,
+    "epoch": "",
+    "rangekm": "",
+    "latitude": "",
+    "longitude": "",
+    "startDate": "",
+    "endDate": "",
+    "limit": 10,
+    "offset": 3,
+    "total": 23,
+    "sampleSize": 23,
+    "maxScore": 1.4572321,
+    "matchthreshold": 5,
+    "verbose": false
+  },
+  "status": {
+    "code": 200,
+    "message": "Ok"
+  },
+  "errors": []
+}

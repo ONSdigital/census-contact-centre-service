@@ -37,16 +37,16 @@ public class AddressServiceImplTest {
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
 
-  private void mockSearchByAddress(int fixtureIndex, int expectedNumAddresses) throws Exception {
+  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) throws Exception {
     AddressIndexSearchResultsDTO results =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(fixtureIndex);
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, qualifier).get(0);
     assertEquals(expectedNumAddresses, results.getResponse().getAddresses().size());
     when(addressClientService.searchByAddress(any())).thenReturn(results);
   }
 
   @Test
   public void testAddressQueryProcessing() throws Exception {
-    mockSearchByAddress(0, 4);
+    mockSearchByAddress("current", 4);
 
     // Run the request and verify results
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
@@ -62,7 +62,7 @@ public class AddressServiceImplTest {
   public void shouldRedactHistoricalAddresses() throws Exception {
     int numAllAddresses = 10;
     int numHistorical = 2;
-    mockSearchByAddress(1, numAllAddresses);
+    mockSearchByAddress("somehistoric", numAllAddresses);
 
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Flixton", 0, 100);
     AddressQueryResponseDTO results = addressService.addressQuery(request);
@@ -87,7 +87,7 @@ public class AddressServiceImplTest {
 
   @Test
   public void shouldHandleNoResultsFromAddressQuery() throws Exception {
-    mockSearchByAddress(2, 0);
+    mockSearchByAddress("none", 0);
 
     // Run the request and verify results
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("PlanetKrypton", 0, 100);
@@ -99,7 +99,7 @@ public class AddressServiceImplTest {
   public void testPostcodeQueryProcessing() throws Exception {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, "current").get(0);
     when(addressClientService.searchByPostcode(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
