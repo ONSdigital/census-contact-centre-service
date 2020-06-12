@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import uk.gov.ons.ctp.common.cloud.CloudDataStore;
+import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CloudDataStore;
-import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 
 @Service
