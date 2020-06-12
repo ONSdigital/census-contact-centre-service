@@ -236,6 +236,7 @@ public class CaseServiceImplTest {
     // Verify the NewAddressEvent
     CollectionCaseNewAddress expectedAddress =
         mapperFacade.map(caseRequestDTO, CollectionCaseNewAddress.class);
+    expectedAddress.setAddress(mapperFacade.map(caseRequestDTO, Address.class));
     expectedAddress.setId(storedCase.getId());
     verifyNewAddressEventSent(
         expectedCase.getAddressType(), caseRequestDTO.getEstabType().getCode(), expectedAddress);
