@@ -142,6 +142,7 @@ public class CaseServiceImplTest {
   private static final boolean USE_CACHED_CASE = true;
   private static final boolean NO_CACHED_CASE = false;
 
+  private static final String A_CALL_ID = "8989-NOW";
   private static final String A_UPRN = "1234";
   private static final String AN_ESTAB_UPRN = "334111111111";
   private static final UniquePropertyReferenceNumber UPRN =
@@ -1319,6 +1320,7 @@ public class CaseServiceImplTest {
             .region(A_REGION)
             .reason(reason)
             .dateTime(dateTime)
+            .callId(A_CALL_ID)
             .build();
 
     // report the refusal
@@ -1352,6 +1354,7 @@ public class CaseServiceImplTest {
     RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
     assertEquals("Description of refusal", refusal.getReport());
     assertEquals("123", refusal.getAgentId());
+    assertEquals(A_CALL_ID, refusal.getCallId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
     verifyRefusalAddress(refusal, uprn);
