@@ -165,10 +165,10 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
-    // Validate address type
+    // Validate that case type and address match
     String censusAddressType;
     if (caseRequestDTO.getEstabType() == EstabType.OTHER) {
-      // Only data available is the case type, so use that
+      // Can't get an address type from the estab so it'll need to be the same as the case type
       censusAddressType = caseType.name();
     } else {
       AddressType addressType = caseRequestDTO.getEstabType().getAddressType().get();
@@ -187,7 +187,7 @@ public class CaseServiceImpl implements CaseService {
     if (caseRequestDTO.getCaseType() == CaseType.CE && caseRequestDTO.getCeUsualResidents() <= 0) {
       throw new CTPException(Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
     }
-    
+
     // Create new case
     CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
     UUID newCaseId = UUID.randomUUID();

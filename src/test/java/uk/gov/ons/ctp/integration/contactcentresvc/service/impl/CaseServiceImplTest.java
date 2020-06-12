@@ -200,13 +200,13 @@ public class CaseServiceImplTest {
     // Simulate error by making request a CE with a non-positive number of residents
     caseRequestDTO.setCaseType(CaseType.CE);
     caseRequestDTO.setCeUsualResidents(0);
-    
+
     try {
       doTestNewCaseForNewAddress(caseRequestDTO, null, false);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
-      assertTrue(e.toString(), e.getMessage().matches(".*Number of residents .* for CE"));
+      assertTrue(e.toString(), e.getMessage().matches(".*Number of residents .* for CE .*"));
     }
   }
 
