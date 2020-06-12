@@ -19,7 +19,6 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_Q
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,8 +29,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
-import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +40,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.SneakyThrows;
+import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
@@ -148,6 +147,11 @@ public class CaseServiceImplTest {
   private static final UniquePropertyReferenceNumber UPRN =
       new UniquePropertyReferenceNumber(334999999999L);
 
+  // the actual census name & id as per the application.yml and also RM
+  private static final String SURVEY_NAME = "CENSUS";
+  private static final String COLLECTION_EXERCISE_ID = "34d7f3bb-91c9-45d0-bb2d-90afce4fc790";
+
+  
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -158,6 +162,8 @@ public class CaseServiceImplTest {
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    Mockito.when(appConfig.getSurveyName()).thenReturn(SURVEY_NAME);
+    Mockito.when(appConfig.getCollectionExerciseId()).thenReturn(COLLECTION_EXERCISE_ID);
   }
 
   @Test
@@ -239,7 +245,7 @@ public class CaseServiceImplTest {
     expectedAddress.setAddress(mapperFacade.map(caseRequestDTO, Address.class));
     expectedAddress.setId(storedCase.getId());
     verifyNewAddressEventSent(
-        expectedCase.getAddressType(), caseRequestDTO.getEstabType().getCode(), expectedAddress);
+        expectedCase.getAddressType(), caseRequestDTO.getEstabType().getCode(), caseRequestDTO.getCeOrgName(), caseRequestDTO.getCeUsualResidents(), expectedAddress);
 
     // Verify response
     verifyCaseDTOContent(expectedCase, caseTypeName, expectedIsSecureEstablishment, response);
@@ -1580,7 +1586,7 @@ public class CaseServiceImplTest {
     CollectionCaseNewAddress newAddress = mapperFacade.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
     verifyNewAddressEventSent(
-        address.getCensusAddressType(), address.getCensusEstabType(), newAddress);
+        address.getCensusAddressType(), address.getCensusEstabType(), null, 0, newAddress);
   }
 
   private void verifyCaseDTOContent(
@@ -1600,9 +1606,14 @@ public class CaseServiceImplTest {
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
+      String orgName, 
+      Integer expectedCapacity,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
-    newAddress.setSurvey("CENSUS");
+    newAddress.setSurvey(SURVEY_NAME);
+    newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
+    newAddress.setOrganisationName(orgName);
+    newAddress.setCeExpectedCapacity(expectedCapacity);
     Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
     if (addressType.isPresent() && addressType.get() == AddressType.CE) {
       newAddress.getAddress().setAddressLevel("E");

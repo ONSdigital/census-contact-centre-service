@@ -14,6 +14,8 @@ import uk.gov.ons.ctp.integration.eqlaunch.crypto.KeyStore;
 @Data
 public class AppConfig {
 
+  private String surveyName;
+  private String collectionExerciseId;
   private ReportSettings reportSettings;
   private AddressIndexSettings addressIndexSettings;
   private CaseServiceSettings caseServiceSettings;

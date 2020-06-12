@@ -204,7 +204,7 @@ public class CaseServiceImpl implements CaseService {
     address.setCensusAddressType(censusAddressType);
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
-    publishNewAddressReportedEvent(newCaseId, caseType, address);
+    publishNewAddressReportedEvent(newCaseId, caseType, caseRequestDTO.getCeOrgName(), caseRequestDTO.getCeUsualResidents(), address);
 
     return createNewCachedCaseResponse(cachedCase);
   }
@@ -547,14 +547,17 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void publishNewAddressReportedEvent(
-      UUID caseId, CaseType caseType, AddressIndexAddressCompositeDTO address) throws CTPException {
+      UUID caseId, CaseType caseType, String organisationName, Integer ceExpectedCapacity, AddressIndexAddressCompositeDTO address) throws CTPException {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =
         caseDTOMapper.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(caseId.toString());
     newAddress.setCaseType(caseType.name());
-    newAddress.setSurvey("CENSUS");
+    newAddress.setSurvey(appConfig.getSurveyName());
+    newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
+    newAddress.setOrganisationName(organisationName);
+    newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
     Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
@@ -871,7 +874,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), address);
+    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
 
     storeCaseInCache(cachedCase);
 
