@@ -125,12 +125,12 @@ public abstract class EndpointSecurityTest {
 
   void testPostCase(HttpStatus expectedStatus) {
     NewCaseRequestDTO requestBody = new NewCaseRequestDTO();
+    requestBody.setCaseType(CaseType.HH);
+    requestBody.setDateTime(new Date());
     requestBody.setAddressLine1("1 Contagion Street");
     requestBody.setTownName("Coronaville");
-    requestBody.setRegion(Region.E);
     requestBody.setPostcode("SO22 4HJ");
-    requestBody.setDateTime(new Date());
-    requestBody.setCaseType(CaseType.HH);
+    requestBody.setRegion(Region.E);
     requestBody.setEstabType(EstabType.GATED_APARTMENTS);
 
     ResponseEntity<String> response =
