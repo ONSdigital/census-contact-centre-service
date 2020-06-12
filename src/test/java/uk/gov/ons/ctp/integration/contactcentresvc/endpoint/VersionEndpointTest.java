@@ -50,6 +50,7 @@ public final class VersionEndpointTest {
 
     when(resourceLoader.getResource(anyString())).thenReturn(resource);
     when(resource.getInputStream()).thenReturn(is);
+    versionEndpoint.readSwaggerVersion();
 
     mockMvc
         .perform(get("/version"))
