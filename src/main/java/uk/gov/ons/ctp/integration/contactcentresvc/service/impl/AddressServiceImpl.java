@@ -1,13 +1,13 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.ons.ctp.common.domain.CaseType;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -93,7 +93,7 @@ public class AddressServiceImpl implements AddressService {
       
       // Validate address type
       try {
-        CaseType.valueOf(address.getCensusAddressType());
+        AddressType.valueOf(address.getCensusAddressType());
       } catch (IllegalArgumentException e) {
         log.with("uprn", uprn)
             .with("AddressType", address.getCensusAddressType())
