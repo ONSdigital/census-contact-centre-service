@@ -110,9 +110,8 @@ public class AddressServiceImpl implements AddressService {
     String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
     String estabDescription = fullAddress.getCensusEstabType();
 
-    boolean historical = HISTORICAL_ADDRESS_STATUS.equals(fullAddress.getLpiLogicalStatus());
     AddressDTO addressSummary = new AddressDTO();
-    addressSummary.setUprn(historical ? null : fullAddress.getUprn());
+    addressSummary.setUprn(fullAddress.getUprn());
     addressSummary.setRegion(fullAddress.getCountryCode());
     addressSummary.setAddressType(fullAddress.getCensusAddressType());
     addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
@@ -124,6 +123,30 @@ public class AddressServiceImpl implements AddressService {
     return addressSummary;
   }
 
+  /**
+   * Determine whether an address returned from AIMS is historical.
+   *
+   * <p>In reality, we should never get historical addresses from AIMS. However since it is so
+   * important not to return historical addresses, we accept the pagination breakage to filter out
+   * any that we find. The theory is that logging errors will notify operations to fix AIMS if it is
+   * not honouring the historical=false query parameter, and the service will be rectified as a
+   * result.
+   *
+   * <p>See CR-976.
+   *
+   * @param dto the address from AIMS
+   * @return true if historical; false otherwise.
+   */
+  private boolean isHistorical(AddressIndexAddressDTO dto) {
+    boolean historical = HISTORICAL_ADDRESS_STATUS.equals(dto.getLpiLogicalStatus());
+    if (historical) {
+      log.with("uprn", dto.getUprn())
+          .with("formattedAddress", dto.getFormattedAddress())
+          .error("Unexpected historical address returned from AIMS");
+    }
+    return historical;
+  }
+
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
       AddressIndexSearchResultsDTO addressIndexResponse) {
     List<AddressDTO> summarisedAddresses =
@@ -131,6 +154,7 @@ public class AddressServiceImpl implements AddressService {
             .getResponse()
             .getAddresses()
             .stream()
+            .filter(a -> !isHistorical(a))
             .map(this::convertToSummarised)
             .collect(toList());
 

@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -58,8 +59,19 @@ public class AddressServiceImplTest {
     return addresses.stream().anyMatch(a -> a.getFormattedAddress().contains(addr));
   }
 
+  /**
+   * In reality, we should never get historical addresses from AIMS. However since it is so
+   * important not to return historical addresses, we accept the pagination breakage to filter out
+   * any that we find. The theory is that logging errors will notify operations to fix AIMS if it is
+   * not honouring the historical=false query parameter, and the service will be rectified as a
+   * result.
+   *
+   * <p>See CR-976.
+   *
+   * @throws Exception on fail
+   */
   @Test
-  public void shouldRedactHistoricalAddresses() throws Exception {
+  public void shouldFilterHistoricalAddresses() throws Exception {
     int numAllAddresses = 10;
     int numHistorical = 2;
     mockSearchByAddress("somehistoric", numAllAddresses);
@@ -68,21 +80,14 @@ public class AddressServiceImplTest {
     AddressQueryResponseDTO results = addressService.addressQuery(request);
 
     var addresses = results.getAddresses();
-    assertEquals(numAllAddresses, addresses.size());
-
-    // historical addresses have the UPRN attribute set to null
-    var numRedactedAddresses = addresses.stream().filter(a -> null == a.getUprn()).count();
-    assertEquals(numHistorical, numRedactedAddresses);
-
-    var numCurrentAddresses = addresses.stream().filter(a -> null != a.getUprn()).count();
-    assertEquals(numAllAddresses - numHistorical, numCurrentAddresses);
+    assertEquals(numAllAddresses - numHistorical, addresses.size());
 
     // check for an expected non-filtered address
     assertTrue(hasAddress("Flixton Airfield Poultry Unit", addresses));
 
-    // check that the historical addresses still exist in the results.
-    assertTrue(hasAddress("Flixton Ings", addresses));
-    assertTrue(hasAddress("Northern Rail", addresses));
+    // check that the historical addresses are filtered from the results.
+    assertFalse(hasAddress("Flixton Ings", addresses));
+    assertFalse(hasAddress("Northern Rail", addresses));
   }
 
   @Test
