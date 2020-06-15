@@ -1,0 +1,28 @@
+{
+  "apiVersion": "1.0.0-SNAPSHOT",
+  "dataVersion": "72",
+  "response": {
+    "tokens": {
+      "BuildingName": "PLANETKRYPTON"
+    },
+    "addresses": [],
+    "filter": "","historical":true,
+    "epoch": "",
+    "rangekm": "",
+    "latitude": "",
+    "longitude": "",
+    "limit": 10,
+    "offset": 0,
+    "total": 0,
+    "sampleSize": 20,
+    "maxScore": 0,
+    "matchthreshold": 5,
+    "verbose": false,
+    "fromsource": "all"
+  },
+  "status": {
+    "code": 200,
+    "message": "Ok"
+  },
+  "errors": []
+}

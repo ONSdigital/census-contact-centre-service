@@ -41,6 +41,7 @@ public class AddressServiceClientServiceImpl {
     queryParams.add("input", input);
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
+    queryParams.add("historical", "false");
     addEpoch(queryParams);
 
     // Ask Address Index to do an address search
