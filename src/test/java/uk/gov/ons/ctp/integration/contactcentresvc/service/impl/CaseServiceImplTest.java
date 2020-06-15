@@ -217,6 +217,18 @@ public class CaseServiceImplTest {
     }
   }
 
+  @Test
+  public void testNewCaseForNewAddress_cePositiveNumberOfResidents() throws Exception {
+    // Test that the check for a CE with non zero number residents is correct
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+    // Simulate condition by making request a CE with a positive number of residents
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setCeUsualResidents(11);
+
+    doTestNewCaseForNewAddress(caseRequestDTO, "CE", true);
+  }
+
   private void doTestNewCaseForNewAddress(
       NewCaseRequestDTO caseRequestDTO,
       String expectedAddressType,
@@ -721,27 +733,6 @@ public class CaseServiceImplTest {
     AddressIndexAddressCompositeDTO addressFromAI =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     addressFromAI.setCountryCode("S");
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
-        .when(caseServiceClient)
-        .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
-    target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
-    Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1))
-        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).writeCachedCase(any());
-    Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
-  }
-
-  @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_caseTypeNotSet()
-      throws Exception {
-
-    AddressIndexAddressCompositeDTO addressFromAI =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
-    addressFromAI.setCensusAddressType("NA");
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());

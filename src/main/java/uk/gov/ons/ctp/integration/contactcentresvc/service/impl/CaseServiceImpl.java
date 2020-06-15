@@ -572,25 +572,14 @@ public class CaseServiceImpl implements CaseService {
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
     Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
 
-    try {
-      AddressType addressType =
-          addressTypeMaybe.isPresent()
-              ? addressTypeMaybe.get()
-              : AddressType.valueOf(address.getCensusAddressType());
-      if (addressType == AddressType.HH || addressType == AddressType.SPG) {
-        newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
-      } else {
-        newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
-      }
-    } catch (IllegalArgumentException e) {
-      log.with("uprn", address.getUprn())
-          .with("AddressType", address.getCensusAddressType())
-          .warn("AIMs AddressType not valid");
-      throw new CTPException(
-          Fault.RESOURCE_NOT_FOUND,
-          e,
-          "AddressType of '%s' not valid for Census",
-          address.getCensusAddressType());
+    AddressType addressType =
+        addressTypeMaybe.isPresent()
+            ? addressTypeMaybe.get()
+            : AddressType.valueOf(address.getCensusAddressType());
+    if (addressType == AddressType.HH || addressType == AddressType.SPG) {
+      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+    } else {
+      newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
     }
 
     NewAddress payload = new NewAddress();
@@ -866,19 +855,7 @@ public class CaseServiceImpl implements CaseService {
     }
 
     CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);
-
-    try {
-      cachedCase.setCaseType(CaseType.valueOf(address.getCensusAddressType()));
-    } catch (IllegalArgumentException e) {
-      log.with("uprn", uprn)
-          .with("AddressType", address.getCensusAddressType())
-          .warn("AIMs AddressType not valid");
-      throw new CTPException(
-          Fault.RESOURCE_NOT_FOUND,
-          e,
-          "AddressType of '%s' not valid for Census",
-          address.getCensusAddressType());
-    }
+    cachedCase.setCaseType(CaseType.valueOf(address.getCensusAddressType()));
 
     UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());

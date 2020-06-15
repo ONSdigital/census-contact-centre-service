@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.util.StringUtils;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
@@ -86,7 +88,23 @@ public class AddressServiceImpl implements AddressService {
             addressResult.getStatus().getCode(),
             addressResult.getStatus().getMessage());
       }
+      
       AddressIndexAddressCompositeDTO address = addressResult.getResponse().getAddress();
+      
+      // Validate address type
+      try {
+        CaseType.valueOf(address.getCensusAddressType());
+      } catch (IllegalArgumentException e) {
+        log.with("uprn", uprn)
+            .with("AddressType", address.getCensusAddressType())
+            .warn("AIMs AddressType not valid");
+        throw new CTPException(
+            Fault.RESOURCE_NOT_FOUND,
+            e,
+            "AddressType of '%s' not valid for Census",
+            address.getCensusAddressType());
+      }
+      
       log.with("uprn", uprn).debug("UPRN search is returning address");
       return address;
     } catch (ResponseStatusException ex) {
