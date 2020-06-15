@@ -204,7 +204,12 @@ public class CaseServiceImpl implements CaseService {
     address.setCensusAddressType(censusAddressType);
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
-    publishNewAddressReportedEvent(newCaseId, caseType, caseRequestDTO.getCeOrgName(), caseRequestDTO.getCeUsualResidents(), address);
+    publishNewAddressReportedEvent(
+        newCaseId,
+        caseType,
+        caseRequestDTO.getCeOrgName(),
+        caseRequestDTO.getCeUsualResidents(),
+        address);
 
     return createNewCachedCaseResponse(cachedCase);
   }
@@ -547,7 +552,12 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void publishNewAddressReportedEvent(
-      UUID caseId, CaseType caseType, String organisationName, Integer ceExpectedCapacity, AddressIndexAddressCompositeDTO address) throws CTPException {
+      UUID caseId,
+      CaseType caseType,
+      String organisationName,
+      Integer ceExpectedCapacity,
+      AddressIndexAddressCompositeDTO address)
+      throws CTPException {
     log.with("caseId", caseId.toString()).info("Generating NewAddressReported event");
 
     CollectionCaseNewAddress newAddress =

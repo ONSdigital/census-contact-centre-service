@@ -19,6 +19,7 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_Q
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -151,7 +152,6 @@ public class CaseServiceImplTest {
   private static final String SURVEY_NAME = "CENSUS";
   private static final String COLLECTION_EXERCISE_ID = "34d7f3bb-91c9-45d0-bb2d-90afce4fc790";
 
-  
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -245,7 +245,11 @@ public class CaseServiceImplTest {
     expectedAddress.setAddress(mapperFacade.map(caseRequestDTO, Address.class));
     expectedAddress.setId(storedCase.getId());
     verifyNewAddressEventSent(
-        expectedCase.getAddressType(), caseRequestDTO.getEstabType().getCode(), caseRequestDTO.getCeOrgName(), caseRequestDTO.getCeUsualResidents(), expectedAddress);
+        expectedCase.getAddressType(),
+        caseRequestDTO.getEstabType().getCode(),
+        caseRequestDTO.getCeOrgName(),
+        caseRequestDTO.getCeUsualResidents(),
+        expectedAddress);
 
     // Verify response
     verifyCaseDTOContent(expectedCase, caseTypeName, expectedIsSecureEstablishment, response);
@@ -1606,7 +1610,7 @@ public class CaseServiceImplTest {
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
-      String orgName, 
+      String orgName,
       Integer expectedCapacity,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
