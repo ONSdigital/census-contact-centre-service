@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
 import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
@@ -34,7 +33,7 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 /** The 'main' entry point for the ContactCentre Svc SpringBoot Application. */
 @SpringBootApplication
 @IntegrationComponentScan("uk.gov.ons.ctp.integration")
-@ComponentScan(basePackages = {"uk.gov.ons.ctp.integration"})
+@ComponentScan(basePackages = {"uk.gov.ons.ctp.integration", "uk.gov.ons.ctp.common"})
 @ImportResource("springintegration/main.xml")
 @EnableCaching
 public class ContactCentreSvcApplication {
@@ -118,16 +117,6 @@ public class ContactCentreSvcApplication {
   @Primary
   public CustomObjectMapper customObjectMapper() {
     return new CustomObjectMapper();
-  }
-
-  /**
-   * Bean used to map exceptions for endpoints
-   *
-   * @return the service client
-   */
-  @Bean
-  public RestExceptionHandler restExceptionHandler() {
-    return new RestExceptionHandler();
   }
 
   /**
