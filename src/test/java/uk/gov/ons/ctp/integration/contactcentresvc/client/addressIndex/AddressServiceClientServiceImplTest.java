@@ -86,8 +86,9 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[Michael]", queryParams.get("input").toString());
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
+    assertEquals("[false]", queryParams.get("historical").toString());
     assertEquals("[99]", queryParams.get("epoch").toString());
-    assertEquals(4, queryParams.keySet().size());
+    assertEquals(5, queryParams.keySet().size());
   }
 
   @Test
@@ -118,7 +119,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[Michael]", queryParams.get("input").toString());
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
-    assertEquals(3, queryParams.keySet().size());
+    assertEquals("[false]", queryParams.get("historical").toString());
+    assertEquals(4, queryParams.keySet().size());
   }
 
   @Test
