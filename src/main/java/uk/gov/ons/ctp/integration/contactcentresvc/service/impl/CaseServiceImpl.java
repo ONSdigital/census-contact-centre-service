@@ -175,17 +175,27 @@ public class CaseServiceImpl implements CaseService {
       if (!addressType.name().equals(caseType.name())) {
         throw new CTPException(
             Fault.BAD_REQUEST,
-            "Mismatch between caseType and the address type of the nameed estabType. "
-                + "Expected caseType of '"
+            "Derived address type of '"
                 + addressType.name()
+                + "', from establishment type '"
+                + caseRequestDTO.getEstabType().name()
+                + "', "
+                + "is not compatible with caseType of '"
+                + caseRequestDTO.getCaseType().name()
                 + "'");
       }
       censusAddressType = addressType.name();
     }
 
     // Reject if CE with non-positive number of residents
-    if (caseRequestDTO.getCaseType() == CaseType.CE && caseRequestDTO.getCeUsualResidents() <= 0) {
-      throw new CTPException(Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
+    if (caseRequestDTO.getCaseType() == CaseType.CE) {
+      if (caseRequestDTO.getCeUsualResidents() <= 0) {
+        throw new CTPException(
+            Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
+      }
+    } else {
+      // Field not relevant. Clear incase it's a silly number
+      caseRequestDTO.setCeUsualResidents(0);
     }
 
     // Create new case
@@ -852,6 +862,20 @@ public class CaseServiceImpl implements CaseService {
           .with("countryCode", address.getCountryCode())
           .warn("Scottish address retrieved");
       throw new CTPException(Fault.VALIDATION_FAILED, "Scottish address found for UPRN: " + uprn);
+    }
+
+    // Validate address type
+    try {
+      AddressType.valueOf(address.getCensusAddressType());
+    } catch (IllegalArgumentException e) {
+      log.with("uprn", uprn)
+          .with("AddressType", address.getCensusAddressType())
+          .warn("AIMs AddressType not valid");
+      throw new CTPException(
+          Fault.RESOURCE_NOT_FOUND,
+          e,
+          "AddressType of '%s' not valid for Census",
+          address.getCensusAddressType());
     }
 
     CachedCase cachedCase = caseDTOMapper.map(address, CachedCase.class);

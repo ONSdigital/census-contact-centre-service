@@ -195,7 +195,10 @@ public class CaseServiceImplTest {
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
-      assertTrue(e.toString(), e.getMessage().matches("Mismatch .* caseType .* address type .*"));
+      assertTrue(
+          e.toString(),
+          e.getMessage()
+              .matches(".* address type .*CE.* from .*MILITARY_SLA.* not compatible .*HH.*"));
     }
   }
 
@@ -739,12 +742,6 @@ public class CaseServiceImplTest {
     Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
     Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
-    Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1))
-        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).writeCachedCase(any());
-    Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
   @Test

@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -130,23 +129,6 @@ public class AddressServiceImplTest {
     assertEquals("", address.getAddressLine3());
     assertEquals("Exeter", address.getTownName());
     assertEquals("EX1 2ET", address.getPostcode());
-  }
-
-  @Test
-  public void testUPRNQueryProcessing_invalidCensusAddressType() throws Exception {
-    // Build results to be returned from search
-    AddressIndexSearchResultsCompositeDTO addressIndexResults =
-        FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
-    addressIndexResults.getResponse().getAddress().setCensusAddressType("-invalid-");
-    Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
-
-    // Run the request and verify validation failure
-    try {
-      addressService.uprnQuery(100041045018L);
-      fail();
-    } catch (CTPException e) {
-      assertTrue(e.getMessage(), e.getMessage().matches(".*AddressType .* not valid .*"));
-    }
   }
 
   @Test(expected = CTPException.class)
