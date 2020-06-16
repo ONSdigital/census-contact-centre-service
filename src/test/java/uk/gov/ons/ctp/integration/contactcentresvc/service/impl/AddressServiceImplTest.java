@@ -3,16 +3,20 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
-import org.junit.Before;
+import java.util.List;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
@@ -27,6 +31,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
+@RunWith(MockitoJUnitRunner.class)
 public class AddressServiceImplTest {
 
   @Mock
@@ -34,17 +39,16 @@ public class AddressServiceImplTest {
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
 
-  @Before
-  public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) throws Exception {
+    AddressIndexSearchResultsDTO results =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, qualifier).get(0);
+    assertEquals(expectedNumAddresses, results.getResponse().getAddresses().size());
+    when(addressClientService.searchByAddress(any())).thenReturn(results);
   }
 
   @Test
   public void testAddressQueryProcessing() throws Exception {
-    // Build results to be returned from search
-    AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.searchByAddress(any())).thenReturn(addressIndexResults);
+    mockSearchByAddress("current", 4);
 
     // Run the request and verify results
     AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
@@ -52,12 +56,57 @@ public class AddressServiceImplTest {
     verifyAddresses(results);
   }
 
+  private boolean hasAddress(String addr, List<AddressDTO> addresses) {
+    return addresses.stream().anyMatch(a -> a.getFormattedAddress().contains(addr));
+  }
+
+  /**
+   * In reality, we should never get historical addresses from AIMS. However since it is so
+   * important not to return historical addresses, we accept the pagination breakage to filter out
+   * any that we find. The theory is that logging errors will notify operations to fix AIMS if it is
+   * not honouring the historical=false query parameter, and the service will be rectified as a
+   * result.
+   *
+   * <p>See CR-976.
+   *
+   * @throws Exception on fail
+   */
+  @Test
+  public void shouldFilterHistoricalAddresses() throws Exception {
+    int numAllAddresses = 10;
+    int numHistorical = 2;
+    mockSearchByAddress("somehistoric", numAllAddresses);
+
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Flixton", 0, 100);
+    AddressQueryResponseDTO results = addressService.addressQuery(request);
+
+    var addresses = results.getAddresses();
+    assertEquals(numAllAddresses - numHistorical, addresses.size());
+
+    // check for an expected non-filtered address
+    assertTrue(hasAddress("Flixton Airfield Poultry Unit", addresses));
+
+    // check that the historical addresses are filtered from the results.
+    assertFalse(hasAddress("Flixton Ings", addresses));
+    assertFalse(hasAddress("Northern Rail", addresses));
+  }
+
+  @Test
+  public void shouldHandleNoResultsFromAddressQuery() throws Exception {
+    mockSearchByAddress("none", 0);
+
+    // Run the request and verify results
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("PlanetKrypton", 0, 100);
+    AddressQueryResponseDTO results = addressService.addressQuery(request);
+    assertTrue(results.getAddresses().isEmpty());
+  }
+
   @Test
   public void testPostcodeQueryProcessing() throws Exception {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
-        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
-    Mockito.when(addressClientService.searchByPostcode(any())).thenReturn(addressIndexResults);
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, "current").get(0);
+    when(addressClientService.searchByPostcode(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     PostcodeQueryRequestDTO request = PostcodeQueryRequestDTO.create("EX2 8DD", 0, 100);
@@ -70,7 +119,7 @@ public class AddressServiceImplTest {
     // Build results to be returned from search
     AddressIndexSearchResultsCompositeDTO addressIndexResults =
         FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
-    Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
+    when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
 
     // Run the request and verify results
     AddressIndexAddressCompositeDTO address = addressService.uprnQuery(100041045018L);
@@ -109,7 +158,7 @@ public class AddressServiceImplTest {
         FixtureHelper.loadMethodFixtures(AddressIndexSearchResultsCompositeDTO[].class).get(0);
     addressIndexResults.getStatus().setCode(status);
     addressIndexResults.getStatus().setMessage(message);
-    Mockito.when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
+    when(addressClientService.searchByUPRN(any())).thenReturn(addressIndexResults);
 
     addressService.uprnQuery(100041045018L);
   }
