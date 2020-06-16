@@ -90,7 +90,9 @@ public class AddressServiceImpl implements AddressService {
             addressResult.getStatus().getCode(),
             addressResult.getStatus().getMessage());
       }
+
       AddressIndexAddressCompositeDTO address = addressResult.getResponse().getAddress();
+
       log.with("uprn", uprn).debug("UPRN search is returning address");
       return address;
     } catch (ResponseStatusException ex) {

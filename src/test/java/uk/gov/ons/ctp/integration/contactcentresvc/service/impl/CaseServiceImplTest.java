@@ -87,6 +87,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -147,6 +148,10 @@ public class CaseServiceImplTest {
   private static final UniquePropertyReferenceNumber UPRN =
       new UniquePropertyReferenceNumber(334999999999L);
 
+  // the actual census name & id as per the application.yml and also RM
+  private static final String SURVEY_NAME = "CENSUS";
+  private static final String COLLECTION_EXERCISE_ID = "34d7f3bb-91c9-45d0-bb2d-90afce4fc790";
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
@@ -157,6 +162,112 @@ public class CaseServiceImplTest {
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    Mockito.when(appConfig.getSurveyName()).thenReturn(SURVEY_NAME);
+    Mockito.when(appConfig.getCollectionExerciseId()).thenReturn(COLLECTION_EXERCISE_ID);
+  }
+
+  @Test
+  public void testNewCaseForNewAddress() throws Exception {
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
+
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", true);
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_forEstabTypeOfOther() throws Exception {
+    // Load request, which has estabType of Other
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(1);
+
+    // Address type will be that for EstabType.Other
+    doTestNewCaseForNewAddress(caseRequestDTO, "HH", false);
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_mismatchedCaseAndAddressType() throws Exception {
+    // Load request, which has caseType of HH and estabType with a CE addressType
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+
+    try {
+      doTestNewCaseForNewAddress(caseRequestDTO, null, false);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(
+          e.toString(),
+          e.getMessage()
+              .matches(".* address type .*CE.* from .*MILITARY_SLA.* not compatible .*HH.*"));
+    }
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_ceWithNonPositiveNumberOfResidents() throws Exception {
+    // Load valid request and then update so that it's invalid
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+    // Simulate error by making request a CE with a non-positive number of residents
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setCeUsualResidents(0);
+
+    try {
+      doTestNewCaseForNewAddress(caseRequestDTO, null, false);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(e.toString(), e.getMessage().matches(".*Number of residents .* for CE .*"));
+    }
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_cePositiveNumberOfResidents() throws Exception {
+    // Test that the check for a CE with non zero number residents is correct
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+    // Simulate condition by making request a CE with a positive number of residents
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setCeUsualResidents(11);
+
+    doTestNewCaseForNewAddress(caseRequestDTO, "CE", true);
+  }
+
+  private void doTestNewCaseForNewAddress(
+      NewCaseRequestDTO caseRequestDTO,
+      String expectedAddressType,
+      boolean expectedIsSecureEstablishment)
+      throws CTPException, DataStoreContentionException {
+    // Run code under test
+    CaseDTO response = target.createCaseForNewAddress(caseRequestDTO);
+
+    // Grab created case
+    ArgumentCaptor<CachedCase> caseCaptor = ArgumentCaptor.forClass(CachedCase.class);
+    Mockito.verify(dataRepo, times(1)).writeCachedCase(caseCaptor.capture());
+    CachedCase storedCase = caseCaptor.getValue();
+
+    // Check contents of new case
+    CachedCase expectedCase = mapperFacade.map(caseRequestDTO, CachedCase.class);
+    expectedCase.setId(storedCase.getId());
+    expectedCase.setCreatedDateTime(storedCase.getCreatedDateTime());
+    String caseTypeName = caseRequestDTO.getCaseType().name();
+    expectedCase.setAddressType(expectedAddressType);
+    expectedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
+    assertEquals(expectedCase, storedCase);
+
+    // Verify the NewAddressEvent
+    CollectionCaseNewAddress expectedAddress =
+        mapperFacade.map(caseRequestDTO, CollectionCaseNewAddress.class);
+    expectedAddress.setAddress(mapperFacade.map(caseRequestDTO, Address.class));
+    expectedAddress.setId(storedCase.getId());
+    verifyNewAddressEventSent(
+        expectedCase.getAddressType(),
+        caseRequestDTO.getEstabType().getCode(),
+        caseRequestDTO.getCeOrgName(),
+        caseRequestDTO.getCeUsualResidents(),
+        expectedAddress);
+
+    // Verify response
+    verifyCaseDTOContent(expectedCase, caseTypeName, expectedIsSecureEstablishment, response);
   }
 
   @Test
@@ -631,33 +742,6 @@ public class CaseServiceImplTest {
     Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
     Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
-    Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1))
-        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).writeCachedCase(any());
-    Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
-  }
-
-  @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_caseTypeNotSet()
-      throws Exception {
-
-    AddressIndexAddressCompositeDTO addressFromAI =
-        FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
-    addressFromAI.setCensusAddressType("NA");
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
-        .when(caseServiceClient)
-        .getCaseByUprn(eq(UPRN.getValue()), any());
-    Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
-    Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
-    target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
-    Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
-    Mockito.verify(dataRepo, times(1))
-        .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
-    Mockito.verify(dataRepo, never()).writeCachedCase(any());
-    Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
   @Test
@@ -1482,31 +1566,54 @@ public class CaseServiceImplTest {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
 
+    // Verify content of case written to Firestore
     CachedCase cachedCase = mapperFacade.map(address, CachedCase.class);
-    cachedCase.setId(
-        UUID.class.isInstance(result.getId())
-            ? result.getId().toString()
-            : UUID.randomUUID().toString());
+    cachedCase.setId(result.getId().toString());
     Mockito.verify(dataRepo, times(1)).writeCachedCase(any(CachedCase.class));
 
-    CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
-    expectedNewCaseResult.setCreatedDateTime(
-        Date.class.isInstance(result.getCreatedDateTime()) ? result.getCreatedDateTime() : null);
-    expectedNewCaseResult.setCaseType(CaseType.HH.name());
-    expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
-    expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
-    assertEquals(expectedNewCaseResult, result);
+    // Verify response
+    verifyCaseDTOContent(cachedCase, CaseType.HH.name(), false, result);
 
+    // Verify the NewAddressEvent
     CollectionCaseNewAddress newAddress = mapperFacade.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
-    newAddress.setSurvey("CENSUS");
-    Optional<AddressType> addressType =
-        EstabType.forCode(address.getCensusEstabType()).getAddressType();
+    verifyNewAddressEventSent(
+        address.getCensusAddressType(), address.getCensusEstabType(), null, 0, newAddress);
+  }
+
+  private void verifyCaseDTOContent(
+      CachedCase cachedCase,
+      String expectedCaseType,
+      boolean isSecureEstablishment,
+      CaseDTO actualCaseDto) {
+    CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
+    expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
+    expectedNewCaseResult.setCaseType(expectedCaseType);
+    expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
+    expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
+    expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+    assertEquals(expectedNewCaseResult, actualCaseDto);
+  }
+
+  private void verifyNewAddressEventSent(
+      String expectedAddressType,
+      String expectedEstabTypeCode,
+      String orgName,
+      Integer expectedCapacity,
+      CollectionCaseNewAddress newAddress) {
+    newAddress.setCaseType(expectedAddressType);
+    newAddress.setSurvey(SURVEY_NAME);
+    newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
+    newAddress.setOrganisationName(orgName);
+    newAddress.setCeExpectedCapacity(expectedCapacity);
+    Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
     if (addressType.isPresent() && addressType.get() == AddressType.CE) {
       newAddress.getAddress().setAddressLevel("E");
     } else {
       newAddress.getAddress().setAddressLevel("U");
     }
+    newAddress.getAddress().setAddressType(expectedAddressType);
+    newAddress.getAddress().setEstabType(expectedEstabTypeCode);
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
     Mockito.verify(eventPublisher, times(1))
@@ -1522,6 +1629,7 @@ public class CaseServiceImplTest {
     expectedResult.setCaseType(CaseType.HH.name());
     expectedResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+
     assertEquals(expectedResult, result);
 
     Mockito.verify(caseServiceClient, times(1)).getCaseByUprn(any(Long.class), any(Boolean.class));
