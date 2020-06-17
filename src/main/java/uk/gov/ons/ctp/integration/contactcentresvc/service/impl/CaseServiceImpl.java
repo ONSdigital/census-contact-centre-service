@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.common.domain.AddressLevel;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
@@ -206,7 +205,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    storeCaseInCache(cachedCase);
+    dataRepo.writeCachedCase(cachedCase);
 
     // Publish NewAddress event
     AddressIndexAddressCompositeDTO address =
@@ -887,22 +886,8 @@ public class CaseServiceImpl implements CaseService {
 
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
 
-    storeCaseInCache(cachedCase);
-
+    dataRepo.writeCachedCase(cachedCase);
     return cachedCase;
-  }
-
-  private void storeCaseInCache(CachedCase cachedCase) throws CTPException {
-    try {
-      dataRepo.writeCachedCase(cachedCase);
-    } catch (DataStoreContentionException e) {
-      log.error(
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-      throw new CTPException(
-          Fault.SYSTEM_ERROR,
-          e,
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-    }
   }
 
   private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {

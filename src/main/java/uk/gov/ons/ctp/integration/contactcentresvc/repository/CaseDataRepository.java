@@ -2,7 +2,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc.repository;
 
 import java.util.Optional;
 import java.util.UUID;
-import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
@@ -11,20 +10,12 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 public interface CaseDataRepository {
 
   /**
-   * Initialise the connection to the repository.
-   *
-   * @throws CTPException if there was any problems.
-   */
-  void init() throws CTPException;
-
-  /**
    * Store newly created skeleton case to repository
    *
    * @param newCase Skeleton case to be stored in repository
    * @throws CTPException undefined system error on storing case to repository
-   * @throws DataStoreContentionException repository store operation failing
    */
-  void writeCachedCase(final CachedCase newCase) throws CTPException, DataStoreContentionException;
+  void writeCachedCase(final CachedCase newCase) throws CTPException;
 
   /**
    * Read a Case for an address by Unique Property Reference Number

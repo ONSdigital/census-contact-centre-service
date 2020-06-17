@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -24,14 +23,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.gov.ons.ctp.common.FixtureHelper;
-import uk.gov.ons.ctp.common.cloud.CloudDataStore;
 import uk.gov.ons.ctp.common.cloud.CloudRetryListener;
-import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
+import uk.gov.ons.ctp.common.cloud.RetryableCloudDataStore;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
-import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
@@ -50,9 +47,9 @@ public class CaseDataRepositoryImplTest {
   @Value("${GOOGLE_CLOUD_PROJECT}-${cloud-storage.case-schema-name}")
   private String caseSchema;
 
-  @MockBean CloudDataStore dataStore;
+  @MockBean RetryableCloudDataStore dataStore;
 
-  @Autowired private CaseDataRepository repo;
+  @Autowired private CaseDataRepositoryImpl repo;
 
   @Test
   public void init_withExistingNewCaseCollection() throws Exception {
@@ -74,7 +71,7 @@ public class CaseDataRepositoryImplTest {
     repo.init();
 
     Mockito.verify(dataStore, times(1))
-        .storeObject(eq("census-cc-test-new-case"), eq("placeholder"), any());
+        .storeObject(eq("census-cc-test-new-case"), eq("placeholder"), any(), eq("placeholder"));
   }
 
   @Test
@@ -85,7 +82,7 @@ public class CaseDataRepositoryImplTest {
 
     // Simulate Firestore failing to create collection
     RuntimeException firestoreException = new RuntimeException("Firestore couldn't create");
-    Mockito.doThrow(firestoreException).when(dataStore).storeObject(any(), any(), any());
+    Mockito.doThrow(firestoreException).when(dataStore).storeObject(any(), any(), any(), any());
 
     try {
       repo.init();
@@ -93,25 +90,6 @@ public class CaseDataRepositoryImplTest {
     } catch (CTPException e) {
       assertTrue(e.getMessage(), e.getMessage().contains("Firestore couldn't create"));
     }
-  }
-
-  @Test
-  public void writeCachedCaseWithRetry() throws Exception {
-
-    CachedCase caze = FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
-
-    Mockito.doThrow(new DataStoreContentionException("Test", new Exception()))
-        .when(dataStore)
-        .storeObject(any(), any(), any());
-
-    try {
-      repo.writeCachedCase(caze);
-      Assert.fail("Exception should be thrown");
-    } catch (DataStoreContentionException ex) {
-      // Catch final retry
-    }
-
-    Mockito.verify(dataStore, times(3)).storeObject(caseSchema, caze.getId(), caze);
   }
 
   @Test

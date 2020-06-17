@@ -44,7 +44,6 @@ import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
-import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -236,7 +235,7 @@ public class CaseServiceImplTest {
       NewCaseRequestDTO caseRequestDTO,
       String expectedAddressType,
       boolean expectedIsSecureEstablishment)
-      throws CTPException, DataStoreContentionException {
+      throws CTPException {
     // Run code under test
     CaseDTO response = target.createCaseForNewAddress(caseRequestDTO);
 
@@ -768,7 +767,7 @@ public class CaseServiceImplTest {
   }
 
   @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_DataStoreContentionException()
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_RetriesExhausted()
       throws Exception {
 
     AddressIndexAddressCompositeDTO addressFromAI =
@@ -778,9 +777,7 @@ public class CaseServiceImplTest {
         .getCaseByUprn(eq(UPRN.getValue()), any());
     Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
     Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
-    Mockito.doThrow(
-            new DataStoreContentionException(
-                "Test repository contention exception", new Exception()))
+    Mockito.doThrow(new CTPException(Fault.SYSTEM_ERROR, new Exception(), "Retries exhausted"))
         .when(dataRepo)
         .writeCachedCase(any());
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
