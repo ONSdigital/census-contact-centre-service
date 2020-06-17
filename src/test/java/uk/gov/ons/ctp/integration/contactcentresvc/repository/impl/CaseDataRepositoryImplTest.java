@@ -34,14 +34,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 @ContextConfiguration(
     classes = {CloudRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
 @TestPropertySource(
-    properties = {
-      "GOOGLE_CLOUD_PROJECT=census-cc-test",
-      "cloud-storage.case-schema-name=new-case",
-      "cloud-storage.backoff-initial=10",
-      "cloud-storage.backoff-multiplier=1.2",
-      "cloud-storage.backoff-max=300",
-      "cloud-storage.backoff-max-attempts=3",
-    })
+    properties = {"GOOGLE_CLOUD_PROJECT=census-cc-test", "cloud-storage.case-schema-name=new-case"})
 public class CaseDataRepositoryImplTest {
 
   @Value("${GOOGLE_CLOUD_PROJECT}-${cloud-storage.case-schema-name}")
