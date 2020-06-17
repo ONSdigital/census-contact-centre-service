@@ -47,6 +47,7 @@ public final class CaseEndpointGetCaseTest {
   private static final String TOWN = "Exeter";
   private static final String REGION = "E";
   private static final String POSTCODE = "EX2 9HY";
+  private static final String ORG_NAME = "Tiddlywink Athletic Club";
 
   private static final String EVENT_CATEGORY = "REFUSAL";
   private static final String EVENT_DESCRIPTION = "Event for testcase";
@@ -195,6 +196,7 @@ public final class CaseEndpointGetCaseTest {
             .townName(TOWN)
             .region(REGION)
             .postcode(POSTCODE)
+            .ceOrgName(ORG_NAME)
             .caseEvents(Arrays.asList(caseEventDTO1))
             .build();
 
@@ -212,6 +214,7 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$.townName", is(TOWN)));
     actions.andExpect(jsonPath("$.region", is(REGION)));
     actions.andExpect(jsonPath("$.postcode", is(POSTCODE)));
+    actions.andExpect(jsonPath("$.ceOrgName", is(ORG_NAME)));
 
     actions.andExpect(jsonPath("$.caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$.caseEvents[0].description", is(EVENT_DESCRIPTION)));
@@ -231,6 +234,7 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[0].townName", is(TOWN)));
     actions.andExpect(jsonPath("$[0].region", is(REGION)));
     actions.andExpect(jsonPath("$[0].postcode", is(POSTCODE)));
+    actions.andExpect(jsonPath("$[0].ceOrgName", is(ORG_NAME)));
 
     actions.andExpect(jsonPath("$[0].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[0].caseEvents[0].description", is(EVENT_DESCRIPTION)));
@@ -246,6 +250,7 @@ public final class CaseEndpointGetCaseTest {
     actions.andExpect(jsonPath("$[1].townName", is(TOWN)));
     actions.andExpect(jsonPath("$[1].region", is(REGION)));
     actions.andExpect(jsonPath("$[1].postcode", is(POSTCODE)));
+    actions.andExpect(jsonPath("$[1].ceOrgName", is(ORG_NAME)));
 
     actions.andExpect(jsonPath("$[1].caseEvents[0].category", is(EVENT_CATEGORY)));
     actions.andExpect(jsonPath("$[1].caseEvents[0].description", is(EVENT_DESCRIPTION)));
