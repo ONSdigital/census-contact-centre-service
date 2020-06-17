@@ -32,6 +32,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getAddressLine3(), destination.getAddressLine3());
     assertEquals(source.getTownName(), destination.getTownName());
     assertEquals(source.getPostcode(), destination.getPostcode());
+    assertEquals(source.getOrganisationName(), destination.getCeOrgName());
     assertEquals(source.getRegion().substring(0, 1), destination.getRegion());
     assertEquals(source.getUprn(), String.valueOf(destination.getUprn().getValue()));
     assertEquals(source.getEstabUprn(), String.valueOf(destination.getEstabUprn().getValue()));

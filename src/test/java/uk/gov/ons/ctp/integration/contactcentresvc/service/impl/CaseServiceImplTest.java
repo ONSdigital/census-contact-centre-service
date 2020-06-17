@@ -1499,6 +1499,7 @@ public class CaseServiceImplTest {
             .townName(caseFromCaseService.getTownName())
             .region(caseFromCaseService.getRegion().substring(0, 1))
             .postcode(caseFromCaseService.getPostcode())
+            .ceOrgName(caseFromCaseService.getOrganisationName())
             .uprn(createUprn(caseFromCaseService.getUprn()))
             .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
             .handDelivery(caseFromCaseService.isHandDelivery())
@@ -1531,6 +1532,7 @@ public class CaseServiceImplTest {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
+    assertEquals(expectedCaseResult.getCeOrgName(), results.getCeOrgName());
     assertEquals(
         expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
     assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
