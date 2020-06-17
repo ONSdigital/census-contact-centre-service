@@ -25,17 +25,17 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.cloud.CloudDataStore;
+import uk.gov.ons.ctp.common.cloud.CloudRetryListener;
 import uk.gov.ons.ctp.common.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.CcRetryListener;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
-    classes = {CcRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
+    classes = {CloudRetryListener.class, CaseDataRepositoryImpl.class, AppConfig.class})
 @TestPropertySource(
     properties = {
       "GOOGLE_CLOUD_PROJECT=census-cc-test",

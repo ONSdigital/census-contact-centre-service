@@ -79,7 +79,7 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
               multiplierExpression = "#{${cloud-storage.backoff-multiplier}}",
               maxDelayExpression = "#{${cloud-storage.backoff-max}}"),
       maxAttemptsExpression = "#{${cloud-storage.backoff-max-attempts}}",
-      listeners = "ccRetryListener")
+      listeners = "cloudRetryListener")
   @Override
   public void writeCachedCase(final CachedCase caze)
       throws CTPException, DataStoreContentionException {
