@@ -53,7 +53,7 @@ public class CaseDataRepositoryImplTest {
     repo.init();
 
     // Verify no attempt made to populate new-case collection
-    Mockito.verify(dataStore, times(0)).storeObject(any(), any(), any());
+    Mockito.verify(dataStore, times(0)).storeObject(any(), any(), any(), any());
   }
 
   @Test
