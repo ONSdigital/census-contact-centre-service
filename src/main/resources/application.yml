@@ -184,7 +184,8 @@ report-settings:
 
 cloud-storage:
   case-schema-name: new-case
-  backoff-initial: 500
-  backoff-multiplier: 2
-  backoff-max: 3500
-  backoff-max-attempts: 3
+  backoff:
+    initial: 500
+    multiplier: 2
+    max: 3500
+    max-attempts: 3

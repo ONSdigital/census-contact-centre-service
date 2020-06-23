@@ -51,7 +51,6 @@ import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -206,7 +205,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    storeCaseInCache(cachedCase);
+    dataRepo.writeCachedCase(cachedCase);
 
     // Publish NewAddress event
     AddressIndexAddressCompositeDTO address =
@@ -887,22 +886,8 @@ public class CaseServiceImpl implements CaseService {
 
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
 
-    storeCaseInCache(cachedCase);
-
+    dataRepo.writeCachedCase(cachedCase);
     return cachedCase;
-  }
-
-  private void storeCaseInCache(CachedCase cachedCase) throws CTPException {
-    try {
-      dataRepo.writeCachedCase(cachedCase);
-    } catch (DataStoreContentionException e) {
-      log.error(
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-      throw new CTPException(
-          Fault.SYSTEM_ERROR,
-          e,
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-    }
   }
 
   private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
