@@ -29,4 +29,6 @@ public class AddressIndexAddressCompositeDTO {
   private String censusEstabType; // Holds value of EstabType.code
 
   private String countryCode;
+  
+  private String ceOrgName;
 }
