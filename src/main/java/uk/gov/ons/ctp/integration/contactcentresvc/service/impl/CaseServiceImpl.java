@@ -499,7 +499,11 @@ public class CaseServiceImpl implements CaseService {
       throw e;
     }
     String eqUrl =
-        "https://" + appConfig.getEq().getHost() + "/en/start/launch-eq/?token=" + encryptedPayload;
+        appConfig.getEq().getProtocol()
+            + "://"
+            + appConfig.getEq().getHost()
+            + appConfig.getEq().getPath()
+            + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
     return eqUrl;
   }
