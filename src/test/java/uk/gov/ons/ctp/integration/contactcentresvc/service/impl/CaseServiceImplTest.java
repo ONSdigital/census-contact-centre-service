@@ -75,7 +75,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
@@ -236,7 +235,7 @@ public class CaseServiceImplTest {
       NewCaseRequestDTO caseRequestDTO,
       String expectedAddressType,
       boolean expectedIsSecureEstablishment)
-      throws CTPException, DataStoreContentionException {
+      throws CTPException {
     // Run code under test
     CaseDTO response = target.createCaseForNewAddress(caseRequestDTO);
 
@@ -768,7 +767,7 @@ public class CaseServiceImplTest {
   }
 
   @Test(expected = CTPException.class)
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_DataStoreContentionException()
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_NoCachedCase_RetriesExhausted()
       throws Exception {
 
     AddressIndexAddressCompositeDTO addressFromAI =
@@ -778,9 +777,7 @@ public class CaseServiceImplTest {
         .getCaseByUprn(eq(UPRN.getValue()), any());
     Mockito.when(dataRepo.readCachedCaseByUPRN(UPRN)).thenReturn(Optional.empty());
     Mockito.when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
-    Mockito.doThrow(
-            new DataStoreContentionException(
-                "Test repository contention exception", new Exception()))
+    Mockito.doThrow(new CTPException(Fault.SYSTEM_ERROR, new Exception(), "Retries exhausted"))
         .when(dataRepo)
         .writeCachedCase(any());
     target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(false));
@@ -1286,7 +1283,8 @@ public class CaseServiceImplTest {
 
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
-    assertEquals("https://localhost/session?token=simulated-encrypted-payload", launchUrl);
+    assertEquals(
+        "https://localhost/en/start/launch-eq/?token=simulated-encrypted-payload", launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
