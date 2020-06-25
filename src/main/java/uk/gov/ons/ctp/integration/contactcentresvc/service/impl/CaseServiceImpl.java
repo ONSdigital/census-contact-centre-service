@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -99,6 +100,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private AddressService addressSvc;
 
   @Autowired private EventPublisher eventPublisher;
+
+  private LuhnCheckDigit luhnChecker = new LuhnCheckDigit();
 
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
@@ -320,9 +323,19 @@ public class CaseServiceImpl implements CaseService {
     return Collections.singletonList(response);
   }
 
+  private void validateCaseRef(long caseRef) throws CTPException {
+    if (!luhnChecker.isValid(Long.toString(caseRef))) {
+      log.with(caseRef).info("Luhn check failed for case Reference");
+      throw new CTPException(Fault.BAD_REQUEST, "Invalid Case Reference");
+    }
+  }
+
   @Override
-  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO)
+      throws CTPException {
     log.with("caseRef", caseRef).debug("Fetching case details by case reference");
+
+    validateCaseRef(caseRef);
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();

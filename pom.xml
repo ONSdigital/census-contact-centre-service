@@ -108,7 +108,7 @@
       <artifactId>framework</artifactId>
       <version>0.0.60</version>
     </dependency>
-    
+
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>event-publisher</artifactId>
@@ -185,6 +185,12 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.6</version>
     </dependency>
 
     <!-- Testing -->

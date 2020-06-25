@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -137,6 +138,8 @@ public class CaseServiceImplTest {
 
   private static final boolean CASE_EVENTS_TRUE = true;
   private static final boolean CASE_EVENTS_FALSE = false;
+
+  private static final long VALID_CASE_REF = 882_345_440L;
 
   private static final boolean USE_CACHED_CASE = true;
   private static final boolean NO_CACHED_CASE = false;
@@ -870,7 +873,7 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() {
+  public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
@@ -878,7 +881,7 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCommunalCaseByCaseRef_withCaseDetails() {
+  public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
@@ -886,7 +889,7 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCommunalCaseByCaseRef_withNoCaseDetails() {
+  public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
@@ -894,14 +897,14 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() {
+  public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
         CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
   }
 
   @Test
-  public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() {
+  public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() throws Exception {
     List<DeliveryChannel> expectedDeliveryChannels =
         Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
     doTestGetCaseByCaseRef(
@@ -909,18 +912,16 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void testGetCaseByCaseRef_householdIndividualCase() {
-    long testCaseRef = 88234544;
-
+  public void testGetCaseByCaseRef_householdIndividualCase() throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType("HI"); // Household Individual case
-    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(testCaseRef), any()))
+    Mockito.when(caseServiceClient.getCaseByCaseRef(eq(VALID_CASE_REF), any()))
         .thenReturn(caseFromCaseService);
 
     // Run the request
     try {
-      target.getCaseByCaseReference(testCaseRef, new CaseQueryRequestDTO(true));
+      target.getCaseByCaseReference(VALID_CASE_REF, new CaseQueryRequestDTO(true));
       fail();
     } catch (ResponseStatusException e) {
       assertEquals("Case is not suitable", e.getReason());
@@ -929,14 +930,43 @@ public class CaseServiceImplTest {
   }
 
   @Test
-  public void shouldGetSecureEstablishmentByCaseReference() {
+  public void shouldGetSecureEstablishmentByCaseReference() throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(1);
     Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
-    CaseDTO results =
-        target.getCaseByCaseReference(103300000000001L, new CaseQueryRequestDTO(false));
+    CaseDTO results = target.getCaseByCaseReference(VALID_CASE_REF, new CaseQueryRequestDTO(false));
     assertTrue(results.isSecureEstablishment());
     assertEquals(new UniquePropertyReferenceNumber(AN_ESTAB_UPRN), results.getEstabUprn());
+  }
+
+  private void rejectNonLuhn(long caseRef) {
+    CaseQueryRequestDTO dto = new CaseQueryRequestDTO(false);
+    CTPException e =
+        assertThrows(CTPException.class, () -> target.getCaseByCaseReference(caseRef, dto));
+    assertEquals("Invalid Case Reference", e.getMessage());
+  }
+
+  @Test
+  public void shouldRejectGetByNonLuhnCaseReference() {
+    rejectNonLuhn(123);
+    rejectNonLuhn(1231);
+    rejectNonLuhn(100000000);
+    rejectNonLuhn(999999999);
+  }
+
+  private void acceptLuhn(long caseRef) throws Exception {
+    Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any()))
+        .thenReturn(casesFromCaseService().get(0));
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
+    target.getCaseByCaseReference(caseRef, requestParams);
+  }
+
+  @Test
+  public void shouldAcceptLuhnCompliantGetByCaseReference() throws Exception {
+    acceptLuhn(1230);
+    acceptLuhn(VALID_CASE_REF);
+    acceptLuhn(100000009);
+    acceptLuhn(999999998);
   }
 
   @Test
@@ -1453,9 +1483,8 @@ public class CaseServiceImplTest {
       CaseType caseType,
       boolean handDelivery,
       boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels) {
-    long testCaseRef = 88234544;
-
+      List<DeliveryChannel> expectedAllowedDeliveryChannels)
+      throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType(caseType.name());
@@ -1464,7 +1493,7 @@ public class CaseServiceImplTest {
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
-    CaseDTO results = target.getCaseByCaseReference(testCaseRef, requestParams);
+    CaseDTO results = target.getCaseByCaseReference(VALID_CASE_REF, requestParams);
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
     verifyCase(results, expectedCaseResult, caseEvents);
