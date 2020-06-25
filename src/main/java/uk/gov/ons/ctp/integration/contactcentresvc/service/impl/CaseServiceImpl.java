@@ -498,7 +498,8 @@ public class CaseServiceImpl implements CaseService {
       log.with(e).error("Failed to create JWE payload for eq launch");
       throw e;
     }
-    String eqUrl = "https://" + appConfig.getEq().getHost() + "/session?token=" + encryptedPayload;
+    String eqUrl =
+        "https://" + appConfig.getEq().getHost() + "/en/start/launch-eq?token=" + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
     return eqUrl;
   }
