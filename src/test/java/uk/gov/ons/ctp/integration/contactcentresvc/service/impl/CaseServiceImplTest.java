@@ -1284,7 +1284,7 @@ public class CaseServiceImplTest {
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
     assertEquals(
-        "https://localhost/en/start/launch-eq?token=simulated-encrypted-payload", launchUrl);
+        "https://localhost/en/start/launch-eq/?token=simulated-encrypted-payload", launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
