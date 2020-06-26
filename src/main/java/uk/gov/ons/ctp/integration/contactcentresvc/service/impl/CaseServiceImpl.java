@@ -576,7 +576,7 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCaseType(caseType.name());
     newAddress.setSurvey(appConfig.getSurveyName());
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
-    newAddress.setOrganisationName(organisationName);
+    //    newAddress.setOrganisationName(organisationName);
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
