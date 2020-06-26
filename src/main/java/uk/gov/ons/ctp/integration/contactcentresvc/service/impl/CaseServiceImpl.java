@@ -214,11 +214,7 @@ public class CaseServiceImpl implements CaseService {
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
     publishNewAddressReportedEvent(
-        newCaseId,
-        caseType,
-        caseRequestDTO.getCeOrgName(),
-        caseRequestDTO.getCeUsualResidents(),
-        address);
+        newCaseId, caseType, caseRequestDTO.getCeUsualResidents(), address);
 
     return createNewCachedCaseResponse(cachedCase);
   }
@@ -564,7 +560,6 @@ public class CaseServiceImpl implements CaseService {
   private void publishNewAddressReportedEvent(
       UUID caseId,
       CaseType caseType,
-      String organisationName,
       Integer ceExpectedCapacity,
       AddressIndexAddressCompositeDTO address)
       throws CTPException {
@@ -576,7 +571,6 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCaseType(caseType.name());
     newAddress.setSurvey(appConfig.getSurveyName());
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
-    //    newAddress.setOrganisationName(organisationName);
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
@@ -885,7 +879,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
+    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
     dataRepo.writeCachedCase(cachedCase);
     return cachedCase;
