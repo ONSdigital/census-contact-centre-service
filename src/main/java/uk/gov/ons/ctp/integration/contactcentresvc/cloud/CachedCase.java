@@ -34,6 +34,6 @@ public class CachedCase {
   private String estabType; // Holds value of EstabType.code
 
   private String region;
-  
+
   private String ceOrgName;
 }
