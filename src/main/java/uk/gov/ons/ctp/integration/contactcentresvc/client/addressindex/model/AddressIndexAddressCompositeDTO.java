@@ -30,5 +30,5 @@ public class AddressIndexAddressCompositeDTO {
 
   private String countryCode;
   
-  private String ceOrgName;
+  private String organisationName;
 }

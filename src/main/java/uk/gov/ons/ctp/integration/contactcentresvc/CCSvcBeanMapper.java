@@ -62,6 +62,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .field("censusAddressType", "address.addressType")
         .field("censusEstabType", "address.estabType")
         .field("countryCode", "address.region")
+        .field("organisationName", "organisationName")
         .register();
 
     factory
@@ -69,6 +70,7 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .field("censusAddressType", "addressType")
         .field("censusEstabType", "estabType")
         .field("countryCode", "region")
+        .field("organisationName", "ceOrgName")
         .byDefault()
         .register();
 
