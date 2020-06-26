@@ -63,6 +63,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getCensusAddressType(), destAddr.getAddressType());
     assertEquals(source.getCensusEstabType(), destAddr.getEstabType());
     assertEquals(source.getCountryCode(), destAddr.getRegion());
+    assertEquals(source.getOrganisationName(), destination.getOrganisationName());
   }
 
   @Test
@@ -80,6 +81,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getCensusAddressType(), destination.getAddressType());
     assertEquals(source.getCensusEstabType(), destination.getEstabType());
     assertEquals(source.getCountryCode(), destination.getRegion());
+    assertEquals(source.getOrganisationName(), destination.getCeOrgName());
   }
 
   @Test
