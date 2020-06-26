@@ -103,7 +103,7 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
  * which would deal with actually sending a HTTP request to the case service.
  */
 public class CaseServiceImplTest {
-  @Mock AppConfig appConfig = new AppConfig();
+  @Spy AppConfig appConfig = new AppConfig();
 
   @Mock ProductReference productReference;
 
@@ -157,6 +157,11 @@ public class CaseServiceImplTest {
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    EqConfig eqConfig = new EqConfig();
+    eqConfig.setProtocol("https");
+    eqConfig.setHost("localhost");
+    eqConfig.setPath("/en/start/launch-eq/?token=");
+    appConfig.setEq(eqConfig);
 
     // For case retrieval, mock out a whitelist of allowable case events
     CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
@@ -1302,11 +1307,6 @@ public class CaseServiceImplTest {
     Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(UUID_0), eq(individual), any()))
         .thenReturn(newQuestionnaireIdDto);
 
-    // Mock appConfig data
-    EqConfig eqConfig = new EqConfig();
-    eqConfig.setHost("localhost");
-    Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
-
     mockEqLaunchJwe();
 
     LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(individual);
@@ -1314,7 +1314,12 @@ public class CaseServiceImplTest {
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
     assertEquals(
-        "https://localhost/en/start/launch-eq/?token=simulated-encrypted-payload", launchUrl);
+        appConfig.getEq().getProtocol()
+            + "://"
+            + appConfig.getEq().getHost()
+            + appConfig.getEq().getPath()
+            + "simulated-encrypted-payload",
+        launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
