@@ -30,7 +30,7 @@
   "townName": "Widemouth",
   "region": "E",
   "postcode": "EX2 5AB",
-  "ceOrgName": null,
+  "ceOrgName": "Test New Case Organisation",
   "ceUsualResidents": null,
   "dateTime": "2016-11-09T11:44:44.797",
   "caseType": "HH",
