@@ -34,7 +34,8 @@ public interface CaseService {
       final UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException;
 
-  CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO);
+  CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO)
+      throws CTPException;
 
   String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
       throws CTPException;
