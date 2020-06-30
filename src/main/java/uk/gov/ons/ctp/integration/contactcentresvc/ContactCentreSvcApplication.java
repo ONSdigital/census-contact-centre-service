@@ -138,7 +138,8 @@ public class ContactCentreSvcApplication {
    * @return the event publisher
    */
   @Bean
-  public EventPublisher eventPublisher(final ConnectionFactory connectionFactory, final FirestoreEventPersistence eventPersistence) {
+  public EventPublisher eventPublisher(
+      final ConnectionFactory connectionFactory, final FirestoreEventPersistence eventPersistence) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
