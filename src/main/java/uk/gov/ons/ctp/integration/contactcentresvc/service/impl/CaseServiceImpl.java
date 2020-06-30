@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,6 @@ import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.cloud.DataStoreContentionException;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -100,6 +100,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private AddressService addressSvc;
 
   @Autowired private EventPublisher eventPublisher;
+
+  private LuhnCheckDigit luhnChecker = new LuhnCheckDigit();
 
   public ResponseDTO fulfilmentRequestByPost(PostalFulfilmentRequestDTO requestBodyDTO)
       throws CTPException {
@@ -206,7 +208,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressType(censusAddressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    storeCaseInCache(cachedCase);
+    dataRepo.writeCachedCase(cachedCase);
 
     // Publish NewAddress event
     AddressIndexAddressCompositeDTO address =
@@ -321,9 +323,19 @@ public class CaseServiceImpl implements CaseService {
     return Collections.singletonList(response);
   }
 
+  private void validateCaseRef(long caseRef) throws CTPException {
+    if (!luhnChecker.isValid(Long.toString(caseRef))) {
+      log.with(caseRef).info("Luhn check failed for case Reference");
+      throw new CTPException(Fault.BAD_REQUEST, "Invalid Case Reference");
+    }
+  }
+
   @Override
-  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO) {
+  public CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO)
+      throws CTPException {
     log.with("caseRef", caseRef).debug("Fetching case details by case reference");
+
+    validateCaseRef(caseRef);
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
@@ -499,7 +511,12 @@ public class CaseServiceImpl implements CaseService {
       log.with(e).error("Failed to create JWE payload for eq launch");
       throw e;
     }
-    String eqUrl = "https://" + appConfig.getEq().getHost() + "/session?token=" + encryptedPayload;
+    String eqUrl =
+        appConfig.getEq().getProtocol()
+            + "://"
+            + appConfig.getEq().getHost()
+            + appConfig.getEq().getPath()
+            + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
     return eqUrl;
   }
@@ -887,22 +904,8 @@ public class CaseServiceImpl implements CaseService {
 
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
 
-    storeCaseInCache(cachedCase);
-
+    dataRepo.writeCachedCase(cachedCase);
     return cachedCase;
-  }
-
-  private void storeCaseInCache(CachedCase cachedCase) throws CTPException {
-    try {
-      dataRepo.writeCachedCase(cachedCase);
-    } catch (DataStoreContentionException e) {
-      log.error(
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-      throw new CTPException(
-          Fault.SYSTEM_ERROR,
-          e,
-          "Retries exhausted attempting to store a new case in the cache: " + cachedCase.getId());
-    }
   }
 
   private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {

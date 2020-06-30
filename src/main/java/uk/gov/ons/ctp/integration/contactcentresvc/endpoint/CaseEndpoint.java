@@ -179,17 +179,8 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("requestBody", requestBodyDTO)
         .info("Entering POST fulfilmentRequestByPost");
 
-    if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId)
-          .warn(
-              "The caseid in the URL does not match the caseid "
-                  + "in the fulfilmentRequestByPost request body");
-      throw new CTPException(
-          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
-    }
-
+    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
     ResponseDTO response = caseService.fulfilmentRequestByPost(requestBodyDTO);
-
     return ResponseEntity.ok(response);
   }
 
@@ -212,17 +203,8 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("requestBody", requestBodyDTO)
         .info("Entering POST fulfilmentRequestBySMS");
 
-    if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId)
-          .warn(
-              "The caseid in the URL does not match the caseid "
-                  + "in the fulfilmentRequestBySMS request body");
-      throw new CTPException(
-          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
-    }
-
+    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
     ResponseDTO response = caseService.fulfilmentRequestBySMS(requestBodyDTO);
-
     return ResponseEntity.ok(response);
   }
 
@@ -284,15 +266,7 @@ public class CaseEndpoint implements CTPEndpoint {
       throws CTPException {
 
     log.with("requestBody", requestBodyDTO).info("Entering POST invalidate");
-
-    if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId)
-          .warn(
-              "The caseid in the URL does not match the caseid "
-                  + "in the invalidateCase request body");
-      throw new CTPException(
-          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
-    }
+    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
     ResponseDTO response = caseService.invalidateCase(requestBodyDTO);
     return ResponseEntity.ok(response);
   }
@@ -363,17 +337,16 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("requestBody", requestBodyDTO)
         .info("Entering GET getUACForCase");
 
-    if (!caseId.equals(requestBodyDTO.getCaseId())) {
-      log.with(caseId)
-          .warn(
-              "The caseid in the URL does not match the caseid "
-                  + "in the getUACForCase request body");
-      throw new CTPException(
-          Fault.BAD_REQUEST, "The caseid in the URL does not match the caseid in the request body");
-    }
-
+    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
     UACResponseDTO response = new UACResponseDTO();
-
     return ResponseEntity.ok(response);
+  }
+
+  private void validateMatchingCaseId(UUID caseId, UUID dtoCaseId) throws CTPException {
+    if (!caseId.equals(dtoCaseId)) {
+      String message = "The caseid in the URL does not match the caseid in the request body";
+      log.with(caseId).warn(message);
+      throw new CTPException(Fault.BAD_REQUEST, message);
+    }
   }
 }

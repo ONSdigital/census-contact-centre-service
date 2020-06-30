@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -37,6 +38,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentR
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {"GOOGLE_CLOUD_PROJECT=census-cc-test"})
 public abstract class EndpointSecurityTest {
 
   TestRestTemplate restTemplate;
