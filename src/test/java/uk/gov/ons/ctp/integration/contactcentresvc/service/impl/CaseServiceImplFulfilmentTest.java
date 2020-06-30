@@ -396,7 +396,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),
@@ -499,7 +499,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),

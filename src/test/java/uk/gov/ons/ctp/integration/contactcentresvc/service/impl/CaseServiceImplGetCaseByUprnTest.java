@@ -185,7 +185,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -441,7 +441,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   private void verifyNewCase(AddressIndexAddressCompositeDTO address, CaseDTO result)
@@ -503,7 +503,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
     Mockito.verify(eventPublisher, times(1))
-        .sendEvent(
+        .sendEventWithPersistance(
             EventType.NEW_ADDRESS_REPORTED,
             Source.CONTACT_CENTRE_API,
             appConfig.getChannel(),
@@ -523,7 +523,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   @SneakyThrows
