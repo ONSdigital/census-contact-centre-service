@@ -101,6 +101,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(null, destination.getEstabType());
     assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getRegion(), destination.getRegion());
+    assertEquals(source.getCeOrgName(), destination.getCeOrgName());
   }
 
   @Test
