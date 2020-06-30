@@ -711,7 +711,7 @@ public class CaseServiceImplTest {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -1118,7 +1118,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
 
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eq(EventType.ADDRESS_NOT_VALID),
             eq(Source.CONTACT_CENTRE_API),
             eq(Channel.CC),
@@ -1223,7 +1223,7 @@ public class CaseServiceImplTest {
   private void verifySurveyLaunchedEventPublished(
       String caseType, boolean individual, UUID caseId, String questionnaireId) {
     Mockito.verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eq(EventType.SURVEY_LAUNCHED),
             eq(Source.CONTACT_CENTRE_API),
             eq(Channel.CC),
@@ -1339,7 +1339,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalDetails.class);
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),
@@ -1557,7 +1557,7 @@ public class CaseServiceImplTest {
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   private void verifyNewCase(AddressIndexAddressCompositeDTO address, CaseDTO result)
@@ -1619,7 +1619,7 @@ public class CaseServiceImplTest {
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
     Mockito.verify(eventPublisher, times(1))
-        .sendEvent(
+        .sendEventWithPersistance(
             EventType.NEW_ADDRESS_REPORTED,
             Source.CONTACT_CENTRE_API,
             appConfig.getChannel(),
@@ -1639,7 +1639,7 @@ public class CaseServiceImplTest {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
   private long asMillis(String datetime) throws ParseException {
@@ -1782,7 +1782,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),
@@ -1885,7 +1885,7 @@ public class CaseServiceImplTest {
     ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
         ArgumentCaptor.forClass(FulfilmentRequest.class);
     verify(eventPublisher)
-        .sendEvent(
+        .sendEventWithPersistance(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),
