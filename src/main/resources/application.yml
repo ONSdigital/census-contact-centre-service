@@ -184,6 +184,7 @@ report-settings:
 
 cloud-storage:
   case-schema-name: new-case
+  event-backup-schema-name: event-backup
   backoff-initial: 500
   backoff-multiplier: 2
   backoff-max: 3500
