@@ -108,6 +108,7 @@ public class CaseDataRepositoryImplTest {
     assertEquals(caze.getAddressType(), stored.getAddressType());
     assertEquals(caze.getEstabType(), stored.getEstabType());
     assertEquals(caze.getRegion(), stored.getRegion());
+    assertEquals(caze.getCeOrgName(), stored.getCeOrgName());
   }
 
   @Test(expected = CTPException.class)

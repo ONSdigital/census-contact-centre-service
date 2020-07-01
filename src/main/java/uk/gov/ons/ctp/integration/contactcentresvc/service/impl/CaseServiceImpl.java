@@ -83,6 +83,8 @@ public class CaseServiceImpl implements CaseService {
       "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
   private static final String UNIT_LAUNCH_ERR_MSG =
       "A CE Manager form can only be launched against an establishment address not a UNIT.";
+  private static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
+      List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
 
   private static final String SCOTLAND_COUNTRY_CODE = "S";
 
@@ -218,11 +220,7 @@ public class CaseServiceImpl implements CaseService {
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
     publishNewAddressReportedEvent(
-        newCaseId,
-        caseType,
-        caseRequestDTO.getCeOrgName(),
-        caseRequestDTO.getCeUsualResidents(),
-        address);
+        newCaseId, caseType, caseRequestDTO.getCeUsualResidents(), address);
 
     return createNewCachedCaseResponse(cachedCase);
   }
@@ -255,8 +253,7 @@ public class CaseServiceImpl implements CaseService {
 
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-    caseServiceResponse.setAllowedDeliveryChannels(
-        calculateAllowedDeliveryChannels(caseServiceResponse));
+    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
     caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
 
     return caseServiceResponse;
@@ -266,33 +263,12 @@ public class CaseServiceImpl implements CaseService {
     List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
 
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      caseServiceResponse.setAllowedDeliveryChannels(
-          calculateAllowedDeliveryChannels(caseServiceResponse));
+      caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
     }
 
     return caseServiceListResponse;
-  }
-
-  private List<DeliveryChannel> calculateAllowedDeliveryChannels(CaseDTO caseServiceResponse) {
-
-    List<DeliveryChannel> dcList = null;
-
-    if (caseServiceResponse.isHandDelivery()
-        && caseServiceResponse.getCaseType().equals(CaseType.SPG.name())) {
-      log.with(caseServiceResponse.getId())
-          .debug(
-              "Calculating allowed delivery channel list as [SMS] because handDelivery=true "
-                  + "and caseType=SPG");
-      dcList = Arrays.asList(DeliveryChannel.SMS);
-    } else {
-      log.with(caseServiceResponse.getId())
-          .debug("Calculating allowed delivery channel list as [POST, SMS]");
-      dcList = Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    }
-
-    return dcList;
   }
 
   @Override
@@ -582,7 +558,6 @@ public class CaseServiceImpl implements CaseService {
   private void publishNewAddressReportedEvent(
       UUID caseId,
       CaseType caseType,
-      String organisationName,
       Integer ceExpectedCapacity,
       AddressIndexAddressCompositeDTO address)
       throws CTPException {
@@ -594,7 +569,6 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCaseType(caseType.name());
     newAddress.setSurvey(appConfig.getSurveyName());
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
-    newAddress.setOrganisationName(organisationName);
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
     EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
@@ -664,11 +638,6 @@ public class CaseServiceImpl implements CaseService {
     Product product = findProduct(fulfilmentCode, deliveryChannel, region);
 
     if (deliveryChannel == Product.DeliveryChannel.POST) {
-      if (caze.isHandDelivery()) {
-        log.info("Postal fulfilments cannot be delivered to this respondent");
-        throw new CTPException(
-            Fault.BAD_REQUEST, "Postal fulfilments cannot be delivered to this respondent");
-      }
       if (product.getIndividual()) {
         if (StringUtils.isBlank(contact.getTitle())
             || StringUtils.isBlank(contact.getForename())
@@ -903,7 +872,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
-    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), null, 0, address);
+    publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
     dataRepo.writeCachedCase(cachedCase);
     return cachedCase;

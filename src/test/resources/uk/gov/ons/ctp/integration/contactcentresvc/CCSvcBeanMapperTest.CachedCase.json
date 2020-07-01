@@ -11,5 +11,6 @@
   "addressType": "HH",
   "caseType": "HH",
   "estabType": "Household",
-  "region": "E"
+  "region": "E",
+  "ceOrgName": "The Cached Case Organisation"
 }

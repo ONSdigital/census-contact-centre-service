@@ -10,7 +10,8 @@
     "postcode": "EX1 2ET",
     "addressType": "HH",
     "estabType": "Household",
-    "region": "E"
+    "region": "E",
+    "ceOrgName": "The Cached Case Organisation"
   },
   {
     "id": "cd392a8d-06c3-4d82-9ec0-760180159959",
@@ -23,6 +24,7 @@
     "postcode": "EX4 1EF",
     "addressType": "HH",
     "estabType": "Household",
-    "region": "E"
+    "region": "E",
+    "ceOrgName": "The Cached Case Organisation"
   }
 ]

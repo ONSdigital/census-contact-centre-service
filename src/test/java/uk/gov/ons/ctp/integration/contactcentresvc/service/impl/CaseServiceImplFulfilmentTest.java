@@ -132,42 +132,6 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     }
   }
 
-  @Test
-  public void testFulfilmentRequestByPostFailure_handDeliveryOnly() throws Exception {
-
-    Mockito.clearInvocations(eventPublisher);
-
-    // Build results to be returned from search
-    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    caseFromCaseService.setCaseType("SPG");
-    caseFromCaseService.setHandDelivery(true);
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
-
-    PostalFulfilmentRequestDTO requestBodyDTOFixture =
-        getPostalFulfilmentRequestDTO(UUID_0, "Mrs", "Sally", "Smurf");
-
-    Product expectedSearchCriteria =
-        getExpectedSearchCriteria(
-            Product.Region.E,
-            requestBodyDTOFixture.getFulfilmentCode(),
-            Product.DeliveryChannel.POST);
-
-    Product productFoundFixture =
-        getProductFoundFixture(
-            Arrays.asList(Product.CaseType.SPG), Product.DeliveryChannel.POST, false);
-    Mockito.when(productReference.searchProducts(eq(expectedSearchCriteria)))
-        .thenReturn(new ArrayList<Product>(List.of(productFoundFixture)));
-
-    try {
-      // execution - call the unit under test
-      target.fulfilmentRequestByPost(requestBodyDTOFixture);
-      fail();
-    } catch (CTPException e) {
-      assertEquals("Postal fulfilments cannot be delivered to this respondent", e.getMessage());
-      assertEquals("BAD_REQUEST", e.getFault().name());
-    }
-  }
-
   @Test(expected = CTPException.class)
   public void testFulfilmentRequestByPost_caseSvcNotFoundResponse_noCachedCase() throws Exception {
 
