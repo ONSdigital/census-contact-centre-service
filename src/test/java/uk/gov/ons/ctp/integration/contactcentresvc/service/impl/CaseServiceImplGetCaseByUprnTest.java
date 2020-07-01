@@ -438,7 +438,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     CollectionCaseNewAddress newAddress = mapperFacade.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
     verifyNewAddressEventSent(
-        address.getCensusAddressType(), address.getCensusEstabType(), null, 0, newAddress);
+        address.getCensusAddressType(), address.getCensusEstabType(), 0, newAddress);
   }
 
   private void verifyCaseDTOContent(
@@ -458,13 +458,11 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
-      String orgName,
       Integer expectedCapacity,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
     newAddress.setSurvey(SURVEY_NAME);
     newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
-    newAddress.setOrganisationName(orgName);
     newAddress.setCeExpectedCapacity(expectedCapacity);
     Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
     if (addressType.isPresent() && addressType.get() == AddressType.CE) {

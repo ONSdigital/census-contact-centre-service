@@ -144,7 +144,6 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     verifyNewAddressEventSent(
         expectedCase.getAddressType(),
         caseRequestDTO.getEstabType().getCode(),
-        caseRequestDTO.getCeOrgName(),
         caseRequestDTO.getCeUsualResidents(),
         expectedAddress);
 
@@ -169,13 +168,11 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
-      String orgName,
       Integer expectedCapacity,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
     newAddress.setSurvey(SURVEY_NAME);
     newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
-    newAddress.setOrganisationName(orgName);
     newAddress.setCeExpectedCapacity(expectedCapacity);
     Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
     if (addressType.isPresent() && addressType.get() == AddressType.CE) {

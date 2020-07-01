@@ -9,5 +9,6 @@
   "foundAddressType": "PAF",
   "censusAddressType": "HH",
   "censusEstabType": "Household",
-  "countryCode": "E"
+  "countryCode": "E",
+  "organisationName": "The AI Address Composite Org"
 }
