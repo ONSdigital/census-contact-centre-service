@@ -272,27 +272,18 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     List<CaseDTO> results = target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(caseEvents));
     assertEquals(1, results.size());
 
-    CaseDTO expectedCaseResult =
-        createExpectedCaseDTO(
-            caseFromCaseService.get(1),
-            caseEvents,
-            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
   @Test
-  public void testGetCaseByUprn_caseSPGhandDeliveryTrue() throws CTPException {
-    doTestGetCasesByUprn("SPG", true, Arrays.asList(DeliveryChannel.SMS));
+  public void testGetCaseByUprn_caseSPG() throws CTPException {
+    doTestGetCasesByUprn("SPG");
   }
 
   @Test
-  public void testGetCaseByUprn_caseHHhandDeliveryTrue() throws CTPException {
-    doTestGetCasesByUprn("HH", true, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
-  }
-
-  @Test
-  public void testGetCaseByUprn_caseSPGhandDeliveryFalse() throws CTPException {
-    doTestGetCasesByUprn("SPG", false, Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+  public void testGetCaseByUprn_caseHH() throws CTPException {
+    doTestGetCasesByUprn("HH");
   }
 
   @Test
@@ -307,14 +298,11 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(new UniquePropertyReferenceNumber(AN_ESTAB_UPRN), results.get(1).getEstabUprn());
   }
 
-  private void doTestGetCasesByUprn(
-      String caseType, boolean handDelivery, List<DeliveryChannel> expectedDeliveryChannels)
-      throws CTPException {
+  private void doTestGetCasesByUprn(String caseType) throws CTPException {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     List<CaseContainerDTO> caseFromCaseService = casesFromCaseService();
     caseFromCaseService.get(0).setCaseType(caseType);
-    caseFromCaseService.get(0).setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any()))
         .thenReturn(caseFromCaseService);
 
@@ -323,8 +311,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, new CaseQueryRequestDTO(caseEvents));
     assertEquals(2, results.size());
 
-    CaseDTO expectedCaseResult =
-        createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents, expectedDeliveryChannels);
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
@@ -342,18 +329,10 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     List<CaseDTO> results = target.getCaseByUPRN(uprn, requestParams);
 
     // Verify response
-    CaseDTO expectedCaseResult0 =
-        createExpectedCaseDTO(
-            caseFromCaseService.get(0),
-            caseEvents,
-            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult0 = createExpectedCaseDTO(caseFromCaseService.get(0), caseEvents);
     verifyCase(results.get(0), expectedCaseResult0, caseEvents);
 
-    CaseDTO expectedCaseResult1 =
-        createExpectedCaseDTO(
-            caseFromCaseService.get(1),
-            caseEvents,
-            Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS));
+    CaseDTO expectedCaseResult1 = createExpectedCaseDTO(caseFromCaseService.get(1), caseEvents);
     verifyCase(results.get(1), expectedCaseResult1, caseEvents);
   }
 
@@ -361,10 +340,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
   }
 
-  private CaseDTO createExpectedCaseDTO(
-      CaseContainerDTO caseFromCaseService,
-      boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels) {
+  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
 
     CaseDTO expectedCaseResult =
         CaseDTO.builder()
@@ -373,7 +349,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
             .caseType(caseFromCaseService.getCaseType())
             .estabType(EstabType.forCode(caseFromCaseService.getEstabType()))
             .estabDescription(caseFromCaseService.getEstabType())
-            .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
+            .allowedDeliveryChannels(ALL_DELIVERY_CHANNELS)
             .createdDateTime(caseFromCaseService.getCreatedDateTime())
             .lastUpdated(caseFromCaseService.getLastUpdated())
             .addressLine1(caseFromCaseService.getAddressLine1())
@@ -386,7 +362,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
             .ceOrgName(caseFromCaseService.getOrganisationName())
             .uprn(createUprn(caseFromCaseService.getUprn()))
             .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
-            .handDelivery(caseFromCaseService.isHandDelivery())
             .secureEstablishment(caseFromCaseService.isSecureEstablishment())
             .build();
     if (caseEvents) {
@@ -419,7 +394,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(expectedCaseResult.getCeOrgName(), results.getCeOrgName());
     assertEquals(
         expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
-    assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
 
     if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
