@@ -25,6 +25,7 @@ import uk.gov.ons.ctp.common.domain.AddressLevel;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
+import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -394,7 +395,7 @@ public class CaseServiceImpl implements CaseService {
         .with("formType", formType)
         .info("Have generated new questionnaireId");
 
-    if (caseType == CaseType.CE && !individual && "CE".contentEquals(formType)) {
+    if (caseType == CaseType.CE && !individual && FormType.C.name().equals(formType)) {
       rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
     }
 
