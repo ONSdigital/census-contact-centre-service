@@ -1,8 +1,9 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+
 import ma.glasnost.orika.MapperFacade;
+import org.junit.Test;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
