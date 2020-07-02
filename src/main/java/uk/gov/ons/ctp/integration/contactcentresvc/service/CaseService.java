@@ -9,6 +9,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -36,6 +37,8 @@ public interface CaseService {
 
   CaseDTO getCaseByCaseReference(final long caseRef, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException;
+
+  CaseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException;
 
   String getLaunchURLForCaseId(final UUID caseId, LaunchRequestDTO requestParamsDTO)
       throws CTPException;
