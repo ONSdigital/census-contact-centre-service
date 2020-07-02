@@ -85,7 +85,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
   }
 
   @Test
-  public void testNewCaseForNewAddress_ceWithNonPositiveNumberOfResidents() throws Exception {
+  public void testNewCaseForNewAddress_ceWithNonPositiveNumberOfResidents() {
     // Load valid request and then update so that it's invalid
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);

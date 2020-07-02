@@ -8,13 +8,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +20,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
@@ -526,12 +525,10 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     Mockito.verify(eventPublisher, never()).sendEventWithPersistance(any(), any(), any(), any());
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 
-  @SneakyThrows
   private CachedCase caseFromRepository() {
     return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
   }

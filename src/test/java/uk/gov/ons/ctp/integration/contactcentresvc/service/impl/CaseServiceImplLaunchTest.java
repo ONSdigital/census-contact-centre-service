@@ -13,11 +13,9 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +25,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -294,7 +293,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }

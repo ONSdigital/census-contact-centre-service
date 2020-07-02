@@ -1,9 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import static org.junit.Assert.assertEquals;
-
-import ma.glasnost.orika.MapperFacade;
 import org.junit.Test;
+import ma.glasnost.orika.MapperFacade;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
@@ -19,7 +18,7 @@ public class CCSvcBeanMapperTest {
   private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
   @Test
-  public void testCaseContainerDTO_CaseDTO() throws Exception {
+  public void testCaseContainerDTO_CaseDTO() {
     CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     CaseDTO destination = mapperFacade.map(source, CaseDTO.class);
     assertEquals(source.getId(), destination.getId());
@@ -49,7 +48,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void AddressIndexAddressCompositeDTO_CollectionCaseNewAddress() throws Exception {
+  public void AddressIndexAddressCompositeDTO_CollectionCaseNewAddress() {
     AddressIndexAddressCompositeDTO source =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CollectionCaseNewAddress destination = mapperFacade.map(source, CollectionCaseNewAddress.class);
@@ -66,7 +65,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void AddressIndexAddressCompositeDTO_CachedCase() throws Exception {
+  public void AddressIndexAddressCompositeDTO_CachedCase() {
     AddressIndexAddressCompositeDTO source =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CachedCase destination = mapperFacade.map(source, CachedCase.class);
@@ -83,7 +82,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void CachedCase_CaseDTO() throws Exception {
+  public void CachedCase_CaseDTO() {
     CachedCase source = FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
     CaseDTO destination = mapperFacade.map(source, CaseDTO.class);
     assertEquals(source.getId(), destination.getId().toString());
@@ -102,7 +101,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void testCaseContainerDTO_Address() throws Exception {
+  public void testCaseContainerDTO_Address() {
     CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Address destination = mapperFacade.map(source, Address.class);
     assertEquals(source.getAddressLine1(), destination.getAddressLine1());

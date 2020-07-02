@@ -8,13 +8,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -527,12 +525,10 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     assertEquals(requestBodyDTOFixture.getTelNo(), actualContact.getTelNo());
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 
-  @SneakyThrows
   private CachedCase caseFromRepository() {
     return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
   }
