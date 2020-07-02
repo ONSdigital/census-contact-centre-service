@@ -31,7 +31,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
@@ -185,7 +184,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -415,7 +414,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   private void verifyNewCase(AddressIndexAddressCompositeDTO address, CaseDTO result)
@@ -474,12 +473,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     newAddress.getAddress().setEstabType(expectedEstabTypeCode);
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
-    Mockito.verify(eventPublisher, times(1))
-        .sendEvent(
-            EventType.NEW_ADDRESS_REPORTED,
-            Source.CONTACT_CENTRE_API,
-            appConfig.getChannel(),
-            payload);
+    NewAddress payloadSent = verifyEventSent(EventType.NEW_ADDRESS_REPORTED, NewAddress.class);
+    assertEquals(payload, payloadSent);
   }
 
   private void verifyCachedCase(CachedCase cachedCase, CaseDTO result) throws Exception {
@@ -495,7 +490,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
         .readCachedCaseByUPRN(any(UniquePropertyReferenceNumber.class));
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   @SneakyThrows

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
@@ -27,7 +25,6 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
@@ -47,10 +44,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
-
-  private static final EventType FULFILMENT_EVENT_TYPE_FIELD_VALUE = EventType.FULFILMENT_REQUESTED;
-  private static final Source FULFILMENT_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
-  private static final Channel FULFILMENT_CHANNEL_FIELD_VALUE = Channel.CC;
 
   @Before
   public void setup() {
@@ -354,22 +347,8 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
         timeBeforeInvocation, timeAfterInvocation, responseDTOFixture.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
-    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
-    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-    ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
-        ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(eventPublisher)
-        .sendEvent(
-            eventTypeCaptor.capture(),
-            sourceCaptor.capture(),
-            channelCaptor.capture(),
-            fulfilmentRequestCaptor.capture());
-
-    assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
-    assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
-    assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
-    FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
+    FulfilmentRequest actualFulfilmentRequest =
+        verifyEventSent(EventType.FULFILMENT_REQUESTED, FulfilmentRequest.class);
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());
@@ -457,23 +436,8 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     verifyTimeInExpectedRange(timeBeforeInvocation, timeAfterInvocation, response.getDateTime());
 
     // Grab the published event
-    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
-    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
-    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-    ArgumentCaptor<FulfilmentRequest> fulfilmentRequestCaptor =
-        ArgumentCaptor.forClass(FulfilmentRequest.class);
-    verify(eventPublisher)
-        .sendEvent(
-            eventTypeCaptor.capture(),
-            sourceCaptor.capture(),
-            channelCaptor.capture(),
-            fulfilmentRequestCaptor.capture());
-
-    assertEquals(FULFILMENT_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
-    assertEquals(FULFILMENT_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
-    assertEquals(FULFILMENT_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
-
-    FulfilmentRequest actualFulfilmentRequest = fulfilmentRequestCaptor.getValue();
+    FulfilmentRequest actualFulfilmentRequest =
+        verifyEventSent(EventType.FULFILMENT_REQUESTED, FulfilmentRequest.class);
     assertEquals(
         requestBodyDTOFixture.getFulfilmentCode(), actualFulfilmentRequest.getFulfilmentCode());
     assertEquals(requestBodyDTOFixture.getCaseId().toString(), actualFulfilmentRequest.getCaseId());

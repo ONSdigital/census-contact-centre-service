@@ -21,7 +21,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
@@ -184,11 +183,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     newAddress.getAddress().setEstabType(expectedEstabTypeCode);
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
-    Mockito.verify(eventPublisher, times(1))
-        .sendEvent(
-            EventType.NEW_ADDRESS_REPORTED,
-            Source.CONTACT_CENTRE_API,
-            appConfig.getChannel(),
-            payload);
+    NewAddress payloadSent = verifyEventSent(EventType.NEW_ADDRESS_REPORTED, NewAddress.class);
+    assertEquals(payload, payloadSent);
   }
 }

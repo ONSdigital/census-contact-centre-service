@@ -230,7 +230,7 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   @SneakyThrows

@@ -34,8 +34,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
-import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
@@ -223,21 +221,16 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   private void verifySurveyLaunchedEventPublished(
       String caseType, boolean individual, UUID caseId, String questionnaireId) {
-    Mockito.verify(eventPublisher)
-        .sendEvent(
-            eq(EventType.SURVEY_LAUNCHED),
-            eq(Source.CONTACT_CENTRE_API),
-            eq(Channel.CC),
-            (EventPayload) surveyLaunchedResponseCaptor.capture());
-
+    SurveyLaunchedResponse payloadSent =
+        verifyEventSent(EventType.SURVEY_LAUNCHED, SurveyLaunchedResponse.class);
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
-      assertNotEquals(UUID_0, surveyLaunchedResponseCaptor.getValue().getCaseId());
+      assertNotEquals(UUID_0, payloadSent.getCaseId());
     } else {
-      assertEquals(caseId, surveyLaunchedResponseCaptor.getValue().getCaseId());
+      assertEquals(caseId, payloadSent.getCaseId());
     }
-    assertEquals(questionnaireId, surveyLaunchedResponseCaptor.getValue().getQuestionnaireId());
-    assertEquals(AN_AGENT_ID, surveyLaunchedResponseCaptor.getValue().getAgentId());
+    assertEquals(questionnaireId, payloadSent.getQuestionnaireId());
+    assertEquals(AN_AGENT_ID, payloadSent.getAgentId());
   }
 
   private void verifyCorrectIndividualCaseId(String caseType, boolean individual) {
