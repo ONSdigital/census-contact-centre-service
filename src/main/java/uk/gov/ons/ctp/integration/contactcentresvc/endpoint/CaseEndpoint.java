@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -267,6 +268,7 @@ public class CaseEndpoint implements CTPEndpoint {
 
     log.with("requestBody", requestBodyDTO).info("Entering POST invalidate");
     validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
+    checkCaseIsNotTypeCE(caseId);
     ResponseDTO response = caseService.invalidateCase(requestBodyDTO);
     return ResponseEntity.ok(response);
   }
@@ -345,6 +347,21 @@ public class CaseEndpoint implements CTPEndpoint {
   private void validateMatchingCaseId(UUID caseId, UUID dtoCaseId) throws CTPException {
     if (!caseId.equals(dtoCaseId)) {
       String message = "The caseid in the URL does not match the caseid in the request body";
+      log.with(caseId).warn(message);
+      throw new CTPException(Fault.BAD_REQUEST, message);
+    }
+  }
+
+  private void checkCaseIsNotTypeCE(UUID caseId) throws CTPException {
+    CaseQueryRequestDTO caseQueryRequestDTO = new CaseQueryRequestDTO();
+    CaseDTO caseToCheck = caseService.getCaseById(caseId, caseQueryRequestDTO);
+    ArrayList<String> regions = new ArrayList<>();
+    regions.add("E");
+    regions.add("N");
+    regions.add("W");
+    if ((caseToCheck.getCaseType().equals("CE")) && (regions.contains(caseToCheck.getRegion()))) {
+      String message =
+          "All CE addresses will be validated by a Field Officer. It is not necessary to submit this Invalidation request.";
       log.with(caseId).warn(message);
       throw new CTPException(Fault.BAD_REQUEST, message);
     }
