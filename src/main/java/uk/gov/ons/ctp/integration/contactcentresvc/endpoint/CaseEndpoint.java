@@ -353,8 +353,7 @@ public class CaseEndpoint implements CTPEndpoint {
   }
 
   private void checkCaseIsNotTypeCE(UUID caseId) throws CTPException {
-    CaseQueryRequestDTO caseQueryRequestDTO = new CaseQueryRequestDTO();
-    CaseDTO caseToCheck = caseService.getCaseById(caseId, caseQueryRequestDTO);
+    CaseDTO caseToCheck = caseService.getCaseById(caseId, new CaseQueryRequestDTO());
     ArrayList<String> regions = new ArrayList<>();
     regions.add("E");
     regions.add("N");
