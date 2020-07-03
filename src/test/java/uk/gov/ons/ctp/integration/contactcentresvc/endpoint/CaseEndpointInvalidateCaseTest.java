@@ -1,8 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.ons.ctp.common.MvcHelper.postJson;
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
@@ -94,15 +97,15 @@ public final class CaseEndpointInvalidateCaseTest {
     verify(caseService, never()).invalidateCase(any());
   }
 
-  // @Test
-  // public void shouldModifyCase() throws Exception {
-  // when(caseService.invalidateCase(any())).thenReturn(responseDTO);
-  // ResultActions actions = doPost();
-  // actions.andExpect(status().isOk());
-  // actions.andExpect(jsonPath("$.id", is(caseId)));
-  // actions.andExpect(jsonPath("$.dateTime", is(A_RESPONSE_DATE_TIME)));
-  // verify(caseService).invalidateCase(any());
-  // }
+  @Test
+  public void shouldModifyCase() throws Exception {
+    when(caseService.invalidateCase(any())).thenReturn(responseDTO);
+    ResultActions actions = doPost();
+    actions.andExpect(status().isOk());
+    actions.andExpect(jsonPath("$.id", is(caseId)));
+    actions.andExpect(jsonPath("$.dateTime", is(A_RESPONSE_DATE_TIME)));
+    verify(caseService).invalidateCase(any());
+  }
 
   @Test
   public void shouldRejectBadPathCaseId() {

@@ -268,7 +268,7 @@ public class CaseEndpoint implements CTPEndpoint {
 
     log.with("requestBody", requestBodyDTO).info("Entering POST invalidate");
     validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
-    checkCaseIsNotTypeCE(caseId);
+    //    checkCaseIsNotTypeCE(caseId);
     ResponseDTO response = caseService.invalidateCase(requestBodyDTO);
     return ResponseEntity.ok(response);
   }
