@@ -13,7 +13,6 @@ import static org.mockito.Mockito.never;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -201,8 +200,8 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     return expectedCaseResult;
   }
 
-  @SneakyThrows
-  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected) {
+  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected)
+      throws Exception {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
@@ -233,7 +232,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     verifyEventNotSent();
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,12 +70,12 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testGetCaseByUprn_withCaseDetails() throws CTPException {
+  public void testGetCaseByUprn_withCaseDetails() throws Exception {
     doTestGetCaseByUprn(true);
   }
 
   @Test
-  public void testGetCaseByUprn_withNoCaseDetails() throws CTPException {
+  public void testGetCaseByUprn_withNoCaseDetails() throws Exception {
     doTestGetCaseByUprn(false);
   }
 
@@ -258,7 +257,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testGetCaseByUprn_mixedCaseTypes() throws CTPException {
+  public void testGetCaseByUprn_mixedCaseTypes() throws Exception {
 
     // Build results to be returned from search
     List<CaseContainerDTO> caseFromCaseService = casesFromCaseService();
@@ -276,17 +275,17 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testGetCaseByUprn_caseSPG() throws CTPException {
+  public void testGetCaseByUprn_caseSPG() throws Exception {
     doTestGetCasesByUprn("SPG");
   }
 
   @Test
-  public void testGetCaseByUprn_caseHH() throws CTPException {
+  public void testGetCaseByUprn_caseHH() throws Exception {
     doTestGetCasesByUprn("HH");
   }
 
   @Test
-  public void shouldGetSecureEstablishmentByUprn() throws CTPException {
+  public void shouldGetSecureEstablishmentByUprn() throws Exception {
 
     Mockito.when(caseServiceClient.getCaseByUprn(eq(UPRN.getValue()), any()))
         .thenReturn(casesFromCaseService());
@@ -297,7 +296,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(new UniquePropertyReferenceNumber(AN_ESTAB_UPRN), results.get(1).getEstabUprn());
   }
 
-  private void doTestGetCasesByUprn(String caseType) throws CTPException {
+  private void doTestGetCasesByUprn(String caseType) throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     List<CaseContainerDTO> caseFromCaseService = casesFromCaseService();
@@ -314,7 +313,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyCase(results.get(0), expectedCaseResult, caseEvents);
   }
 
-  private void doTestGetCaseByUprn(boolean caseEvents) throws CTPException {
+  private void doTestGetCaseByUprn(boolean caseEvents) throws Exception {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(334999999999L);
 
     // Build results to be returned from search
@@ -385,8 +384,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     return expectedCaseResult;
   }
 
-  @SneakyThrows
-  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected) {
+  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected)
+      throws Exception {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
@@ -493,12 +492,10 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyEventNotSent();
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 
-  @SneakyThrows
   private CachedCase caseFromRepository() {
     return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
   }

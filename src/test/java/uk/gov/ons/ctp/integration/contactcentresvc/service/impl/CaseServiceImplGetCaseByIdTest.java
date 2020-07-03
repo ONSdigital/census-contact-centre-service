@@ -230,12 +230,10 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     verifyEventNotSent();
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 
-  @SneakyThrows
   private CachedCase caseFromRepository() {
     return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
   }
