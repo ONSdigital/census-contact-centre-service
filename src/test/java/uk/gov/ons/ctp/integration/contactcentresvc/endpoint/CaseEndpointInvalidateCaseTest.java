@@ -155,13 +155,13 @@ public final class CaseEndpointInvalidateCaseTest {
     doPostExpectingRejection();
   }
 
-//  @Test
-//  public void shouldRejectAsCaseIsOfTypeCE() throws Exception {
-//    caseId = "77346443-64ae-422e-9b93-d5250f48a27a";
-//    json.put("caseId", "77346443-64ae-422e-9b93-d5250f48a27a");
-//    json.put("status", "DOES_NOT_EXIST");
-//    ResultActions actions = doPost();
-//    actions.andExpect(status().isBadRequest());
-//    verify(caseService, never()).invalidateCase(any());
-//  }
+  //  @Test
+  //  public void shouldRejectAsCaseIsOfTypeCE() throws Exception {
+  //    caseId = "77346443-64ae-422e-9b93-d5250f48a27a";
+  //    json.put("caseId", "77346443-64ae-422e-9b93-d5250f48a27a");
+  //    json.put("status", "DOES_NOT_EXIST");
+  //    ResultActions actions = doPost();
+  //    actions.andExpect(status().isBadRequest());
+  //    verify(caseService, never()).invalidateCase(any());
+  //  }
 }
