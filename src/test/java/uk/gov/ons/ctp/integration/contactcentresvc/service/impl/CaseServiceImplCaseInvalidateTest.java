@@ -43,7 +43,6 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     dto.setStatus(status);
     dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
     CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
-    ccDto.setCaseType("HH");
     Mockito.when(
             caseServiceClient.getCaseById(
                 UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
