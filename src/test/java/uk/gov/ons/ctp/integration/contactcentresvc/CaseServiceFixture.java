@@ -113,7 +113,7 @@ public final class CaseServiceFixture {
     caseEvents.add(eventDTO3);
 
     dto.setCaseEvents(caseEvents);
-    dto.setId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
+    dto.setId(UUID_0);
     dto.setCollectionExerciseId(UUID.fromString("22684ede-7d5f-4f53-9069-2398055c61b2"));
     dto.setCaseType("CE");
     dto.setAddressType("CE");

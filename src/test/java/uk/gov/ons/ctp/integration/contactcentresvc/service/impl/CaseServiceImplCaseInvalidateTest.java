@@ -42,6 +42,13 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
   private void checkInvalidateCaseForStatus(CaseStatus status) {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
+    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    Mockito.when(
+            caseServiceClient.getCaseById(
+                UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
+        .thenReturn(ccDto);
+    ccDto.setCaseType("HH");
+    ccDto.setAddressType("HH");
     ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
