@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -115,8 +114,6 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     target.invalidateCase(dto);
   }
-
-  //  @Test(expected = Exception.class)
 
   @Test(expected = Exception.class)
   public void shouldRejectCaseOfTypeCE() throws Exception {

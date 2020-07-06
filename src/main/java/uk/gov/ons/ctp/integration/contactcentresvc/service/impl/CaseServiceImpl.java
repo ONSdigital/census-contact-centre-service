@@ -505,10 +505,6 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
-  // private void verifyCaseExists(UUID caseId) {
-  // caseServiceClient.getCaseById(caseId, false);
-  // }
-
   @Override
   public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
       throws CTPException {
@@ -518,7 +514,6 @@ public class CaseServiceImpl implements CaseService {
         .with("status", invalidateCaseRequestDTO.getStatus())
         .debug("Invalidate Case");
 
-    // verifyCaseExists(caseId);
     CaseDTO caseToCheck = verifyCaseExists(caseId);
     checkCaseIsNotTypeCE(caseToCheck);
 
