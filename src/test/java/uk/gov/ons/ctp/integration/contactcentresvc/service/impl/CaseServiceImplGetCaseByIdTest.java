@@ -24,7 +24,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
@@ -126,7 +125,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
           .when(caseServiceClient)
           .getCaseById(eq(UUID_0), any());
 
-      CachedCase caseFromRepository = caseFromRepository();
+      CachedCase caseFromRepository = loadJson(CachedCase[].class);
       caseFromRepository.setCreatedDateTime(caseFromCaseService.getCreatedDateTime());
       Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
           .thenReturn(Optional.of(caseFromRepository));
@@ -231,10 +230,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-  }
-
-  private CachedCase caseFromRepository() {
-    return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
+    return loadJsonList(CaseContainerDTO[].class);
   }
 }

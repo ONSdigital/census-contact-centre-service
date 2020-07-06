@@ -83,8 +83,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   public void testGetCaseByUprn_householdIndividualCase_emptyResultSet_noCachedCase()
       throws Exception {
 
-    List<CaseContainerDTO> caseFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    List<CaseContainerDTO> caseFromCaseService = casesFromCaseService();
     caseFromCaseService.get(0).setCaseType("HI");
     caseFromCaseService.get(1).setCaseType("HI");
     AddressIndexAddressCompositeDTO addressFromAI =
@@ -219,7 +218,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_cachedCase() throws Exception {
 
-    CachedCase cachedCase = caseFromRepository();
+    CachedCase cachedCase = loadJson(CachedCase[].class);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
@@ -493,10 +492,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-  }
-
-  private CachedCase caseFromRepository() {
-    return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
+    return loadJsonList(CaseContainerDTO[].class);
   }
 }

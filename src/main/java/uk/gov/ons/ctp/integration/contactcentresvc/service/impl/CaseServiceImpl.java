@@ -331,26 +331,52 @@ public class CaseServiceImpl implements CaseService {
   private void validateMatchingEstabAndCaseType(ModifyCaseRequestDTO modifyRequestDTO)
       throws CTPException {
     CaseType caseType = modifyRequestDTO.getCaseType();
-    AddressType addrType = modifyRequestDTO.getEstabType().getAddressType().orElse(null);
-    if (addrType != null && (caseType != CaseType.valueOf(addrType.name()))) {
+    Optional<AddressType> addrType = modifyRequestDTO.getEstabType().getAddressType();
+    if (addrType.isPresent() && (caseType != CaseType.valueOf(addrType.get().name()))) {
       log.with(modifyRequestDTO).info("Mismatching caseType and estabType");
       throw new CTPException(Fault.BAD_REQUEST, "Mismatching caseType and estabType");
     }
   }
 
+  private boolean isAddressTypeChange(CaseType requestedCaseType, String existingEstabType) {
+    boolean change = false;
+    Optional<AddressType> addrType = EstabType.forCode(existingEstabType).getAddressType();
+    if (addrType.isPresent()) {
+      CaseType existingCaseType = CaseType.valueOf(addrType.get().name());
+      boolean requestCE = CaseType.CE == requestedCaseType;
+      boolean existingCE = CaseType.CE == existingCaseType;
+      change = requestCE ^ existingCE;
+    }
+    return change;
+  }
+
+  private void rejectNorthernIrelandHouseholdToCE(
+      CaseType requestedCaseType, CaseContainerDTO caseDetails) throws CTPException {
+    Region region = convertRegion(caseDetails);
+    if (region == Region.N && requestedCaseType == CaseType.CE) {
+      Optional<AddressType> addrType =
+          EstabType.forCode(caseDetails.getEstabType()).getAddressType();
+      if (addrType.isPresent() && addrType.get() == AddressType.HH) {
+        String msg = "Cannot convert Northern Ireland Household to Communal Establishment";
+        log.with("caseType", requestedCaseType).with("caseDetails", caseDetails).info(msg);
+        throw new CTPException(Fault.BAD_REQUEST, msg);
+      }
+    }
+  }
+
   @Override
   public CaseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
-    // TODO Auto-generated method stub
-    // WRITEME
     validateMatchingEstabAndCaseType(modifyRequestDTO);
     UUID caseId = modifyRequestDTO.getCaseId();
 
     CaseContainerDTO caseDetails = retrieveCaseById(caseId, false);
     rejectHouseholdIndividual(caseDetails);
+    CaseType requestedCaseType = modifyRequestDTO.getCaseType();
 
-    boolean addressTypeChanged = false; // FIXME
+    boolean addressTypeChanged = isAddressTypeChange(requestedCaseType, caseDetails.getEstabType());
 
     if (addressTypeChanged) {
+      rejectNorthernIrelandHouseholdToCE(requestedCaseType, caseDetails);
       CollectionCase payload = new CollectionCase();
       // WRITEME
       sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, caseId);
@@ -626,6 +652,10 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
+  private Region convertRegion(CaseContainerDTO caseDetails) {
+    return Region.valueOf(caseDetails.getRegion().substring(0, 1));
+  }
+
   /**
    * create a contact centre fulfilment request event
    *
@@ -643,8 +673,7 @@ public class CaseServiceImpl implements CaseService {
 
     CaseContainerDTO caze = retrieveCaseById(caseId, false);
 
-    Region region = Region.valueOf(caze.getRegion().substring(0, 1));
-    Product product = findProduct(fulfilmentCode, deliveryChannel, region);
+    Product product = findProduct(fulfilmentCode, deliveryChannel, convertRegion(caze));
 
     if (deliveryChannel == Product.DeliveryChannel.POST) {
       if (product.getIndividual()) {

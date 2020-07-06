@@ -14,7 +14,6 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_Q
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -27,7 +26,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -245,7 +243,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
-    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    CaseContainerDTO caseFromCaseService = loadJson(CaseContainerDTO[].class);
     caseFromCaseService.setCaseType(caseType);
     caseFromCaseService.setAddressLevel(addressLevel);
     caseFromCaseService.setRegion(region);
@@ -287,9 +285,5 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
-  }
-
-  private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 }

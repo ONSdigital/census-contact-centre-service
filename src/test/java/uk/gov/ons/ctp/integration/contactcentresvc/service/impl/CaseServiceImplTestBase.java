@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -79,5 +80,17 @@ public abstract class CaseServiceImplTestBase {
 
   void verifyEventNotSent() {
     verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+  }
+
+  void verifyEventNotSent(EventType type) {
+    verify(eventPublisher, never()).sendEvent(eq(type), any(), any(), any());
+  }
+
+  <T> T loadJson(Class<T[]> clazz) {
+    return loadJsonList(clazz).get(0);
+  }
+
+  <T> List<T> loadJsonList(Class<T[]> clazz) {
+    return FixtureHelper.loadPackageFixtures(clazz);
   }
 }
