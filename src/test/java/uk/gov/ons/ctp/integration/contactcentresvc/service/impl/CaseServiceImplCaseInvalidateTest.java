@@ -7,18 +7,17 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
@@ -49,8 +48,12 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
 
     ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
 
-    verify(eventPublisher).sendEvent(eq(EventType.ADDRESS_NOT_VALID), eq(Source.CONTACT_CENTRE_API),
-        eq(Channel.CC), payloadCaptor.capture());
+    verify(eventPublisher)
+        .sendEvent(
+            eq(EventType.ADDRESS_NOT_VALID),
+            eq(Source.CONTACT_CENTRE_API),
+            eq(Channel.CC),
+            payloadCaptor.capture());
 
     AddressNotValid payload = payloadCaptor.getValue();
     assertEquals(dto.getCaseId(), payload.getCollectionCase().getId());
@@ -111,7 +114,10 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
     CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
-    Mockito.when(caseServiceClient.getCaseById(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false)).thenReturn(ccDto);
+    Mockito.when(
+            caseServiceClient.getCaseById(
+                UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
+        .thenReturn(ccDto);
     target.invalidateCase(dto);
   }
 }

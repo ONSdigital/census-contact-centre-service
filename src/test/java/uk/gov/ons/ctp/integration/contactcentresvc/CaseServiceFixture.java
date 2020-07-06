@@ -64,14 +64,14 @@ public final class CaseServiceFixture {
     tdo.setIndividual(individual);
     return tdo;
   }
-  
+
   public static CaseContainerDTO createCaseContainerDTO() {
     EventDTO eventDTO1 = new EventDTO();
     eventDTO1.setId("101");
     eventDTO1.setEventType("CASE_CREATED");
     eventDTO1.setDescription("Initial creation of case");
     eventDTO1.setCreatedDateTime(new Date());
-    
+
     EventDTO eventDTO2 = new EventDTO();
     eventDTO2.setId("102");
     eventDTO2.setEventType("X11");
@@ -83,7 +83,7 @@ public final class CaseServiceFixture {
     eventDTO3.setEventType("CASE_UPDATED");
     eventDTO3.setDescription("Create Household Visit");
     eventDTO3.setCreatedDateTime(new Date());
-    
+
     CaseContainerDTO dto = new CaseContainerDTO();
     dto.setCaseRef("1000000000000001");
     dto.setEstabType("ET");
@@ -95,7 +95,8 @@ public final class CaseServiceFixture {
     dto.setAddressLine2("12 Park Street");
     dto.setAddressLine3("Parkhead");
     dto.setTownName("Glasgow");
-    dto.setPostcode("G1 2AA");;
+    dto.setPostcode("G1 2AA");
+    ;
     dto.setOrganisationName("The Invalidating Company");
     dto.setAddressLevel("E");
     dto.setAbpCode("AACC");
@@ -110,7 +111,7 @@ public final class CaseServiceFixture {
     caseEvents.add(eventDTO1);
     caseEvents.add(eventDTO2);
     caseEvents.add(eventDTO3);
-    
+
     dto.setCaseEvents(caseEvents);
     dto.setId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
     dto.setCollectionExerciseId(UUID.fromString("22684ede-7d5f-4f53-9069-2398055c61b2"));
