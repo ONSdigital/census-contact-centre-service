@@ -115,8 +115,8 @@ public final class CaseServiceFixture {
     dto.setCaseEvents(caseEvents);
     dto.setId(UUID_0);
     dto.setCollectionExerciseId(UUID.fromString("22684ede-7d5f-4f53-9069-2398055c61b2"));
-    dto.setCaseType("CE");
-    dto.setAddressType("CE");
+    dto.setCaseType("HH");
+    dto.setAddressType("HH");
     dto.setRegion("E12345678");
     dto.setSurveyType("x");
     dto.setHandDelivery(false);

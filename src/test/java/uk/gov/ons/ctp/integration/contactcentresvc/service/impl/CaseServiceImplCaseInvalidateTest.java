@@ -42,13 +42,13 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
   private void checkInvalidateCaseForStatus(CaseStatus status) {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
+    dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
     CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    ccDto.setCaseType("HH");
     Mockito.when(
             caseServiceClient.getCaseById(
                 UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
         .thenReturn(ccDto);
-    ccDto.setCaseType("HH");
-    ccDto.setAddressType("HH");
     ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
@@ -116,11 +116,14 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     target.invalidateCase(dto);
   }
 
+  //  @Test(expected = Exception.class)
+
   @Test(expected = Exception.class)
   public void shouldRejectCaseOfTypeCE() throws Exception {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
     CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    ccDto.setCaseType("CE");
     Mockito.when(
             caseServiceClient.getCaseById(
                 UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
