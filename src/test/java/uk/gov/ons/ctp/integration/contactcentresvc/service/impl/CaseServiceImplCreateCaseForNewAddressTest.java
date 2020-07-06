@@ -188,7 +188,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
     Mockito.verify(eventPublisher, times(1))
-        .sendEventWithPersistance(
+        .sendEvent(
             EventType.NEW_ADDRESS_REPORTED,
             Source.CONTACT_CENTRE_API,
             appConfig.getChannel(),

@@ -120,7 +120,7 @@ public class CaseServiceImpl implements CaseService {
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.POST, caseId, contact);
 
-    eventPublisher.sendEventWithPersistance(
+    eventPublisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
         appConfig.getChannel(),
@@ -148,7 +148,7 @@ public class CaseServiceImpl implements CaseService {
     FulfilmentRequest fulfilmentRequestedPayload =
         createFulfilmentRequestPayload(
             requestBodyDTO.getFulfilmentCode(), Product.DeliveryChannel.SMS, caseId, contact);
-    eventPublisher.sendEventWithPersistance(
+    eventPublisher.sendEvent(
         EventType.FULFILMENT_REQUESTED,
         Source.CONTACT_CENTRE_API,
         appConfig.getChannel(),
@@ -373,7 +373,7 @@ public class CaseServiceImpl implements CaseService {
     RespondentRefusalDetails refusalPayload =
         createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
 
-    eventPublisher.sendEventWithPersistance(
+    eventPublisher.sendEvent(
         EventType.REFUSAL_RECEIVED,
         Source.CONTACT_CENTRE_API,
         appConfig.getChannel(),
@@ -547,7 +547,7 @@ public class CaseServiceImpl implements CaseService {
             .reason(invalidateCaseRequestDTO.getStatus().name())
             .build();
 
-    eventPublisher.sendEventWithPersistance(
+    eventPublisher.sendEvent(
         EventType.ADDRESS_NOT_VALID, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
     ResponseDTO response =
         ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
@@ -570,7 +570,7 @@ public class CaseServiceImpl implements CaseService {
             .build();
 
     String transactionId =
-        eventPublisher.sendEventWithPersistance(
+        eventPublisher.sendEvent(
             EventType.SURVEY_LAUNCHED, Source.CONTACT_CENTRE_API, appConfig.getChannel(), response);
 
     log.with("caseId", response.getCaseId())
@@ -613,7 +613,7 @@ public class CaseServiceImpl implements CaseService {
     payload.setCollectionCase(newAddress);
 
     String transactionId =
-        eventPublisher.sendEventWithPersistance(
+        eventPublisher.sendEvent(
             EventType.NEW_ADDRESS_REPORTED,
             Source.CONTACT_CENTRE_API,
             appConfig.getChannel(),

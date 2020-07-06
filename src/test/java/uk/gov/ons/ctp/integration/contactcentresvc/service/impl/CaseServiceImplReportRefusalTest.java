@@ -137,7 +137,7 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
         ArgumentCaptor.forClass(RespondentRefusalDetails.class);
     verify(eventPublisher)
-        .sendEventWithPersistance(
+        .sendEvent(
             eventTypeCaptor.capture(),
             sourceCaptor.capture(),
             channelCaptor.capture(),

@@ -46,7 +46,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
 
     verify(eventPublisher)
-        .sendEventWithPersistance(
+        .sendEvent(
             eq(EventType.ADDRESS_NOT_VALID),
             eq(Source.CONTACT_CENTRE_API),
             eq(Channel.CC),

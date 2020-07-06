@@ -168,7 +168,7 @@ public final class CaseEndpointRefusalTest {
 
   @Test
   public void refusalUPRNTooLong() throws Exception {
-    assertBadRequest(UPRN, "1234567890123");
+    assertBadRequest(UPRN, "123456789012345");
   }
 
   @Test

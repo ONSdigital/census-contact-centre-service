@@ -223,7 +223,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   private void verifySurveyLaunchedEventPublished(
       String caseType, boolean individual, UUID caseId, String questionnaireId) {
     Mockito.verify(eventPublisher)
-        .sendEventWithPersistance(
+        .sendEvent(
             eq(EventType.SURVEY_LAUNCHED),
             eq(Source.CONTACT_CENTRE_API),
             eq(Channel.CC),

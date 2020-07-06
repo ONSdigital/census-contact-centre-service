@@ -135,7 +135,7 @@ public class ContactCentreSvcApplication {
     template.setChannelTransacted(true);
 
     EventSender sender = new SpringRabbitEventSender(template);
-    return new EventPublisher(sender, eventPersistence);
+    return EventPublisher.createWithEventPersistence(sender, eventPersistence);
   }
 
   /**
