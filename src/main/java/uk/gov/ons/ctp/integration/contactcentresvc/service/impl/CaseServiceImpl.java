@@ -504,6 +504,10 @@ public class CaseServiceImpl implements CaseService {
     CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
     return caseServiceResponse;
   }
+  
+//  private void verifyCaseExists(UUID caseId) {
+//    caseServiceClient.getCaseById(caseId, false);
+//  }
 
   @Override
   public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
@@ -514,6 +518,7 @@ public class CaseServiceImpl implements CaseService {
         .with("status", invalidateCaseRequestDTO.getStatus())
         .debug("Invalidate Case");
 
+//    verifyCaseExists(caseId);
     CaseDTO caseToCheck = verifyCaseExists(caseId);
     checkCaseIsNotTypeCE(caseToCheck);
 
@@ -894,10 +899,6 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void checkCaseIsNotTypeCE(CaseDTO caseToCheck) throws CTPException {
-    //    ArrayList<String> regions = new ArrayList<>();
-    //    regions.add("E");
-    //    regions.add("N");
-    //    regions.add("W");
     if ((caseToCheck.getCaseType().equals("CE"))
         && (VALID_REGIONS.contains(caseToCheck.getRegion()))) {
       String message =
