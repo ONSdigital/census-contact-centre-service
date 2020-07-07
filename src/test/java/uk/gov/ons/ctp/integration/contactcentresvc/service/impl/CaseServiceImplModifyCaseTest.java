@@ -437,6 +437,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
     assertEquals(requestDTO.getCaseType().name(), response.getCaseType());
     assertEquals(requestDTO.getCaseType().name(), response.getAddressType());
+    assertEquals(requestDTO.getEstabType(), response.getEstabType());
     assertEquals(requestDTO.getEstabType().getCode(), response.getEstabDescription());
     assertEquals(requestDTO.getAddressLine1(), response.getAddressLine1());
     assertEquals(requestDTO.getAddressLine2(), response.getAddressLine2());

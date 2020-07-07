@@ -434,7 +434,9 @@ public class CaseServiceImpl implements CaseService {
     CaseType caseType = modifyRequestDTO.getCaseType();
     response.setCaseType(caseType.name());
     response.setAddressType(caseType.name());
-    response.setEstabDescription(modifyRequestDTO.getEstabType().getCode());
+    EstabType estabType = modifyRequestDTO.getEstabType();
+    response.setEstabType(estabType);
+    response.setEstabDescription(estabType.getCode());
     response.setAddressLine1(modifyRequestDTO.getAddressLine1());
     response.setAddressLine2(modifyRequestDTO.getAddressLine2());
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
