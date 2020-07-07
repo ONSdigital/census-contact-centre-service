@@ -128,6 +128,16 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertEquals(Fault.RESOURCE_NOT_FOUND, e.getFault());
   }
 
+  @Test
+  public void shouldRejectExistingHouseholdIndividualCase() throws Exception {
+    caseContainerDTO.setCaseType(CaseType.HI.name());
+    mockRmHasCase();
+    ResponseStatusException e =
+        assertThrows(ResponseStatusException.class, () -> target.modifyCase(requestDTO));
+    assertEquals(HttpStatus.FORBIDDEN, e.getStatus());
+    assertEquals("Case is not suitable", e.getReason());
+  }
+
   private void verifyModifyAddress(
       CaseType requestCaseType, EstabType requestEstabType, String existingEstabType)
       throws Exception {
