@@ -348,7 +348,9 @@ public class CaseServiceImpl implements CaseService {
     if (region == Region.N && requestedCaseType == CaseType.CE) {
       AddressType addrType = AddressType.valueOf(caseDetails.getCaseType());
       if (addrType == AddressType.HH) {
-        String msg = "Cannot convert Northern Ireland Household to Communal Establishment";
+        String msg =
+            "All queries relating to Communal Establishments in Northern Ireland "
+                + "should be escalated to NISRA HQ";
         log.with("caseType", requestedCaseType).with("caseDetails", caseDetails).info(msg);
         throw new CTPException(Fault.BAD_REQUEST, msg);
       }

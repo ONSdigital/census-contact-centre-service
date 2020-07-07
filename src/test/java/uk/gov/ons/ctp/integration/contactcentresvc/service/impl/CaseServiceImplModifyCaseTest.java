@@ -299,7 +299,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
     assertEquals(Fault.BAD_REQUEST, e.getFault());
     assertEquals(
-        "Cannot convert Northern Ireland Household to Communal Establishment", e.getMessage());
+        "All queries relating to Communal Establishments in Northern Ireland should be escalated to NISRA HQ",
+        e.getMessage());
   }
 
   @Test
