@@ -28,7 +28,7 @@ This will create the JAR file in the Target directory. You can then right-click 
 
 ## End Point
 
-When running successfully version information can be obtained from the info endpoint
+When running successfully version information can be obtained from the info endpoint:
     
 * localhost:8171/info
     
