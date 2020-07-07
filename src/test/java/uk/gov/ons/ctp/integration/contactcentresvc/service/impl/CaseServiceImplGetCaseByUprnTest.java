@@ -217,8 +217,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_cachedCase() throws Exception {
-
-    CachedCase cachedCase = loadJson(CachedCase[].class);
+    CachedCase cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseByUprn(eq(UPRN.getValue()), any());
@@ -492,6 +491,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return loadJsonList(CaseContainerDTO[].class);
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 }

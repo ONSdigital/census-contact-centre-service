@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -454,10 +455,10 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return loadJsonList(CaseContainerDTO[].class);
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 
   private CachedCase caseFromRepository() {
-    return loadJson(CachedCase[].class);
+    return FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
   }
 }

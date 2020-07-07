@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
@@ -232,6 +233,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return loadJsonList(CaseContainerDTO[].class);
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 }

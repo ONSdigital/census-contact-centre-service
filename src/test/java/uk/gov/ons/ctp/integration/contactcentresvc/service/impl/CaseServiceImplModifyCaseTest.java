@@ -54,8 +54,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Before
   public void setup() throws Exception {
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
-    caseContainerDTO = loadJson(CaseContainerDTO[].class);
-    cachedCase = loadJson(CachedCase[].class);
+    caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
+    cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
   }
 

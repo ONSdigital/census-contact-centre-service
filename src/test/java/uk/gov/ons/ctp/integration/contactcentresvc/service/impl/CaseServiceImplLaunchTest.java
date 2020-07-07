@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -243,7 +244,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
-    CaseContainerDTO caseFromCaseService = loadJson(CaseContainerDTO[].class);
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType);
     caseFromCaseService.setAddressLevel(addressLevel);
     caseFromCaseService.setRegion(region);
