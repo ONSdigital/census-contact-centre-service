@@ -167,27 +167,7 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
-    // Validate that case type and address match
-    String censusAddressType;
-    if (caseRequestDTO.getEstabType() == EstabType.OTHER) {
-      // Can't get an address type from the estab so it'll need to be the same as the case type
-      censusAddressType = caseType.name();
-    } else {
-      AddressType addressType = caseRequestDTO.getEstabType().getAddressType().get();
-      if (!addressType.name().equals(caseType.name())) {
-        throw new CTPException(
-            Fault.BAD_REQUEST,
-            "Derived address type of '"
-                + addressType.name()
-                + "', from establishment type '"
-                + caseRequestDTO.getEstabType().name()
-                + "', "
-                + "is not compatible with caseType of '"
-                + caseRequestDTO.getCaseType().name()
-                + "'");
-      }
-      censusAddressType = addressType.name();
-    }
+    validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
     // Reject if CE with non-positive number of residents
     if (caseRequestDTO.getCaseType() == CaseType.CE) {
@@ -199,13 +179,14 @@ public class CaseServiceImpl implements CaseService {
       // Field not relevant. Clear incase it's a silly number
       caseRequestDTO.setCeUsualResidents(0);
     }
+    String addressType = caseType.name();
 
     // Create new case
     CachedCase cachedCase = caseDTOMapper.map(caseRequestDTO, CachedCase.class);
     UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());
     cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
-    cachedCase.setAddressType(censusAddressType);
+    cachedCase.setAddressType(addressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
 
     dataRepo.writeCachedCase(cachedCase);
@@ -213,7 +194,7 @@ public class CaseServiceImpl implements CaseService {
     // Publish NewAddress event
     AddressIndexAddressCompositeDTO address =
         caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
-    address.setCensusAddressType(censusAddressType);
+    address.setCensusAddressType(addressType);
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
     address.setCountryCode(caseRequestDTO.getRegion().name());
     publishNewAddressReportedEvent(
@@ -329,13 +310,23 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceResponse;
   }
 
-  private void validateMatchingEstabAndCaseType(ModifyCaseRequestDTO modifyRequestDTO)
+  private void validateCompatibleEstabAndCaseType(CaseType caseType, EstabType estabType)
       throws CTPException {
-    CaseType caseType = modifyRequestDTO.getCaseType();
-    Optional<AddressType> addrType = modifyRequestDTO.getEstabType().getAddressType();
+    Optional<AddressType> addrType = estabType.getAddressType();
     if (addrType.isPresent() && (caseType != CaseType.valueOf(addrType.get().name()))) {
-      log.with(modifyRequestDTO).info("Mismatching caseType and estabType");
-      throw new CTPException(Fault.BAD_REQUEST, "Mismatching caseType and estabType");
+      log.with("caseType", caseType)
+          .with("estabType", estabType)
+          .info("Mismatching caseType and estabType");
+      String msg =
+          "Derived address type of '"
+              + addrType.get()
+              + "', from establishment type '"
+              + estabType
+              + "', "
+              + "is not compatible with caseType of '"
+              + caseType
+              + "'";
+      throw new CTPException(Fault.BAD_REQUEST, msg);
     }
   }
 
@@ -355,9 +346,8 @@ public class CaseServiceImpl implements CaseService {
       CaseType requestedCaseType, CaseContainerDTO caseDetails) throws CTPException {
     Region region = convertRegion(caseDetails);
     if (region == Region.N && requestedCaseType == CaseType.CE) {
-      Optional<AddressType> addrType =
-          EstabType.forCode(caseDetails.getEstabType()).getAddressType();
-      if (addrType.isPresent() && addrType.get() == AddressType.HH) {
+      AddressType addrType = AddressType.valueOf(caseDetails.getCaseType());
+      if (addrType == AddressType.HH) {
         String msg = "Cannot convert Northern Ireland Household to Communal Establishment";
         log.with("caseType", requestedCaseType).with("caseDetails", caseDetails).info(msg);
         throw new CTPException(Fault.BAD_REQUEST, msg);
@@ -365,20 +355,15 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  private String addressType(EstabType estabType) {
-    AddressType addrType = estabType.getAddressType().orElse(null);
-    return addrType == null ? null : addrType.name();
-  }
-
   private void updateOrCreateCachedCase(
       UUID caseId, CaseContainerDTO caseDetails, ModifyCaseRequestDTO modifyRequestDTO)
       throws CTPException {
     CachedCase cachedCase = caseDTOMapper.map(caseDetails, CachedCase.class);
     cachedCase.setId(caseId.toString());
-    EstabType estabType = modifyRequestDTO.getEstabType();
-    cachedCase.setCaseType(modifyRequestDTO.getCaseType());
-    cachedCase.setEstabType(estabType.getCode());
-    cachedCase.setAddressType(addressType(estabType));
+    CaseType caseType = modifyRequestDTO.getCaseType();
+    cachedCase.setCaseType(caseType);
+    cachedCase.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    cachedCase.setAddressType(caseType.name());
     cachedCase.setAddressLine1(modifyRequestDTO.getAddressLine1());
     cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
     cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
@@ -431,7 +416,7 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
     newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
 
-    newAddress.setAddressType(addressType(modifyRequestDTO.getEstabType()));
+    newAddress.setAddressType(modifyRequestDTO.getCaseType().name());
 
     collectionCase.setAddress(newAddress);
 
@@ -444,10 +429,10 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void updateModifiedResponse(CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO) {
-    response.setCaseType(modifyRequestDTO.getCaseType().name());
-    EstabType estabType = modifyRequestDTO.getEstabType();
-    response.setAddressType(addressType(estabType));
-    response.setEstabDescription(estabType.getCode());
+    CaseType caseType = modifyRequestDTO.getCaseType();
+    response.setCaseType(caseType.name());
+    response.setAddressType(caseType.name());
+    response.setEstabDescription(modifyRequestDTO.getEstabType().getCode());
     response.setAddressLine1(modifyRequestDTO.getAddressLine1());
     response.setAddressLine2(modifyRequestDTO.getAddressLine2());
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
@@ -456,7 +441,8 @@ public class CaseServiceImpl implements CaseService {
 
   @Override
   public CaseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
-    validateMatchingEstabAndCaseType(modifyRequestDTO);
+    validateCompatibleEstabAndCaseType(
+        modifyRequestDTO.getCaseType(), modifyRequestDTO.getEstabType());
     UUID originalCaseId = modifyRequestDTO.getCaseId();
     UUID updatedCaseId = originalCaseId;
 
