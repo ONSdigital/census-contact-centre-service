@@ -20,7 +20,7 @@ public class CCSvcBeanMapperTest {
   private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
   @Test
-  public void shouldMapCaseContainerDTO_CaseDTO() throws Exception {
+  public void shouldMapCaseContainerDTO_CaseDTO() {
     CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     CaseDTO destination = mapperFacade.map(source, CaseDTO.class);
     assertEquals(source.getId(), destination.getId());
@@ -49,7 +49,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void shouldMapAddressIndexAddressCompositeDTO_CollectionCaseNewAddress() throws Exception {
+  public void shouldMapAddressIndexAddressCompositeDTO_CollectionCaseNewAddress() {
     AddressIndexAddressCompositeDTO source =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CollectionCaseNewAddress destination = mapperFacade.map(source, CollectionCaseNewAddress.class);
@@ -67,7 +67,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void shouldMapAddressIndexAddressCompositeDTO_CachedCase() throws Exception {
+  public void shouldMapAddressIndexAddressCompositeDTO_CachedCase() {
     AddressIndexAddressCompositeDTO source =
         FixtureHelper.loadClassFixtures(AddressIndexAddressCompositeDTO[].class).get(0);
     CachedCase destination = mapperFacade.map(source, CachedCase.class);
@@ -85,7 +85,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void shouldMapCachedCaseToCaseDTO() throws Exception {
+  public void shouldMapCachedCaseToCaseDTO() {
     CachedCase source = FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
     CaseDTO destination = mapperFacade.map(source, CaseDTO.class);
     assertEquals(source.getId(), destination.getId().toString());
