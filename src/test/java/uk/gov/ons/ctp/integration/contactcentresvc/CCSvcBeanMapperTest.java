@@ -38,7 +38,6 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getEstabUprn(), String.valueOf(destination.getEstabUprn().getValue()));
     assertEquals(source.getCreatedDateTime(), destination.getCreatedDateTime());
     assertEquals(source.getLastUpdated(), destination.getLastUpdated());
-    assertEquals(source.isHandDelivery(), destination.isHandDelivery());
     for (int i = 0; i < source.getCaseEvents().size(); i++) {
       EventDTO sourceEvent = source.getCaseEvents().get(i);
       CaseEventDTO destinationEvent = destination.getCaseEvents().get(i);
@@ -63,6 +62,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getCensusAddressType(), destAddr.getAddressType());
     assertEquals(source.getCensusEstabType(), destAddr.getEstabType());
     assertEquals(source.getCountryCode(), destAddr.getRegion());
+    assertEquals(source.getOrganisationName(), destination.getOrganisationName());
   }
 
   @Test
@@ -80,6 +80,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getCensusAddressType(), destination.getAddressType());
     assertEquals(source.getCensusEstabType(), destination.getEstabType());
     assertEquals(source.getCountryCode(), destination.getRegion());
+    assertEquals(source.getOrganisationName(), destination.getCeOrgName());
   }
 
   @Test
@@ -99,6 +100,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(null, destination.getEstabType());
     assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getRegion(), destination.getRegion());
+    assertEquals(source.getCeOrgName(), destination.getCeOrgName());
   }
 
   @Test

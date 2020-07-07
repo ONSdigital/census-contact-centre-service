@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import ma.glasnost.orika.MapperFacade;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -16,6 +17,7 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
@@ -37,6 +39,9 @@ public abstract class CaseServiceImplTestBase {
   @Mock CaseDataRepository dataRepo;
 
   @Mock AddressService addressSvc;
+
+  static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
+      List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
 
   @InjectMocks CaseService target = new CaseServiceImpl();
 

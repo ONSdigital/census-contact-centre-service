@@ -28,6 +28,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
@@ -138,7 +139,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   @SneakyThrows
   private void assertThatInvalidLaunchComboIsRejected(CaseContainerDTO dto, String expectedMsg) {
     try {
-      doLaunchTest(false, dto, "CE");
+      doLaunchTest(false, dto, FormType.C);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -196,7 +197,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private void verifyEqLaunchJwe(
-      String questionnaireId, boolean individual, String caseType, String formType)
+      String questionnaireId, boolean individual, String caseType, FormType formType)
       throws Exception {
     Mockito.verify(eqLaunchService)
         .getEqLaunchJwe(
@@ -206,7 +207,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
             caseCaptor.capture(),
             eq(AN_AGENT_ID), // agent
             eq(questionnaireId),
-            eq(formType),
+            eq(formType.name()),
             isNull(), // accountServiceUrl
             isNull(),
             any()); // keystore
@@ -261,17 +262,18 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   private void doLaunchTest(String caseType, boolean individual) throws Exception {
     CaseContainerDTO caseFromCaseService = mockGetCaseById(caseType, "U", A_REGION.name());
-    doLaunchTest(individual, caseFromCaseService, "H");
+    doLaunchTest(individual, caseFromCaseService, FormType.H);
   }
 
   private void doLaunchTest(
-      boolean individual, CaseContainerDTO caseFromCaseService, String formType) throws Exception {
+      boolean individual, CaseContainerDTO caseFromCaseService, FormType formType)
+      throws Exception {
     String caseType = caseFromCaseService.getCaseType();
 
     // Fake RM response for creating questionnaire ID
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();
     newQuestionnaireIdDto.setQuestionnaireId(A_QUESTIONNAIRE_ID);
-    newQuestionnaireIdDto.setFormType(formType);
+    newQuestionnaireIdDto.setFormType(formType.name());
     Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(UUID_0), eq(individual), any()))
         .thenReturn(newQuestionnaireIdDto);
 

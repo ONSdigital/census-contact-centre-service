@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,7 +31,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -41,10 +39,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase {
-
-  private static final boolean HAND_DELIVERY_TRUE = true;
-  private static final boolean HAND_DELIVERY_FALSE = false;
-
   private static final boolean CASE_EVENTS_TRUE = true;
   private static final boolean CASE_EVENTS_FALSE = false;
 
@@ -63,57 +57,27 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withCaseDetails() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(CaseType.HH, CASE_EVENTS_TRUE);
   }
 
   @Test
   public void testGetHouseholdCaseByCaseRef_withNoCaseDetails() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.HH, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
-  }
-
-  @Test
-  public void testGetCaseByCaseRef_caseHHhandDeliveryTrue() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.HH, HAND_DELIVERY_TRUE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(CaseType.HH, CASE_EVENTS_FALSE);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withCaseDetails() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_TRUE, expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(CaseType.CE, CASE_EVENTS_TRUE);
   }
 
   @Test
   public void testGetCommunalCaseByCaseRef_withNoCaseDetails() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.CE, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+    doTestGetCaseByCaseRef(CaseType.CE, CASE_EVENTS_FALSE);
   }
 
   @Test
-  public void testGetCaseByCaseRef_caseSPGhandDeliveryTrue() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels = Arrays.asList(DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.SPG, HAND_DELIVERY_TRUE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
-  }
-
-  @Test
-  public void testGetCaseByCaseRef_caseSPGhandDeliveryFalse() throws Exception {
-    List<DeliveryChannel> expectedDeliveryChannels =
-        Arrays.asList(DeliveryChannel.POST, DeliveryChannel.SMS);
-    doTestGetCaseByCaseRef(
-        CaseType.SPG, HAND_DELIVERY_FALSE, CASE_EVENTS_FALSE, expectedDeliveryChannels);
+  public void testGetCaseByCaseRef_caseSPG() throws Exception {
+    doTestGetCaseByCaseRef(CaseType.SPG, CASE_EVENTS_FALSE);
   }
 
   @Test
@@ -174,23 +138,16 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     acceptLuhn(999999998);
   }
 
-  private void doTestGetCaseByCaseRef(
-      CaseType caseType,
-      boolean handDelivery,
-      boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels)
-      throws Exception {
+  private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType(caseType.name());
-    caseFromCaseService.setHandDelivery(handDelivery);
     Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseByCaseReference(VALID_CASE_REF, requestParams);
-    CaseDTO expectedCaseResult =
-        createExpectedCaseDTO(caseFromCaseService, caseEvents, expectedAllowedDeliveryChannels);
+    CaseDTO expectedCaseResult = createExpectedCaseDTO(caseFromCaseService, caseEvents);
     verifyCase(results, expectedCaseResult, caseEvents);
   }
 
@@ -198,10 +155,7 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
   }
 
-  private CaseDTO createExpectedCaseDTO(
-      CaseContainerDTO caseFromCaseService,
-      boolean caseEvents,
-      List<DeliveryChannel> expectedAllowedDeliveryChannels) {
+  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
 
     CaseDTO expectedCaseResult =
         CaseDTO.builder()
@@ -210,7 +164,7 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
             .caseType(caseFromCaseService.getCaseType())
             .estabType(EstabType.forCode(caseFromCaseService.getEstabType()))
             .estabDescription(caseFromCaseService.getEstabType())
-            .allowedDeliveryChannels(expectedAllowedDeliveryChannels)
+            .allowedDeliveryChannels(ALL_DELIVERY_CHANNELS)
             .createdDateTime(caseFromCaseService.getCreatedDateTime())
             .lastUpdated(caseFromCaseService.getLastUpdated())
             .addressLine1(caseFromCaseService.getAddressLine1())
@@ -223,7 +177,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
             .ceOrgName(caseFromCaseService.getOrganisationName())
             .uprn(createUprn(caseFromCaseService.getUprn()))
             .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
-            .handDelivery(caseFromCaseService.isHandDelivery())
             .secureEstablishment(caseFromCaseService.isSecureEstablishment())
             .build();
     if (caseEvents) {
@@ -256,7 +209,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     assertEquals(expectedCaseResult.getCeOrgName(), results.getCeOrgName());
     assertEquals(
         expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
-    assertEquals(expectedCaseResult.isHandDelivery(), results.isHandDelivery());
 
     if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
