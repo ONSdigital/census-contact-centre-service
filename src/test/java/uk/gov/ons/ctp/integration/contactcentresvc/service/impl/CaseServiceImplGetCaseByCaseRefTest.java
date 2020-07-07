@@ -233,7 +233,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }

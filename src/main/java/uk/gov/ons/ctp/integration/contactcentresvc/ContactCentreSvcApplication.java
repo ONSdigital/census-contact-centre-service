@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
 import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
+import uk.gov.ons.ctp.common.event.persistence.FirestoreEventPersistence;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
@@ -126,14 +127,15 @@ public class ContactCentreSvcApplication {
    * @return the event publisher
    */
   @Bean
-  public EventPublisher eventPublisher(final ConnectionFactory connectionFactory) {
+  public EventPublisher eventPublisher(
+      final ConnectionFactory connectionFactory, final FirestoreEventPersistence eventPersistence) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
     template.setChannelTransacted(true);
 
     EventSender sender = new SpringRabbitEventSender(template);
-    return new EventPublisher(sender);
+    return EventPublisher.createWithEventPersistence(sender, eventPersistence);
   }
 
   /**

@@ -172,6 +172,11 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
+  public void refusalUPRNNotTooLong() throws Exception {
+    assertOk(UPRN, "1234567890123");
+  }
+
+  @Test
   public void refusalForenameNull() throws Exception {
     assertOk(FORENAME, (String) null);
   }

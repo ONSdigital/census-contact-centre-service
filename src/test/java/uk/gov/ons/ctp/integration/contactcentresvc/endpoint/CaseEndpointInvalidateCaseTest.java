@@ -70,7 +70,6 @@ public final class CaseEndpointInvalidateCaseTest {
     createValidResponse();
   }
 
-  @SneakyThrows
   private void loadTestJson() {
     this.json = FixtureHelper.loadClassObjectNode();
   }

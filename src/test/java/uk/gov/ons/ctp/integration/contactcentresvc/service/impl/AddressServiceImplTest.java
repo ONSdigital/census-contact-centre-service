@@ -38,7 +38,7 @@ public class AddressServiceImplTest {
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
 
-  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) throws Exception {
+  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) {
     AddressIndexSearchResultsDTO results =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, qualifier).get(0);
     assertEquals(expectedNumAddresses, results.getResponse().getAddresses().size());
@@ -101,7 +101,7 @@ public class AddressServiceImplTest {
   }
 
   @Test
-  public void testPostcodeQueryProcessing() throws Exception {
+  public void testPostcodeQueryProcessing() {
     // Build results to be returned from search
     AddressIndexSearchResultsDTO addressIndexResults =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, "current").get(0);
