@@ -37,6 +37,7 @@ import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.AddressModification;
 import uk.gov.ons.ctp.common.event.model.AddressNotValid;
+import uk.gov.ons.ctp.common.event.model.AddressTypeChanged;
 import uk.gov.ons.ctp.common.event.model.CollectionCase;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
@@ -364,29 +365,121 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
+  private String addressType(EstabType estabType) {
+    AddressType addrType = estabType.getAddressType().orElse(null);
+    return addrType == null ? null : addrType.name();
+  }
+
+  private void updateOrCreateCachedCase(
+      UUID caseId, CaseContainerDTO caseDetails, ModifyCaseRequestDTO modifyRequestDTO)
+      throws CTPException {
+    CachedCase cachedCase = caseDTOMapper.map(caseDetails, CachedCase.class);
+    cachedCase.setId(caseId.toString());
+    EstabType estabType = modifyRequestDTO.getEstabType();
+    cachedCase.setCaseType(modifyRequestDTO.getCaseType());
+    cachedCase.setEstabType(estabType.getCode());
+    cachedCase.setAddressType(addressType(estabType));
+    cachedCase.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    dataRepo.writeCachedCase(cachedCase);
+  }
+
+  private void sendAddressModifiedEvent(
+      UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO, CaseContainerDTO caseDetails) {
+    CollectionCaseCompact collectionCase =
+        CollectionCaseCompact.builder()
+            .id(originalCaseId)
+            .caseType(modifyRequestDTO.getCaseType().name())
+            .ceExpectedCapacity(modifyRequestDTO.getCeUsualResidents())
+            .build();
+    AddressCompact originalAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
+    AddressCompact newAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
+
+    newAddress.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    newAddress.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    newAddress.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
+
+    AddressModification payload =
+        AddressModification.builder()
+            .collectionCase(collectionCase)
+            .originalAddress(originalAddress)
+            .newAddress(newAddress)
+            .build();
+    sendEvent(EventType.ADDRESS_MODIFIED, payload, originalCaseId);
+  }
+
+  private void sendAddressTypeChangedEvent(
+      UUID updatedCaseId,
+      UUID originalCaseId,
+      ModifyCaseRequestDTO modifyRequestDTO,
+      CaseContainerDTO caseDetails) {
+    CollectionCase collectionCase = new CollectionCase();
+    collectionCase.setId(originalCaseId.toString());
+    collectionCase.setCaseType(modifyRequestDTO.getCaseType().name());
+    collectionCase.setCaseRef(null);
+    collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
+
+    Address newAddress = caseDTOMapper.map(caseDetails, Address.class);
+
+    newAddress.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    newAddress.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    newAddress.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
+
+    newAddress.setAddressType(addressType(modifyRequestDTO.getEstabType()));
+
+    collectionCase.setAddress(newAddress);
+
+    AddressTypeChanged payload =
+        AddressTypeChanged.builder()
+            .newCaseId(updatedCaseId)
+            .collectionCase(collectionCase)
+            .build();
+    sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, updatedCaseId);
+  }
+
+  private void updateModifiedResponse(CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO) {
+    response.setCaseType(modifyRequestDTO.getCaseType().name());
+    EstabType estabType = modifyRequestDTO.getEstabType();
+    response.setAddressType(addressType(estabType));
+    response.setEstabDescription(estabType.getCode());
+    response.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    response.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    response.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    response.setCeOrgName(modifyRequestDTO.getCeOrgName());
+  }
+
   @Override
   public CaseDTO modifyCase(ModifyCaseRequestDTO modifyRequestDTO) throws CTPException {
     validateMatchingEstabAndCaseType(modifyRequestDTO);
-    UUID caseId = modifyRequestDTO.getCaseId();
+    UUID originalCaseId = modifyRequestDTO.getCaseId();
+    UUID updatedCaseId = originalCaseId;
 
-    CaseContainerDTO caseDetails = retrieveCaseById(caseId, false);
+    CaseContainerDTO caseDetails = retrieveCaseById(originalCaseId, false);
     rejectHouseholdIndividual(caseDetails);
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
 
     boolean addressTypeChanged = isAddressTypeChange(requestedCaseType, caseDetails.getEstabType());
 
+    CaseDTO response = caseDTOMapper.map(caseDetails, CaseDTO.class);
+
     if (addressTypeChanged) {
       rejectNorthernIrelandHouseholdToCE(requestedCaseType, caseDetails);
-      CollectionCase payload = new CollectionCase();
-      // WRITEME
-      sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, caseId);
+      updatedCaseId = UUID.randomUUID();
+      sendAddressTypeChangedEvent(updatedCaseId, originalCaseId, modifyRequestDTO, caseDetails);
+      response.setId(updatedCaseId);
+      response.setCaseRef(null);
     } else {
-      AddressModification payload = new AddressModification();
-      sendEvent(EventType.ADDRESS_MODIFIED, payload, caseId);
-      // WRITEME
+      sendAddressModifiedEvent(originalCaseId, modifyRequestDTO, caseDetails);
     }
-
-    return null;
+    updateOrCreateCachedCase(updatedCaseId, caseDetails, modifyRequestDTO);
+    updateModifiedResponse(response, modifyRequestDTO);
+    return response;
   }
 
   @Override

@@ -1,5 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,6 +16,8 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,13 +25,20 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.Region;
+import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
+import uk.gov.ons.ctp.common.event.model.Address;
+import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.AddressModification;
+import uk.gov.ons.ctp.common.event.model.AddressTypeChanged;
+import uk.gov.ons.ctp.common.event.model.CollectionCase;
+import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,6 +47,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   private ModifyCaseRequestDTO requestDTO;
   private CaseContainerDTO caseContainerDTO;
   private CachedCase cachedCase;
+
+  @Captor private ArgumentCaptor<CachedCase> cachedCaseCaptor;
 
   @Before
   public void setup() throws Exception {
@@ -62,8 +76,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   private void verifyAcceptCompatible(EstabType estabType, CaseType caseType) throws Exception {
     requestDTO.setEstabType(estabType);
     requestDTO.setCaseType(caseType);
-    target.modifyCase(requestDTO);
-    // WRITEME check ok . at minimum returns a CaseDTO
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
   }
 
   private void verifyRmCaseCall(int times) {
@@ -101,8 +115,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   public void shouldAcceptCaseWhenFoundFromCache() throws Exception {
     mockRmCannotFindCase();
     when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(cachedCase));
-    target.modifyCase(requestDTO);
-    // WRITEME check results
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
   }
 
   @Test
@@ -122,8 +136,41 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     mockRmHasCase();
     target.modifyCase(requestDTO);
     verifyRmCaseCall(1);
-    verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
+    AddressModification payload =
+        verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
+
+    CollectionCaseCompact collectionCase = payload.getCollectionCase();
+    assertEquals(caseContainerDTO.getId(), collectionCase.getId());
+    assertEquals(requestDTO.getCaseId(), collectionCase.getId());
+    assertEquals(requestCaseType.name(), collectionCase.getCaseType());
+    assertEquals(requestDTO.getCeUsualResidents(), collectionCase.getCeExpectedCapacity());
+
+    AddressCompact originalAddress = payload.getOriginalAddress();
+    assertEquals(caseContainerDTO.getAddressLine1(), originalAddress.getAddressLine1());
+    assertEquals(caseContainerDTO.getAddressLine2(), originalAddress.getAddressLine2());
+    assertEquals(caseContainerDTO.getAddressLine3(), originalAddress.getAddressLine3());
+    assertEquals(caseContainerDTO.getTownName(), originalAddress.getTownName());
+    assertEquals(caseContainerDTO.getPostcode(), originalAddress.getPostcode());
+    assertEquals(caseContainerDTO.getRegion(), originalAddress.getRegion());
+    assertEquals(caseContainerDTO.getUprn(), originalAddress.getUprn());
+    assertEquals(caseContainerDTO.getEstabType(), originalAddress.getEstabType());
+    assertEquals(caseContainerDTO.getOrganisationName(), originalAddress.getOrganisationName());
+
+    verifyChangedAddress(payload.getNewAddress());
+
     verifyEventNotSent(EventType.ADDRESS_TYPE_CHANGED);
+  }
+
+  private void verifyChangedAddress(AddressCompact newAddress) {
+    assertEquals(requestDTO.getAddressLine1(), newAddress.getAddressLine1());
+    assertEquals(requestDTO.getAddressLine2(), newAddress.getAddressLine2());
+    assertEquals(requestDTO.getAddressLine3(), newAddress.getAddressLine3());
+    assertEquals(caseContainerDTO.getTownName(), newAddress.getTownName());
+    assertEquals(caseContainerDTO.getPostcode(), newAddress.getPostcode());
+    assertEquals(caseContainerDTO.getRegion(), newAddress.getRegion());
+    assertEquals(caseContainerDTO.getUprn(), newAddress.getUprn());
+    assertEquals(requestDTO.getEstabType().getCode(), newAddress.getEstabType());
+    assertEquals(requestDTO.getCeOrgName(), newAddress.getOrganisationName());
   }
 
   @Test
@@ -180,7 +227,24 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     mockRmHasCase();
     target.modifyCase(requestDTO);
     verifyRmCaseCall(1);
-    verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressModification.class);
+    AddressTypeChanged payload =
+        verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
+
+    assertNotNull(payload.getNewCaseId());
+    assertFalse(requestDTO.getCaseId().equals(payload.getNewCaseId()));
+
+    CollectionCase collectionCase = payload.getCollectionCase();
+    assertEquals(caseContainerDTO.getId().toString(), collectionCase.getId());
+    assertEquals(requestDTO.getCaseId().toString(), collectionCase.getId());
+    assertEquals(requestCaseType.name(), collectionCase.getCaseType());
+    assertNull(collectionCase.getCaseRef());
+    assertEquals(requestDTO.getCeUsualResidents(), collectionCase.getCeExpectedCapacity());
+
+    Address newAddress = collectionCase.getAddress();
+    verifyChangedAddress(newAddress);
+    assertEquals(
+        requestDTO.getEstabType().getAddressType().get().name(), newAddress.getAddressType());
+
     verifyEventNotSent(EventType.ADDRESS_MODIFIED);
   }
 
@@ -215,5 +279,105 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertEquals(Fault.BAD_REQUEST, e.getFault());
     assertEquals(
         "Cannot convert Northern Ireland Household to Communal Establishment", e.getMessage());
+  }
+
+  private void verifySavedCashedCase(boolean newCaseId) throws Exception {
+    verify(dataRepo).writeCachedCase(cachedCaseCaptor.capture());
+    CachedCase saved = cachedCaseCaptor.getValue();
+    if (newCaseId) {
+      assertFalse(caseContainerDTO.getId().toString().equals(saved.getId()));
+    } else {
+      assertEquals(caseContainerDTO.getId().toString(), saved.getId());
+    }
+
+    assertEquals(caseContainerDTO.getUprn(), saved.getUprn());
+    assertEquals(caseContainerDTO.getCreatedDateTime(), saved.getCreatedDateTime());
+    assertNull(saved.getFormattedAddress());
+    assertEquals(requestDTO.getAddressLine1(), saved.getAddressLine1());
+    assertEquals(requestDTO.getAddressLine2(), saved.getAddressLine2());
+    assertEquals(requestDTO.getAddressLine3(), saved.getAddressLine3());
+    assertEquals(caseContainerDTO.getTownName(), saved.getTownName());
+    assertEquals(caseContainerDTO.getPostcode(), saved.getPostcode());
+    assertEquals(requestDTO.getEstabType().getAddressType().get().name(), saved.getAddressType());
+    assertEquals(requestDTO.getCaseType(), saved.getCaseType());
+    assertEquals(requestDTO.getEstabType(), EstabType.forCode(saved.getEstabType()));
+    assertEquals(caseContainerDTO.getRegion(), saved.getRegion());
+    assertEquals(requestDTO.getCeOrgName(), saved.getCeOrgName());
+  }
+
+  @Test
+  public void shouldSaveCachedCaseWhenAddressModified() throws Exception {
+    requestDTO.setCaseType(CaseType.HH);
+    requestDTO.setEstabType(EstabType.HOUSEHOLD);
+    caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
+    mockRmHasCase();
+    target.modifyCase(requestDTO);
+
+    verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
+    verifySavedCashedCase(false);
+  }
+
+  @Test
+  public void shouldSaveCachedCaseWhenAddressTypeChanged() throws Exception {
+    requestDTO.setCaseType(CaseType.CE);
+    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
+    mockRmHasCase();
+    target.modifyCase(requestDTO);
+
+    verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
+    verifySavedCashedCase(true);
+  }
+
+  private String uprnStr(UniquePropertyReferenceNumber uprn) {
+    return uprn == null ? null : ("" + uprn.getValue());
+  }
+
+  private void verifyCaseResponse(CaseDTO response, boolean newCaseId) {
+    assertNotNull(response);
+
+    if (newCaseId) {
+      assertFalse(caseContainerDTO.getId().equals(response.getId()));
+      assertNull(response.getCaseRef());
+    } else {
+      assertEquals(caseContainerDTO.getId(), response.getId());
+      assertEquals(caseContainerDTO.getCaseRef(), response.getCaseRef());
+    }
+
+    assertEquals(requestDTO.getCaseType().name(), response.getCaseType());
+    assertEquals(
+        requestDTO.getEstabType().getAddressType().get().name(), response.getAddressType());
+    assertEquals(requestDTO.getEstabType().getCode(), response.getEstabDescription());
+    assertEquals(requestDTO.getAddressLine1(), response.getAddressLine1());
+    assertEquals(requestDTO.getAddressLine2(), response.getAddressLine2());
+    assertEquals(requestDTO.getAddressLine3(), response.getAddressLine3());
+    assertEquals(caseContainerDTO.getTownName(), response.getTownName());
+    assertEquals(caseContainerDTO.getPostcode(), response.getPostcode());
+    assertEquals(caseContainerDTO.getRegion().substring(0, 1), response.getRegion());
+    assertEquals(requestDTO.getCeOrgName(), response.getCeOrgName());
+    assertEquals(caseContainerDTO.getUprn(), uprnStr(response.getUprn()));
+    assertEquals(caseContainerDTO.getEstabUprn(), uprnStr(response.getEstabUprn()));
+  }
+
+  @Test
+  public void shouldReturnModifiedCaseWhenAddressModified() throws Exception {
+    requestDTO.setCaseType(CaseType.HH);
+    requestDTO.setEstabType(EstabType.HOUSEHOLD);
+    caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
+    mockRmHasCase();
+    CaseDTO response = target.modifyCase(requestDTO);
+    verifyCaseResponse(response, false);
+    verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
+  }
+
+  @Test
+  public void shouldReturnModifiedCaseWhenAddressTypeChanged() throws Exception {
+    requestDTO.setCaseType(CaseType.CE);
+    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
+    mockRmHasCase();
+    CaseDTO response = target.modifyCase(requestDTO);
+    verifyCaseResponse(response, true);
+    verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
   }
 }
