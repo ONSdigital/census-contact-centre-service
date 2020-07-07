@@ -897,7 +897,7 @@ public class CaseServiceImpl implements CaseService {
     if (caseToCheck.getCaseType().equals("CE")) {
       String message =
           "All CE addresses will be validated by a Field Officer. "
-          + "It is not necessary to submit this Invalidation request.";
+              + "It is not necessary to submit this Invalidation request.";
       log.with(caseToCheck.getId()).warn(message);
       throw new CTPException(Fault.BAD_REQUEST, message);
     }
