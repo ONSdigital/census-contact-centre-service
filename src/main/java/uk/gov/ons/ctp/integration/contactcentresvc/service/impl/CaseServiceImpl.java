@@ -894,8 +894,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void checkCaseIsNotTypeCE(CaseDTO caseToCheck) throws CTPException {
-    if ((caseToCheck.getCaseType().equals("CE"))
-        && (VALID_REGIONS.contains(caseToCheck.getRegion()))) {
+    if (caseToCheck.getCaseType().equals("CE")) {
       String message =
           "All CE addresses will be validated by a Field Officer. It is not necessary to submit this Invalidation request.";
       log.with(caseToCheck.getId()).warn(message);
