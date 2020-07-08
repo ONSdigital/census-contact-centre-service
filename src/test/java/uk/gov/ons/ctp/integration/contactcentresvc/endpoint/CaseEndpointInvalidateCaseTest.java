@@ -30,8 +30,6 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.RestExceptionHandler;
 import uk.gov.ons.ctp.common.jackson.CustomObjectMapper;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -41,8 +39,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public final class CaseEndpointInvalidateCaseTest {
 
   @Mock private CaseService caseService;
-  @Mock private CaseQueryRequestDTO caseQueryRequestDTO;
-  @Mock private CaseDTO caseToCheck;
 
   @InjectMocks private CaseEndpoint caseEndpoint;
 
@@ -153,14 +149,4 @@ public final class CaseEndpointInvalidateCaseTest {
     json.remove("dateTime");
     doPostExpectingRejection();
   }
-
-  //  @Test
-  //  public void shouldRejectAsCaseIsOfTypeCE() throws Exception {
-  //    caseId = "77346443-64ae-422e-9b93-d5250f48a27a";
-  //    json.put("caseId", "77346443-64ae-422e-9b93-d5250f48a27a");
-  //    json.put("status", "DOES_NOT_EXIST");
-  //    ResultActions actions = doPost();
-  //    actions.andExpect(status().isBadRequest());
-  //    verify(caseService, never()).invalidateCase(any());
-  //  }
 }
