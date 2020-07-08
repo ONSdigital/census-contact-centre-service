@@ -406,21 +406,18 @@ public class CaseServiceImpl implements CaseService {
       CaseContainerDTO caseDetails) {
     CollectionCase collectionCase = new CollectionCase();
     collectionCase.setId(originalCaseId.toString());
-    collectionCase.setCaseType(modifyRequestDTO.getCaseType().name());
-    collectionCase.setCaseRef(null);
     collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
+    collectionCase.setContact(null);
 
-    Address newAddress = caseDTOMapper.map(caseDetails, Address.class);
+    Address address = new Address();
+    address.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    address.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    address.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    address.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    address.setOrganisationName(modifyRequestDTO.getCeOrgName());
+    address.setAddressType(modifyRequestDTO.getCaseType().name());
 
-    newAddress.setAddressLine1(modifyRequestDTO.getAddressLine1());
-    newAddress.setAddressLine2(modifyRequestDTO.getAddressLine2());
-    newAddress.setAddressLine3(modifyRequestDTO.getAddressLine3());
-    newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
-    newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
-
-    newAddress.setAddressType(modifyRequestDTO.getCaseType().name());
-
-    collectionCase.setAddress(newAddress);
+    collectionCase.setAddress(address);
 
     AddressTypeChanged payload =
         AddressTypeChanged.builder()

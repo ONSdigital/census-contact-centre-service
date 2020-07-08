@@ -235,6 +235,37 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     verifyModifyAddress(CaseType.HH, EstabType.OTHER, EstabType.HOUSEHOLD.getCode());
   }
 
+  // these fields are not needed for addressTypeChanged event
+  private void verifyNullFields(CollectionCase collectionCase) {
+    assertNull(collectionCase.getCaseType());
+    assertNull(collectionCase.getCaseRef());
+    assertNull(collectionCase.getSurvey());
+    assertNull(collectionCase.getCollectionExerciseId());
+    assertNull(collectionCase.getContact());
+    assertNull(collectionCase.getActionableFrom());
+    assertNull(collectionCase.getCreatedDateTime());
+  }
+
+  private void verifyAddressForTypeChange(Address address) {
+    assertEquals(requestDTO.getCaseType().name(), address.getAddressType());
+    assertEquals(requestDTO.getEstabType().getCode(), address.getEstabType());
+    assertEquals(requestDTO.getCeOrgName(), address.getOrganisationName());
+
+    assertEquals(requestDTO.getAddressLine1(), address.getAddressLine1());
+    assertEquals(requestDTO.getAddressLine2(), address.getAddressLine2());
+    assertEquals(requestDTO.getAddressLine3(), address.getAddressLine3());
+
+    // none of the following elements are required
+    assertNull(address.getTownName());
+    assertNull(address.getPostcode());
+    assertNull(address.getRegion());
+    assertNull(address.getUprn());
+    assertNull(address.getLatitude());
+    assertNull(address.getLongitude());
+    assertNull(address.getEstabUprn());
+    assertNull(address.getAddressLevel());
+  }
+
   private void verifyAddressTypeChanged(
       CaseType requestCaseType, EstabType requestEstabType, String existingEstabType)
       throws Exception {
@@ -253,13 +284,11 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     CollectionCase collectionCase = payload.getCollectionCase();
     assertEquals(caseContainerDTO.getId().toString(), collectionCase.getId());
     assertEquals(requestDTO.getCaseId().toString(), collectionCase.getId());
-    assertEquals(requestCaseType.name(), collectionCase.getCaseType());
-    assertNull(collectionCase.getCaseRef());
     assertEquals(requestDTO.getCeUsualResidents(), collectionCase.getCeExpectedCapacity());
+    verifyNullFields(collectionCase);
 
-    Address newAddress = collectionCase.getAddress();
-    verifyChangedAddress(newAddress);
-    assertEquals(requestDTO.getCaseType().name(), newAddress.getAddressType());
+    Address address = collectionCase.getAddress();
+    verifyAddressForTypeChange(address);
 
     verifyEventNotSent(EventType.ADDRESS_MODIFIED);
   }
