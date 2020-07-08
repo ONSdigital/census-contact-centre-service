@@ -2,7 +2,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>contactcentresvc</artifactId>
-  <version>0.0.25-SNAPSHOT</version>
+  <version>0.0.25-CR1062-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <parent>
@@ -106,7 +106,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>framework</artifactId>
-      <version>0.0.63-SNAPSHOT</version>
+      <version>0.0.63-CR1062-SNAPSHOT</version>
     </dependency>
 
     <dependency>
