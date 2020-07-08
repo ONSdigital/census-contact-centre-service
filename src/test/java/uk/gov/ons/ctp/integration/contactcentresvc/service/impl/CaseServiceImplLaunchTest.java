@@ -296,7 +296,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
   }
 
-  @SneakyThrows
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
