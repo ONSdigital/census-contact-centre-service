@@ -218,7 +218,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseContainerDTO caseDetails = retrieveCaseById(caseId, getCaseEvents);
+    CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
 
     rejectHouseholdIndividual(caseDetails);
 
@@ -330,16 +330,10 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  private boolean isAddressTypeChange(CaseType requestedCaseType, String existingEstabType) {
-    boolean change = false;
-    Optional<AddressType> addrType = EstabType.forCode(existingEstabType).getAddressType();
-    if (addrType.isPresent()) {
-      CaseType existingCaseType = CaseType.valueOf(addrType.get().name());
-      boolean requestCE = CaseType.CE == requestedCaseType;
-      boolean existingCE = CaseType.CE == existingCaseType;
-      change = requestCE ^ existingCE;
-    }
-    return change;
+  private boolean isCaseTypeChange(CaseType requestedCaseType, CaseType existingCaseType) {
+    boolean requestCE = CaseType.CE == requestedCaseType;
+    boolean existingCE = CaseType.CE == existingCaseType;
+    return requestCE ^ existingCE;
   }
 
   private void rejectNorthernIrelandHouseholdToCE(
@@ -424,8 +418,11 @@ public class CaseServiceImpl implements CaseService {
     sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, updatedCaseId);
   }
 
-  private void updateModifiedResponse(CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO) {
+  private void prepareModificationResponse(
+      CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO, UUID caseId, String caseRef) {
     CaseType caseType = modifyRequestDTO.getCaseType();
+    response.setId(caseId);
+    response.setCaseRef(caseRef);
     response.setCaseType(caseType.name());
     response.setAddressType(caseType.name());
     EstabType estabType = modifyRequestDTO.getEstabType();
@@ -442,27 +439,28 @@ public class CaseServiceImpl implements CaseService {
     validateCompatibleEstabAndCaseType(
         modifyRequestDTO.getCaseType(), modifyRequestDTO.getEstabType());
     UUID originalCaseId = modifyRequestDTO.getCaseId();
-    UUID updatedCaseId = originalCaseId;
+    UUID caseId = originalCaseId;
 
-    CaseContainerDTO caseDetails = retrieveCaseById(originalCaseId, false);
+    CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, false);
     rejectHouseholdIndividual(caseDetails);
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
+    CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());
 
-    boolean addressTypeChanged = isAddressTypeChange(requestedCaseType, caseDetails.getEstabType());
+    boolean caseTypeChanged = isCaseTypeChange(requestedCaseType, existingCaseType);
 
     CaseDTO response = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    String caseRef = caseDetails.getCaseRef();
 
-    if (addressTypeChanged) {
+    if (caseTypeChanged) {
       rejectNorthernIrelandHouseholdToCE(requestedCaseType, caseDetails);
-      updatedCaseId = UUID.randomUUID();
-      sendAddressTypeChangedEvent(updatedCaseId, originalCaseId, modifyRequestDTO);
-      response.setId(updatedCaseId);
-      response.setCaseRef(null);
+      caseId = UUID.randomUUID();
+      sendAddressTypeChangedEvent(caseId, originalCaseId, modifyRequestDTO);
+      caseRef = null;
     } else {
       sendAddressModifiedEvent(originalCaseId, modifyRequestDTO, caseDetails);
     }
-    updateOrCreateCachedCase(updatedCaseId, caseDetails, modifyRequestDTO);
-    updateModifiedResponse(response, modifyRequestDTO);
+    updateOrCreateCachedCase(caseId, caseDetails, modifyRequestDTO);
+    prepareModificationResponse(response, modifyRequestDTO, caseId, caseRef);
     return response;
   }
 
@@ -542,7 +540,7 @@ public class CaseServiceImpl implements CaseService {
    */
   private CaseContainerDTO getLaunchCase(UUID caseId) throws CTPException {
     try {
-      CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+      CaseContainerDTO caseDetails = getCaseFromRm(caseId, false);
       return caseDetails;
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
@@ -628,7 +626,7 @@ public class CaseServiceImpl implements CaseService {
 
   // will throw exception if case does not exist.
   private void verifyCaseExists(UUID caseId) {
-    caseServiceClient.getCaseById(caseId, false);
+    getCaseFromRm(caseId, false);
   }
 
   @Override
@@ -748,7 +746,7 @@ public class CaseServiceImpl implements CaseService {
     log.with(fulfilmentCode)
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
-    CaseContainerDTO caze = retrieveCaseById(caseId, false);
+    CaseContainerDTO caze = getCaseFromRmOrCache(caseId, false);
 
     Product product = findProduct(fulfilmentCode, deliveryChannel, convertRegion(caze));
 
@@ -825,12 +823,12 @@ public class CaseServiceImpl implements CaseService {
    * @return the requested case
    * @throws CTPException if case Not Found
    */
-  private CaseContainerDTO retrieveCaseById(UUID caseId, boolean getCaseEvents)
+  private CaseContainerDTO getCaseFromRmOrCache(UUID caseId, boolean getCaseEvents)
       throws CTPException {
 
     CaseContainerDTO caze = null;
     try {
-      caze = caseServiceClient.getCaseById(caseId, getCaseEvents);
+      caze = getCaseFromRm(caseId, getCaseEvents);
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with("caseId", caseId).debug("Case Id Not Found calling Case Service");
@@ -851,6 +849,10 @@ public class CaseServiceImpl implements CaseService {
       }
     }
     return caze;
+  }
+
+  private CaseContainerDTO getCaseFromRm(UUID caseId, boolean getCaseEvents) {
+    return caseServiceClient.getCaseById(caseId, getCaseEvents);
   }
 
   /**

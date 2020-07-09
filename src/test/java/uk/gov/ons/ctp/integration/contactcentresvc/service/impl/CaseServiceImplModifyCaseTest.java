@@ -142,9 +142,19 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   private void verifyModifyAddress(
       CaseType requestCaseType, EstabType requestEstabType, String existingEstabType)
       throws Exception {
+    verifyModifyAddress(requestCaseType, requestEstabType, existingEstabType, requestCaseType);
+  }
+
+  private void verifyModifyAddress(
+      CaseType requestCaseType,
+      EstabType requestEstabType,
+      String existingEstabType,
+      CaseType existingCaseType)
+      throws Exception {
     requestDTO.setCaseType(requestCaseType);
     requestDTO.setEstabType(requestEstabType);
     caseContainerDTO.setEstabType(existingEstabType);
+    caseContainerDTO.setCaseType(existingCaseType.name());
     mockRmHasCase();
     target.modifyCase(requestDTO);
     verifyRmCaseCall(1);
@@ -202,7 +212,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldModifyAddress_RequestHH_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower");
+    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
   }
 
   @Test
@@ -222,7 +232,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldModifyAddress_RequestSPG_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower");
+    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower", CaseType.HH);
   }
 
   @Test
@@ -267,11 +277,15 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   private void verifyAddressTypeChanged(
-      CaseType requestCaseType, EstabType requestEstabType, String existingEstabType)
+      CaseType requestCaseType,
+      EstabType requestEstabType,
+      String existingEstabType,
+      CaseType existingCaseType)
       throws Exception {
     requestDTO.setCaseType(requestCaseType);
     requestDTO.setEstabType(requestEstabType);
     caseContainerDTO.setEstabType(existingEstabType);
+    caseContainerDTO.setCaseType(existingCaseType.name());
     mockRmHasCase();
     target.modifyCase(requestDTO);
     verifyRmCaseCall(1);
@@ -294,28 +308,43 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldChangeAddressType_RequestHH_ExistingOtherCE() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.CE);
+  }
+
+  @Test
   public void shouldChangeAddressType_RequestHH_ExistingPrisonCE() throws Exception {
-    verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, EstabType.PRISON.getCode());
+    verifyAddressTypeChanged(
+        CaseType.HH, EstabType.HOUSEHOLD, EstabType.PRISON.getCode(), CaseType.CE);
   }
 
   @Test
   public void shouldChangeAddressType_RequestSPG_ExistingPrisonCE() throws Exception {
-    verifyAddressTypeChanged(CaseType.SPG, EstabType.EMBASSY, EstabType.PRISON.getCode());
+    verifyAddressTypeChanged(
+        CaseType.SPG, EstabType.EMBASSY, EstabType.PRISON.getCode(), CaseType.CE);
   }
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingHousehold() throws Exception {
-    verifyAddressTypeChanged(CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.HOUSEHOLD.getCode());
+    verifyAddressTypeChanged(
+        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.HOUSEHOLD.getCode(), CaseType.HH);
   }
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingEmbassySPG() throws Exception {
-    verifyAddressTypeChanged(CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.EMBASSY.getCode());
+    verifyAddressTypeChanged(
+        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.EMBASSY.getCode(), CaseType.SPG);
   }
 
   @Test
   public void shouldChangeAddressType_RequestHH_WithEstabTypeOTHER() throws Exception {
-    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, EstabType.PRISON.getCode());
+    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, EstabType.PRISON.getCode(), CaseType.CE);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestCE_ExistingOtherSPG() throws Exception {
+    verifyAddressTypeChanged(
+        CaseType.CE, EstabType.HOLIDAY_PARK, "Oblivion Sky Tower", CaseType.SPG);
   }
 
   @Test
