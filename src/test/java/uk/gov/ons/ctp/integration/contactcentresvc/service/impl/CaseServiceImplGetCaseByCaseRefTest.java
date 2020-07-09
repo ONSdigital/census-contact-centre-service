@@ -13,7 +13,6 @@ import static org.mockito.Mockito.never;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -186,23 +185,20 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
               .stream()
               .filter(e -> !e.getDescription().contains("Should be filtered out"))
               .map(
-                  e -> {
-                    CaseEventDTO expectedEvent =
-                        CaseEventDTO.builder()
-                            .description(e.getDescription())
-                            .category(e.getEventType())
-                            .createdDateTime(e.getCreatedDateTime())
-                            .build();
-                    return expectedEvent;
-                  })
+                  e ->
+                      CaseEventDTO.builder()
+                          .description(e.getDescription())
+                          .category(e.getEventType())
+                          .createdDateTime(e.getCreatedDateTime())
+                          .build())
               .collect(Collectors.toList());
       expectedCaseResult.setCaseEvents(expectedCaseEvents);
     }
     return expectedCaseResult;
   }
 
-  @SneakyThrows
-  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected) {
+  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected)
+      throws Exception {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
@@ -230,10 +226,10 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 }
