@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -117,7 +118,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     target.invalidateCase(dto);
   }
 
-  @Test(expected = Exception.class)
+  @Test
   public void shouldRejectCaseOfTypeCE() throws Exception {
     List<InvalidateCaseRequestDTO> requestsFromCCSvc =
         FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
@@ -128,6 +129,10 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     ccDto.setCaseType("CE");
     when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
-    target.invalidateCase(dto);
+    Exception e = assertThrows(Exception.class, () -> target.invalidateCase(dto));
+    assertEquals(
+        "All CE addresses will be validated by a Field Officer. "
+            + "It is not necessary to submit this Invalidation request.",
+        e.getMessage());
   }
 }
