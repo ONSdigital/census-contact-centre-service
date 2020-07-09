@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -43,8 +44,9 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
     dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
-//    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
-    List<CaseContainerDTO> casesFromCaseService = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    //    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    List<CaseContainerDTO> casesFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     Mockito.when(
             caseServiceClient.getCaseById(
