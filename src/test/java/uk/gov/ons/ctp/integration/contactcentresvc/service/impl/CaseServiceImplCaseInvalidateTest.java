@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
@@ -41,11 +42,13 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
   private void checkInvalidateCaseForStatus(CaseStatus status) {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
-    dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
-    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
+//    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    List<CaseContainerDTO> casesFromCaseService = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    CaseContainerDTO ccDto = casesFromCaseService.get(0);
     Mockito.when(
             caseServiceClient.getCaseById(
-                UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
+                UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"), false))
         .thenReturn(ccDto);
     ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
