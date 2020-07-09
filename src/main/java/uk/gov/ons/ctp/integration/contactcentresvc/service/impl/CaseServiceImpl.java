@@ -512,7 +512,6 @@ public class CaseServiceImpl implements CaseService {
         .with("status", invalidateCaseRequestDTO.getStatus())
         .debug("Invalidate Case");
 
-    //    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
     CaseContainerDTO caseDetails = retrieveCaseById(caseId, false);
     checkCaseIsNotTypeCE(caseDetails);
 
