@@ -33,6 +33,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
 
+  public static final UUID UUID_0 = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
+
   @Before
   public void setup() {
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
@@ -44,14 +46,11 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
         FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
     InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
     dto.setStatus(status);
-    dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
+    dto.setCaseId(UUID_0);
     List<CaseContainerDTO> casesFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
-    Mockito.when(
-            caseServiceClient.getCaseById(
-                UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"), false))
-        .thenReturn(ccDto);
+    Mockito.when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
@@ -126,15 +125,12 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     List<InvalidateCaseRequestDTO> requestsFromCCSvc =
         FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
     InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
-    dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
+    dto.setCaseId(UUID_0);
     List<CaseContainerDTO> casesFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     ccDto.setCaseType("CE");
-    Mockito.when(
-            caseServiceClient.getCaseById(
-                UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"), false))
-        .thenReturn(ccDto);
+    Mockito.when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     target.invalidateCase(dto);
   }
 }
