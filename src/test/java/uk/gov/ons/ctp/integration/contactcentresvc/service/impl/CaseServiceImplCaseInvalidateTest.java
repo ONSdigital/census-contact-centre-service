@@ -6,15 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
 import java.util.List;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,11 +32,9 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
 
-  public static final UUID UUID_0 = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
-
   @Before
   public void setup() {
-    Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    when(appConfig.getChannel()).thenReturn(Channel.CC);
   }
 
   @SneakyThrows
@@ -50,7 +47,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     List<CaseContainerDTO> casesFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
-    Mockito.when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
+    when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     ResponseDTO response = target.invalidateCase(dto);
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
@@ -130,7 +127,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     ccDto.setCaseType("CE");
-    Mockito.when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
+    when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     target.invalidateCase(dto);
   }
 }
