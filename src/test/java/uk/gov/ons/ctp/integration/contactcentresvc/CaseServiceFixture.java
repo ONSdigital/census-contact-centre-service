@@ -6,9 +6,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -29,30 +27,30 @@ public final class CaseServiceFixture {
   public static final String AN_AGENT_ID = "123";
   public static final String A_QUESTIONNAIRE_ID = "566786126";
 
-  public static ModifyCaseRequestDTO createModifyCaseRequestDTO() {
-    ModifyCaseRequestDTO dto =
-        ModifyCaseRequestDTO.builder().caseId(UUID_0).estabType(AN_ESTAB_TYPE).build();
+  //  public static ModifyCaseRequestDTO createModifyCaseRequestDTO() {
+  //    ModifyCaseRequestDTO dto =
+  //        ModifyCaseRequestDTO.builder().caseId(UUID_0).estabType(AN_ESTAB_TYPE).build();
+  //
+  //    dto.setAddressLine1(AN_ADDRESS_LINE_1);
+  //    dto.setAddressLine2(AN_ADDRESS_LINE_2);
+  //    dto.setAddressLine3(AN_ADDRESS_LINE_3);
+  //    dto.setTownName(A_TOWN_NAME);
+  //    dto.setPostcode(A_POSTCODE);
+  //    dto.setRegion(A_REGION);
+  //    dto.setDateTime(A_REQUEST_DATE_TIME);
+  //    return dto;
+  //  }
 
-    dto.setAddressLine1(AN_ADDRESS_LINE_1);
-    dto.setAddressLine2(AN_ADDRESS_LINE_2);
-    dto.setAddressLine3(AN_ADDRESS_LINE_3);
-    dto.setTownName(A_TOWN_NAME);
-    dto.setPostcode(A_POSTCODE);
-    dto.setRegion(A_REGION);
-    dto.setDateTime(A_REQUEST_DATE_TIME);
-    return dto;
-  }
-
-  public static InvalidateCaseRequestDTO createInvalidateCaseRequestDTO() {
-    InvalidateCaseRequestDTO dto =
-        InvalidateCaseRequestDTO.builder()
-            .caseId(UUID_0)
-            .status(A_CASE_STATUS)
-            .notes(SOME_NOTES)
-            .dateTime(A_REQUEST_DATE_TIME)
-            .build();
-    return dto;
-  }
+  //  public static InvalidateCaseRequestDTO createInvalidateCaseRequestDTO() {
+  //    InvalidateCaseRequestDTO dto =
+  //        InvalidateCaseRequestDTO.builder()
+  //            .caseId(UUID_0)
+  //            .status(A_CASE_STATUS)
+  //            .notes(SOME_NOTES)
+  //            .dateTime(A_REQUEST_DATE_TIME)
+  //            .build();
+  //    return dto;
+  //  }
 
   public static LaunchRequestDTO createLaunchRequestDTO(boolean individual) {
     LaunchRequestDTO tdo = new LaunchRequestDTO();

@@ -24,7 +24,6 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
@@ -41,7 +40,9 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
 
   @SneakyThrows
   private void checkInvalidateCaseForStatus(CaseStatus status) {
-    InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
+    List<InvalidateCaseRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
+    InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
     dto.setStatus(status);
     dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
     List<CaseContainerDTO> casesFromCaseService =
@@ -114,13 +115,17 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
   public void shouldRejectCaseNotFound() throws Exception {
     when(caseServiceClient.getCaseById(any(), any()))
         .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
-    InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
+    List<InvalidateCaseRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
+    InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
     target.invalidateCase(dto);
   }
 
   @Test(expected = Exception.class)
   public void shouldRejectCaseOfTypeCE() throws Exception {
-    InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
+    List<InvalidateCaseRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(InvalidateCaseRequestDTO[].class);
+    InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
     dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
     List<CaseContainerDTO> casesFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
