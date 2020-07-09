@@ -368,10 +368,10 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void sendAddressModifiedEvent(
-      UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO, CaseContainerDTO caseDetails) {
+      UUID caseId, ModifyCaseRequestDTO modifyRequestDTO, CaseContainerDTO caseDetails) {
     CollectionCaseCompact collectionCase =
         CollectionCaseCompact.builder()
-            .id(originalCaseId)
+            .id(caseId)
             .caseType(modifyRequestDTO.getCaseType().name())
             .ceExpectedCapacity(modifyRequestDTO.getCeUsualResidents())
             .build();
@@ -390,11 +390,11 @@ public class CaseServiceImpl implements CaseService {
             .originalAddress(originalAddress)
             .newAddress(newAddress)
             .build();
-    sendEvent(EventType.ADDRESS_MODIFIED, payload, originalCaseId);
+    sendEvent(EventType.ADDRESS_MODIFIED, payload, caseId);
   }
 
   private void sendAddressTypeChangedEvent(
-      UUID updatedCaseId, UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO) {
+      UUID newCaseId, UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO) {
     CollectionCase collectionCase = new CollectionCase();
     collectionCase.setId(originalCaseId.toString());
     collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
@@ -411,11 +411,8 @@ public class CaseServiceImpl implements CaseService {
     collectionCase.setAddress(address);
 
     AddressTypeChanged payload =
-        AddressTypeChanged.builder()
-            .newCaseId(updatedCaseId)
-            .collectionCase(collectionCase)
-            .build();
-    sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, updatedCaseId);
+        AddressTypeChanged.builder().newCaseId(newCaseId).collectionCase(collectionCase).build();
+    sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, newCaseId);
   }
 
   private void prepareModificationResponse(
