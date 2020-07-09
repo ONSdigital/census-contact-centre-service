@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 
@@ -10,12 +9,10 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
@@ -27,9 +24,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 /** Unit Test {@link CaseService#reportRefusal(UUID, RefusalRequestDTO) reportRefusal}. */
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
-  private static final EventType REFUSAL_EVENT_TYPE_FIELD_VALUE = EventType.REFUSAL_RECEIVED;
-  private static final Source REFUSAL_SOURCE_FIELD_VALUE = Source.CONTACT_CENTRE_API;
-  private static final Channel REFUSAL_CHANNEL_FIELD_VALUE = Channel.CC;
   private static final String A_CALL_ID = "8989-NOW";
   private static final String A_UPRN = "1234";
 
@@ -130,38 +124,21 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     verifyTimeInExpectedRange(
         timeBeforeInvocation, timeAfterInvocation, refusalResponse.getDateTime());
 
-    // Grab the published event
-    ArgumentCaptor<EventType> eventTypeCaptor = ArgumentCaptor.forClass(EventType.class);
-    ArgumentCaptor<Source> sourceCaptor = ArgumentCaptor.forClass(Source.class);
-    ArgumentCaptor<Channel> channelCaptor = ArgumentCaptor.forClass(Channel.class);
-    ArgumentCaptor<RespondentRefusalDetails> refusalEventCaptor =
-        ArgumentCaptor.forClass(RespondentRefusalDetails.class);
-    verify(eventPublisher)
-        .sendEvent(
-            eventTypeCaptor.capture(),
-            sourceCaptor.capture(),
-            channelCaptor.capture(),
-            refusalEventCaptor.capture());
-
-    assertEquals(REFUSAL_EVENT_TYPE_FIELD_VALUE, eventTypeCaptor.getValue());
-    assertEquals(REFUSAL_SOURCE_FIELD_VALUE, sourceCaptor.getValue());
-    assertEquals(REFUSAL_CHANNEL_FIELD_VALUE, channelCaptor.getValue());
-
     // Validate payload of published event
-    RespondentRefusalDetails refusal = refusalEventCaptor.getValue();
+    RespondentRefusalDetails refusal =
+        verifyEventSent(EventType.REFUSAL_RECEIVED, RespondentRefusalDetails.class);
     assertEquals("Description of refusal", refusal.getReport());
     assertEquals("123", refusal.getAgentId());
     assertEquals(A_CALL_ID, refusal.getCallId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
-    verifyRefusalAddress(refusal, uprn);
+    verifyRefusalAddress(refusal);
     assertEquals(reason.name() + "_REFUSAL", refusal.getType());
     Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
     assertEquals(expectedContact, refusal.getContact());
   }
 
-  private void verifyRefusalAddress(
-      RespondentRefusalDetails refusal, UniquePropertyReferenceNumber expectedUprn) {
+  private void verifyRefusalAddress(RespondentRefusalDetails refusal) {
     // Validate address
     AddressCompact address = refusal.getAddress();
     assertEquals("1 High Street", address.getAddressLine1());
