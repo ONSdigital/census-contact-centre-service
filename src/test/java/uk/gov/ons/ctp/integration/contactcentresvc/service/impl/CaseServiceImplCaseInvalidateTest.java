@@ -44,7 +44,6 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
     dto.setStatus(status);
     dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
-    //    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
     List<CaseContainerDTO> casesFromCaseService =
         FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
@@ -122,12 +121,14 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
   @Test(expected = Exception.class)
   public void shouldRejectCaseOfTypeCE() throws Exception {
     InvalidateCaseRequestDTO dto = CaseServiceFixture.createInvalidateCaseRequestDTO();
-    dto.setCaseId(UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"));
-    CaseContainerDTO ccDto = CaseServiceFixture.createCaseContainerDTO();
+    dto.setCaseId(UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"));
+    List<CaseContainerDTO> casesFromCaseService =
+        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+    CaseContainerDTO ccDto = casesFromCaseService.get(0);
     ccDto.setCaseType("CE");
     Mockito.when(
             caseServiceClient.getCaseById(
-                UUID.fromString("77346443-64ae-422e-9b93-d5250f48a27a"), false))
+                UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed"), false))
         .thenReturn(ccDto);
     target.invalidateCase(dto);
   }
