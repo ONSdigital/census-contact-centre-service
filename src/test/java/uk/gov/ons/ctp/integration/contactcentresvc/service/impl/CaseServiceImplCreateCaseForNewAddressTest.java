@@ -66,7 +66,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
   }
 
   @Test
-  public void testNewCaseForNewAddress_mismatchedCaseAndAddressType() throws Exception {
+  public void testNewCaseForNewAddress_mismatchedCaseAndAddressType() {
     // Load request, which has caseType of HH and estabType with a CE addressType
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);

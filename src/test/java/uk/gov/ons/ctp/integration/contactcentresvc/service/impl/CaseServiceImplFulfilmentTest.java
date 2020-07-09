@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -444,13 +445,13 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     if (caseType == Product.CaseType.HH && individual) {
       assertNotNull(actualFulfilmentRequest.getIndividualCaseId());
     } else {
-      assertEquals(null, actualFulfilmentRequest.getIndividualCaseId());
+      assertNull(actualFulfilmentRequest.getIndividualCaseId());
     }
 
     Contact actualContact = actualFulfilmentRequest.getContact();
-    assertEquals(null, actualContact.getTitle());
-    assertEquals(null, actualContact.getForename());
-    assertEquals(null, actualContact.getSurname());
+    assertNull(actualContact.getTitle());
+    assertNull(actualContact.getForename());
+    assertNull(actualContact.getSurname());
     assertEquals(requestBodyDTOFixture.getTelNo(), actualContact.getTelNo());
   }
 

@@ -367,15 +367,12 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
               .stream()
               .filter(e -> !e.getDescription().contains("Should be filtered out"))
               .map(
-                  e -> {
-                    CaseEventDTO expectedEvent =
-                        CaseEventDTO.builder()
-                            .description(e.getDescription())
-                            .category(e.getEventType())
-                            .createdDateTime(e.getCreatedDateTime())
-                            .build();
-                    return expectedEvent;
-                  })
+                  e ->
+                      CaseEventDTO.builder()
+                          .description(e.getDescription())
+                          .category(e.getEventType())
+                          .createdDateTime(e.getCreatedDateTime())
+                          .build())
               .collect(Collectors.toList());
       expectedCaseResult.setCaseEvents(expectedCaseEvents);
     }
@@ -434,7 +431,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     CollectionCaseNewAddress newAddress = mapperFacade.map(address, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
     verifyNewAddressEventSent(
-        address.getCensusAddressType(), address.getCensusEstabType(), 0, newAddress);
+        address.getCensusAddressType(), address.getCensusEstabType(), newAddress);
   }
 
   private void verifyCaseDTOContent(
@@ -454,12 +451,11 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
-      Integer expectedCapacity,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
     newAddress.setSurvey(SURVEY_NAME);
     newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
-    newAddress.setCeExpectedCapacity(expectedCapacity);
+    newAddress.setCeExpectedCapacity(0);
     Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
     if (addressType.isPresent() && addressType.get() == AddressType.CE) {
       newAddress.getAddress().setAddressLevel("E");

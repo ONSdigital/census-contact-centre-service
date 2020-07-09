@@ -132,14 +132,13 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     assertEquals(A_CALL_ID, refusal.getCallId());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
-    verifyRefusalAddress(refusal, uprn);
+    verifyRefusalAddress(refusal);
     assertEquals(reason.name() + "_REFUSAL", refusal.getType());
     Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
     assertEquals(expectedContact, refusal.getContact());
   }
 
-  private void verifyRefusalAddress(
-      RespondentRefusalDetails refusal, UniquePropertyReferenceNumber expectedUprn) {
+  private void verifyRefusalAddress(RespondentRefusalDetails refusal) {
     // Validate address
     AddressCompact address = refusal.getAddress();
     assertEquals("1 High Street", address.getAddressLine1());

@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Test;
@@ -26,7 +27,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getId(), destination.getId());
     assertEquals(source.getCaseRef(), destination.getCaseRef());
     assertEquals(source.getAddressType(), destination.getAddressType());
-    assertEquals(null, destination.getEstabType());
+    assertNull(destination.getEstabType());
     assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getAddressLine1(), destination.getAddressLine1());
     assertEquals(source.getAddressLine2(), destination.getAddressLine2());
@@ -98,7 +99,7 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getPostcode(), destination.getPostcode());
     assertEquals(source.getAddressType(), destination.getAddressType());
     assertEquals(source.getCaseType().name(), destination.getCaseType());
-    assertEquals(null, destination.getEstabType());
+    assertNull(destination.getEstabType());
     assertEquals(source.getEstabType(), destination.getEstabDescription());
     assertEquals(source.getRegion(), destination.getRegion());
     assertEquals(source.getCeOrgName(), destination.getCeOrgName());
@@ -117,7 +118,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void shouldMapCaseContainerDTO_Address() throws Exception {
+  public void shouldMapCaseContainerDTO_Address() {
     CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     Address destination = mapperFacade.map(source, Address.class);
     verifyMapping(destination, source);
@@ -130,7 +131,7 @@ public class CCSvcBeanMapperTest {
   }
 
   @Test
-  public void shouldMapCaseContainerDTO_AddressCompact() throws Exception {
+  public void shouldMapCaseContainerDTO_AddressCompact() {
     CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
     AddressCompact destination = mapperFacade.map(source, AddressCompact.class);
     verifyMapping(destination, source);

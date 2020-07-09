@@ -1,11 +1,11 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -53,14 +53,14 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Captor private ArgumentCaptor<CachedCase> cachedCaseCaptor;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
   }
 
-  private void verifyRejectIncompatible(EstabType estabType, CaseType caseType) throws Exception {
+  private void verifyRejectIncompatible(EstabType estabType, CaseType caseType) {
     requestDTO.setEstabType(estabType);
     requestDTO.setCaseType(caseType);
     CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
@@ -130,7 +130,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectExistingHouseholdIndividualCase() throws Exception {
+  public void shouldRejectExistingHouseholdIndividualCase() {
     caseContainerDTO.setCaseType(CaseType.HI.name());
     mockRmHasCase();
     ResponseStatusException e =
@@ -279,7 +279,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
 
     assertNotNull(payload.getNewCaseId());
-    assertFalse(requestDTO.getCaseId().equals(payload.getNewCaseId()));
+    assertNotEquals(requestDTO.getCaseId(), payload.getNewCaseId());
 
     CollectionCase collectionCase = payload.getCollectionCase();
     assertEquals(caseContainerDTO.getId().toString(), collectionCase.getId());
@@ -319,7 +319,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE() throws Exception {
+  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE() {
     requestDTO.setCaseType(CaseType.CE);
     requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
@@ -509,7 +509,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertNotNull(response);
 
     if (newCaseIdExpected) {
-      assertFalse(caseContainerDTO.getId().equals(response.getId()));
+      assertNotEquals(caseContainerDTO.getId(), response.getId());
       assertNull(response.getCaseRef());
     } else {
       assertEquals(caseContainerDTO.getId(), response.getId());
