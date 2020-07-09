@@ -498,6 +498,11 @@ public class CaseServiceImpl implements CaseService {
     return eqUrl;
   }
 
+  // will throw exception if case does not exist.
+//  private void verifyCaseExists(UUID caseId) throws CTPException {
+//retrieveCaseById(caseId, false);
+//  }
+
   @Override
   public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
       throws CTPException {
@@ -507,7 +512,8 @@ public class CaseServiceImpl implements CaseService {
         .with("status", invalidateCaseRequestDTO.getStatus())
         .debug("Invalidate Case");
 
-    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+//    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, false);
+    CaseContainerDTO caseDetails = retrieveCaseById(caseId, false);
     checkCaseIsNotTypeCE(caseDetails);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
