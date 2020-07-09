@@ -499,8 +499,8 @@ public class CaseServiceImpl implements CaseService {
   }
 
   // will throw exception if case does not exist.
-  private void verifyCaseExists(UUID caseId) {
-    caseServiceClient.getCaseById(caseId, false);
+  private void verifyCaseExists(UUID caseId) throws CTPException {
+    retrieveCaseById(caseId, false);
   }
 
   @Override
