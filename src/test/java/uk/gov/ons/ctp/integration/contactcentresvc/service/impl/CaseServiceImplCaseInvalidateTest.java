@@ -8,8 +8,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
+
 import java.util.List;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +19,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -60,8 +61,12 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
 
     ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
 
-    verify(eventPublisher).sendEvent(eq(EventType.ADDRESS_NOT_VALID), eq(Source.CONTACT_CENTRE_API),
-        eq(Channel.CC), payloadCaptor.capture());
+    verify(eventPublisher)
+        .sendEvent(
+            eq(EventType.ADDRESS_NOT_VALID),
+            eq(Source.CONTACT_CENTRE_API),
+            eq(Channel.CC),
+            payloadCaptor.capture());
 
     AddressNotValid payload = payloadCaptor.getValue();
     assertEquals(dto.getCaseId(), payload.getCollectionCase().getId());
@@ -146,7 +151,9 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     ccDto.setCaseType("CE");
     when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     Exception e = assertThrows(Exception.class, () -> target.invalidateCase(dto));
-    assertEquals("All CE addresses will be validated by a Field Officer. "
-        + "It is not necessary to submit this Invalidation request.", e.getMessage());
+    assertEquals(
+        "All CE addresses will be validated by a Field Officer. "
+            + "It is not necessary to submit this Invalidation request.",
+        e.getMessage());
   }
 }
