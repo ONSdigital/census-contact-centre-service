@@ -1,14 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.common.domain.EstabType;
-import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
-import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
@@ -65,62 +61,62 @@ public final class CaseServiceFixture {
     return tdo;
   }
 
-//  public static CaseContainerDTO createCaseContainerDTO() {
-//    EventDTO eventDTO1 = new EventDTO();
-//    eventDTO1.setId("101");
-//    eventDTO1.setEventType("CASE_CREATED");
-//    eventDTO1.setDescription("Initial creation of case");
-//    eventDTO1.setCreatedDateTime(new Date());
-//
-//    EventDTO eventDTO2 = new EventDTO();
-//    eventDTO2.setId("102");
-//    eventDTO2.setEventType("X11");
-//    eventDTO2.setDescription("Should be filtered out");
-//    eventDTO2.setCreatedDateTime(new Date());
-//
-//    EventDTO eventDTO3 = new EventDTO();
-//    eventDTO3.setId("103");
-//    eventDTO3.setEventType("CASE_UPDATED");
-//    eventDTO3.setDescription("Create Household Visit");
-//    eventDTO3.setCreatedDateTime(new Date());
-//
-//    CaseContainerDTO dto = new CaseContainerDTO();
-//    dto.setCaseRef("1000000000000001");
-//    dto.setEstabType("ET");
-//    dto.setUprn("334999999999");
-//    dto.setEstabUprn("334111111111");
-//    dto.setCreatedDateTime(new Date());
-//    dto.setLastUpdated(new Date());
-//    dto.setAddressLine1("Napier House");
-//    dto.setAddressLine2("12 Park Street");
-//    dto.setAddressLine3("Parkhead");
-//    dto.setTownName("Glasgow");
-//    dto.setPostcode("G1 2AA");
-//    ;
-//    dto.setOrganisationName("The Invalidating Company");
-//    dto.setAddressLevel("E");
-//    dto.setAbpCode("AACC");
-//    dto.setLatitude("41.40338");
-//    dto.setLongitude("2.17403");
-//    dto.setOa("EE22");
-//    dto.setLsoa("x1");
-//    dto.setMsoa("x2");
-//    dto.setLad("H1");
-//
-//    List<EventDTO> caseEvents = new ArrayList<>();
-//    caseEvents.add(eventDTO1);
-//    caseEvents.add(eventDTO2);
-//    caseEvents.add(eventDTO3);
-//
-//    dto.setCaseEvents(caseEvents);
-//    dto.setId(UUID_0);
-//    dto.setCollectionExerciseId(UUID.fromString("22684ede-7d5f-4f53-9069-2398055c61b2"));
-//    dto.setCaseType("HH");
-//    dto.setAddressType("HH");
-//    dto.setRegion("E12345678");
-//    dto.setSurveyType("x");
-//    dto.setHandDelivery(false);
-//    dto.setSecureEstablishment(false);
-//    return dto;
-//  }
+  //  public static CaseContainerDTO createCaseContainerDTO() {
+  //    EventDTO eventDTO1 = new EventDTO();
+  //    eventDTO1.setId("101");
+  //    eventDTO1.setEventType("CASE_CREATED");
+  //    eventDTO1.setDescription("Initial creation of case");
+  //    eventDTO1.setCreatedDateTime(new Date());
+  //
+  //    EventDTO eventDTO2 = new EventDTO();
+  //    eventDTO2.setId("102");
+  //    eventDTO2.setEventType("X11");
+  //    eventDTO2.setDescription("Should be filtered out");
+  //    eventDTO2.setCreatedDateTime(new Date());
+  //
+  //    EventDTO eventDTO3 = new EventDTO();
+  //    eventDTO3.setId("103");
+  //    eventDTO3.setEventType("CASE_UPDATED");
+  //    eventDTO3.setDescription("Create Household Visit");
+  //    eventDTO3.setCreatedDateTime(new Date());
+  //
+  //    CaseContainerDTO dto = new CaseContainerDTO();
+  //    dto.setCaseRef("1000000000000001");
+  //    dto.setEstabType("ET");
+  //    dto.setUprn("334999999999");
+  //    dto.setEstabUprn("334111111111");
+  //    dto.setCreatedDateTime(new Date());
+  //    dto.setLastUpdated(new Date());
+  //    dto.setAddressLine1("Napier House");
+  //    dto.setAddressLine2("12 Park Street");
+  //    dto.setAddressLine3("Parkhead");
+  //    dto.setTownName("Glasgow");
+  //    dto.setPostcode("G1 2AA");
+  //    ;
+  //    dto.setOrganisationName("The Invalidating Company");
+  //    dto.setAddressLevel("E");
+  //    dto.setAbpCode("AACC");
+  //    dto.setLatitude("41.40338");
+  //    dto.setLongitude("2.17403");
+  //    dto.setOa("EE22");
+  //    dto.setLsoa("x1");
+  //    dto.setMsoa("x2");
+  //    dto.setLad("H1");
+  //
+  //    List<EventDTO> caseEvents = new ArrayList<>();
+  //    caseEvents.add(eventDTO1);
+  //    caseEvents.add(eventDTO2);
+  //    caseEvents.add(eventDTO3);
+  //
+  //    dto.setCaseEvents(caseEvents);
+  //    dto.setId(UUID_0);
+  //    dto.setCollectionExerciseId(UUID.fromString("22684ede-7d5f-4f53-9069-2398055c61b2"));
+  //    dto.setCaseType("HH");
+  //    dto.setAddressType("HH");
+  //    dto.setRegion("E12345678");
+  //    dto.setSurveyType("x");
+  //    dto.setHandDelivery(false);
+  //    dto.setSecureEstablishment(false);
+  //    return dto;
+  //  }
 }
