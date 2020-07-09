@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -52,12 +51,12 @@ public final class CaseServiceFixture {
   //    return dto;
   //  }
 
-  public static LaunchRequestDTO createLaunchRequestDTO(boolean individual) {
-    LaunchRequestDTO tdo = new LaunchRequestDTO();
-    tdo.setAgentId(AN_AGENT_ID);
-    tdo.setIndividual(individual);
-    return tdo;
-  }
+  //  public static LaunchRequestDTO createLaunchRequestDTO(boolean individual) {
+  //    LaunchRequestDTO tdo = new LaunchRequestDTO();
+  //    tdo.setAgentId(AN_AGENT_ID);
+  //    tdo.setIndividual(individual);
+  //    return tdo;
+  //  }
 
   //  public static CaseContainerDTO createCaseContainerDTO() {
   //    EventDTO eventDTO1 = new EventDTO();

@@ -39,7 +39,6 @@ import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
@@ -113,7 +112,10 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.of(new CachedCase()));
-    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(false);
+    List<LaunchRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
+    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
+    launchRequestDTO.setIndividual(false);
     target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
   }
 
@@ -123,7 +125,10 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.empty());
-    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(true);
+    List<LaunchRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
+    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
+    launchRequestDTO.setIndividual(true);
     target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
   }
 
@@ -132,7 +137,10 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
-    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(true);
+    List<LaunchRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
+    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
+    launchRequestDTO.setIndividual(true);
     target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
   }
 
@@ -279,7 +287,11 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
     mockEqLaunchJwe();
 
-    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(individual);
+    //    LaunchRequestDTO launchRequestDTO = CaseServiceFixture.createLaunchRequestDTO(individual);
+    List<LaunchRequestDTO> requestsFromCCSvc =
+        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
+    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
+    launchRequestDTO.setIndividual(individual);
 
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
