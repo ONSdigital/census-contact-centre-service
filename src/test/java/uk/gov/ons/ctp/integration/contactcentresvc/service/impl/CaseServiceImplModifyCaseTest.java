@@ -69,7 +69,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectIncompatibleCaseTypeAndEstabType() throws Exception {
+  public void shouldRejectIncompatibleCaseTypeAndEstabType() {
     verifyRejectIncompatible(EstabType.APPROVED_PREMISES, CaseType.HH);
     verifyRejectIncompatible(EstabType.FOREIGN_OFFICES, CaseType.CE);
     verifyRmCaseCall(0);
