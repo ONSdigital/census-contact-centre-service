@@ -400,10 +400,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void sendAddressTypeChangedEvent(
-      UUID updatedCaseId,
-      UUID originalCaseId,
-      ModifyCaseRequestDTO modifyRequestDTO,
-      CaseContainerDTO caseDetails) {
+      UUID updatedCaseId, UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO) {
     CollectionCase collectionCase = new CollectionCase();
     collectionCase.setId(originalCaseId.toString());
     collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
@@ -458,7 +455,7 @@ public class CaseServiceImpl implements CaseService {
     if (addressTypeChanged) {
       rejectNorthernIrelandHouseholdToCE(requestedCaseType, caseDetails);
       updatedCaseId = UUID.randomUUID();
-      sendAddressTypeChangedEvent(updatedCaseId, originalCaseId, modifyRequestDTO, caseDetails);
+      sendAddressTypeChangedEvent(updatedCaseId, originalCaseId, modifyRequestDTO);
       response.setId(updatedCaseId);
       response.setCaseRef(null);
     } else {

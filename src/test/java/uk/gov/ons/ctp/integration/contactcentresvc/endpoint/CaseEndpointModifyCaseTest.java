@@ -80,13 +80,10 @@ public final class CaseEndpointModifyCaseTest {
     verify(caseService, never()).modifyCase(any());
   }
 
-  private ResultActions doPutExpectingOk() throws Exception {
+  private void doPutExpectingOk() throws Exception {
     when(caseService.modifyCase(any())).thenReturn(responseDTO);
-    ResultActions actions = doPut();
-    actions.andExpect(status().isOk());
-    actions.andExpect(jsonPath("$.id", is(caseId)));
+    doPut().andExpect(status().isOk()).andExpect(jsonPath("$.id", is(caseId)));
     verify(caseService).modifyCase(any());
-    return actions;
   }
 
   @Test

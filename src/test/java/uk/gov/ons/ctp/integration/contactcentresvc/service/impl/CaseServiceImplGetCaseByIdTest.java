@@ -183,15 +183,12 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
               .stream()
               .filter(e -> !e.getDescription().contains("Should be filtered out"))
               .map(
-                  e -> {
-                    CaseEventDTO expectedEvent =
-                        CaseEventDTO.builder()
-                            .description(e.getDescription())
-                            .category(e.getEventType())
-                            .createdDateTime(e.getCreatedDateTime())
-                            .build();
-                    return expectedEvent;
-                  })
+                  e ->
+                      CaseEventDTO.builder()
+                          .description(e.getDescription())
+                          .category(e.getEventType())
+                          .createdDateTime(e.getCreatedDateTime())
+                          .build())
               .collect(Collectors.toList());
       expectedCaseResult.setCaseEvents(expectedCaseEvents);
     }

@@ -51,7 +51,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Captor private ArgumentCaptor<UUID> individualCaseIdCaptor;
   @Captor private ArgumentCaptor<CaseContainerDTO> caseCaptor;
-  @Captor private ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor;
 
   @Before
   public void setup() {
@@ -95,7 +94,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testLaunchHICase() throws Exception {
+  public void testLaunchHICase() {
     try {
       doLaunchTest("HI", false);
       fail();
@@ -169,7 +168,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectNorthernIslandCallsFromCeManagers() throws Exception {
+  public void shouldRejectNorthernIslandCallsFromCeManagers() {
     CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
     assertThatInvalidLaunchComboIsRejected(
         dto,
