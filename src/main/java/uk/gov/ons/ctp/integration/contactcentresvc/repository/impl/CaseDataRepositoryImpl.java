@@ -35,6 +35,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   // This is the name of the document that is used to create and retain the new-case collection
   private static String PLACEHOLDER_CASE_NAME = "placeholder";
 
+  private static String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
+
   @PostConstruct
   public void init() throws CTPException {
     caseSchema = gcpProject + "-" + caseSchemaName.toLowerCase();
@@ -81,9 +83,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       throws CTPException {
 
     String key = String.valueOf(uprn.getValue());
-    String[] searchByUprnPath = new String[] {"uprn"};
     List<CachedCase> results =
-        cloudDataStore.search(CachedCase.class, caseSchema, searchByUprnPath, key);
+        cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
 
     if (results.isEmpty()) {
       return Optional.empty();
@@ -94,6 +95,13 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
     } else {
       return Optional.ofNullable(results.get(0));
     }
+  }
+
+  @Override
+  public List<CachedCase> readCachedCasesByUprn(UniquePropertyReferenceNumber uprn)
+      throws CTPException {
+    String key = String.valueOf(uprn.getValue());
+    return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
   }
 
   @Override
