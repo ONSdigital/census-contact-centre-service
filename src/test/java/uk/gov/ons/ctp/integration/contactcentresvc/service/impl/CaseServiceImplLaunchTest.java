@@ -13,6 +13,7 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,10 +49,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
-  @Captor
-  private ArgumentCaptor<UUID> individualCaseIdCaptor;
-  @Captor
-  private ArgumentCaptor<CaseContainerDTO> caseCaptor;
+  @Captor private ArgumentCaptor<UUID> individualCaseIdCaptor;
+  @Captor private ArgumentCaptor<CaseContainerDTO> caseCaptor;
 
   @Before
   public void setup() {
@@ -106,7 +105,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Test(expected = CTPException.class)
   public void testLaunch_caseServiceNotFoundException_cachedCase() throws Exception {
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).when(caseServiceClient)
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.of(new CachedCase()));
     List<LaunchRequestDTO> requestsFromCCSvc =
@@ -118,7 +118,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Test(expected = ResponseStatusException.class)
   public void testLaunch_caseServiceNotFoundException_noCachedCase() throws Exception {
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).when(caseServiceClient)
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.empty());
     List<LaunchRequestDTO> requestsFromCCSvc =
@@ -130,7 +131,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Test(expected = ResponseStatusException.class)
   public void testLaunch_caseServiceResponseStatusException() throws Exception {
-    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT)).when(caseServiceClient)
+    Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     List<LaunchRequestDTO> requestsFromCCSvc =
         FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
@@ -152,8 +154,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @SneakyThrows
   private void assertThatCeManagerFormFromUnitRegionIsRejected(CaseContainerDTO dto) {
-    assertThatInvalidLaunchComboIsRejected(dto,
-        "A CE Manager form can only be launched against an establishment address not a UNIT.");
+    assertThatInvalidLaunchComboIsRejected(
+        dto, "A CE Manager form can only be launched against an establishment address not a UNIT.");
   }
 
   @Test
@@ -177,27 +179,43 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   @Test
   public void shouldRejectNorthernIslandCallsFromCeManagers() {
     CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
-    assertThatInvalidLaunchComboIsRejected(dto,
+    assertThatInvalidLaunchComboIsRejected(
+        dto,
         "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
   }
 
   private void mockEqLaunchJwe() throws Exception {
     // Mock out building of launch payload
-    Mockito
-        .when(eqLaunchService.getEqLaunchJwe(eq(Language.ENGLISH),
-            eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
-            eq(uk.gov.ons.ctp.common.domain.Channel.CC), any(), any(), any(), any(), any(), any(),
-            isNull())) // keystore
+    Mockito.when(
+            eqLaunchService.getEqLaunchJwe(
+                eq(Language.ENGLISH),
+                eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
+                eq(uk.gov.ons.ctp.common.domain.Channel.CC),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                isNull())) // keystore
         .thenReturn("simulated-encrypted-payload");
   }
 
-  private void verifyEqLaunchJwe(String questionnaireId, boolean individual, String caseType,
-      FormType formType) throws Exception {
-    Mockito.verify(eqLaunchService).getEqLaunchJwe(eq(Language.ENGLISH),
-        eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
-        eq(uk.gov.ons.ctp.common.domain.Channel.CC), caseCaptor.capture(), eq(AN_AGENT_ID), // agent
-        eq(questionnaireId), eq(formType.name()), isNull(), // accountServiceUrl
-        isNull(), any()); // keystore
+  private void verifyEqLaunchJwe(
+      String questionnaireId, boolean individual, String caseType, FormType formType)
+      throws Exception {
+    Mockito.verify(eqLaunchService)
+        .getEqLaunchJwe(
+            eq(Language.ENGLISH),
+            eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
+            eq(uk.gov.ons.ctp.common.domain.Channel.CC),
+            caseCaptor.capture(),
+            eq(AN_AGENT_ID), // agent
+            eq(questionnaireId),
+            eq(formType.name()),
+            isNull(), // accountServiceUrl
+            isNull(),
+            any()); // keystore
 
     CaseContainerDTO capturedCase = caseCaptor.getValue();
     if (caseType.equals("HH") && individual) {
@@ -208,8 +226,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     }
   }
 
-  private void verifySurveyLaunchedEventPublished(String caseType, boolean individual, UUID caseId,
-      String questionnaireId) {
+  private void verifySurveyLaunchedEventPublished(
+      String caseType, boolean individual, UUID caseId, String questionnaireId) {
     SurveyLaunchedResponse payloadSent =
         verifyEventSent(EventType.SURVEY_LAUNCHED, SurveyLaunchedResponse.class);
     if (caseType.equals("HH") && individual) {
@@ -224,8 +242,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   private void verifyCorrectIndividualCaseId(String caseType, boolean individual) {
     // Verify call to RM to get qid is using the correct individual case id
-    Mockito.verify(caseServiceClient).getSingleUseQuestionnaireId(any(), eq(individual),
-        individualCaseIdCaptor.capture());
+    Mockito.verify(caseServiceClient)
+        .getSingleUseQuestionnaireId(any(), eq(individual), individualCaseIdCaptor.capture());
     if (caseType.equals("HH") && individual) {
       assertNotEquals(UUID_0, individualCaseIdCaptor.getValue()); // expecting newly allocated uuid
     } else {
@@ -248,8 +266,9 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     doLaunchTest(individual, caseFromCaseService, FormType.H);
   }
 
-  private void doLaunchTest(boolean individual, CaseContainerDTO caseFromCaseService,
-      FormType formType) throws Exception {
+  private void doLaunchTest(
+      boolean individual, CaseContainerDTO caseFromCaseService, FormType formType)
+      throws Exception {
     String caseType = caseFromCaseService.getCaseType();
 
     // Fake RM response for creating questionnaire ID
@@ -268,8 +287,13 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
     // Invoke method under test, and check returned url
     String launchUrl = target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
-    assertEquals(appConfig.getEq().getProtocol() + "://" + appConfig.getEq().getHost()
-        + appConfig.getEq().getPath() + "simulated-encrypted-payload", launchUrl);
+    assertEquals(
+        appConfig.getEq().getProtocol()
+            + "://"
+            + appConfig.getEq().getHost()
+            + appConfig.getEq().getPath()
+            + "simulated-encrypted-payload",
+        launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
