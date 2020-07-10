@@ -167,6 +167,8 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
+    checkCaseTypeForNewAddress(caseType, caseRequestDTO.getRegion());
+
     validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
     // Reject if CE with non-positive number of residents
@@ -998,6 +1000,18 @@ public class CaseServiceImpl implements CaseService {
     response.setSecureEstablishment(estabType.isSecure());
 
     return response;
+  }
+
+  private void checkCaseTypeForNewAddress(
+      CaseType caseType, uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region)
+      throws CTPException {
+    if ((caseType.name().equals("CE")) && (region.name().equals("N"))) {
+      String message =
+          "All queries relating to Communal Establishments in Northern Ireland "
+              + "should be escalated to NISRA HQ";
+      log.with(caseType.name()).with(region.name()).warn(message);
+      throw new CTPException(Fault.BAD_REQUEST, message);
+    }
   }
 
   private void checkCaseIsNotTypeCE(CaseContainerDTO caseDetails) throws CTPException {
