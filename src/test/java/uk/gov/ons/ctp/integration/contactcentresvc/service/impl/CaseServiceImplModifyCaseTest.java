@@ -558,6 +558,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertEquals(requestDTO.getCeOrgName(), response.getCeOrgName());
     assertEquals(caseContainerDTO.getUprn(), uprnStr(response.getUprn()));
     assertEquals(caseContainerDTO.getEstabUprn(), uprnStr(response.getEstabUprn()));
+    assertEquals(ALL_DELIVERY_CHANNELS, response.getAllowedDeliveryChannels());
   }
 
   @Test
