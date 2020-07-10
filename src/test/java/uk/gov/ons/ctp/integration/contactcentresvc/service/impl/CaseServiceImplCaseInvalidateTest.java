@@ -47,7 +47,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     dto.setStatus(status);
     dto.setCaseId(UUID_0);
     List<CaseContainerDTO> casesFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
     ResponseDTO response = target.invalidateCase(dto);
@@ -133,7 +133,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     InvalidateCaseRequestDTO dto = requestsFromCCSvc.get(0);
     dto.setCaseId(UUID_0);
     List<CaseContainerDTO> casesFromCaseService =
-        FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
     CaseContainerDTO ccDto = casesFromCaseService.get(0);
     ccDto.setCaseType("CE");
     when(caseServiceClient.getCaseById(UUID_0, false)).thenReturn(ccDto);
