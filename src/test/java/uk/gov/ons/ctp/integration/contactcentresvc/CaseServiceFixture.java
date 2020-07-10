@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseStatus;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -30,34 +27,4 @@ public final class CaseServiceFixture {
   public static final Date A_REQUEST_DATE_TIME = new Date();
   public static final String AN_AGENT_ID = "123";
   public static final String A_QUESTIONNAIRE_ID = "566786126";
-
-  public static ModifyCaseRequestDTO createModifyCaseRequestDTO() {
-    ModifyCaseRequestDTO dto = ModifyCaseRequestDTO.builder().caseId(UUID_0).build();
-
-    dto.setCaseType(A_CASE_TYPE);
-    dto.setEstabType(AN_ESTAB_TYPE);
-    dto.setAddressLine1(AN_ADDRESS_LINE_1);
-    dto.setAddressLine2(AN_ADDRESS_LINE_2);
-    dto.setAddressLine3(AN_ADDRESS_LINE_3);
-    dto.setDateTime(A_REQUEST_DATE_TIME);
-    return dto;
-  }
-
-  public static InvalidateCaseRequestDTO createInvalidateCaseRequestDTO() {
-    InvalidateCaseRequestDTO dto =
-        InvalidateCaseRequestDTO.builder()
-            .caseId(UUID_0)
-            .status(A_CASE_STATUS)
-            .notes(SOME_NOTES)
-            .dateTime(A_REQUEST_DATE_TIME)
-            .build();
-    return dto;
-  }
-
-  public static LaunchRequestDTO createLaunchRequestDTO(boolean individual) {
-    LaunchRequestDTO tdo = new LaunchRequestDTO();
-    tdo.setAgentId(AN_AGENT_ID);
-    tdo.setIndividual(individual);
-    return tdo;
-  }
 }

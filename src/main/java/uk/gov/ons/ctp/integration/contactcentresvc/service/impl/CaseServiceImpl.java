@@ -621,11 +621,6 @@ public class CaseServiceImpl implements CaseService {
     return eqUrl;
   }
 
-  // will throw exception if case does not exist.
-  private void verifyCaseExists(UUID caseId) throws CTPException {
-    getCaseFromRmOrCache(caseId, false);
-  }
-
   @Override
   public ResponseDTO invalidateCase(InvalidateCaseRequestDTO invalidateCaseRequestDTO)
       throws CTPException {
@@ -635,7 +630,8 @@ public class CaseServiceImpl implements CaseService {
         .with("status", invalidateCaseRequestDTO.getStatus())
         .debug("Invalidate Case");
 
-    verifyCaseExists(caseId);
+    CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, false);
+    checkCaseIsNotTypeCE(caseDetails);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
@@ -1002,6 +998,16 @@ public class CaseServiceImpl implements CaseService {
     response.setSecureEstablishment(estabType.isSecure());
 
     return response;
+  }
+
+  private void checkCaseIsNotTypeCE(CaseContainerDTO caseDetails) throws CTPException {
+    if (caseDetails.getCaseType().equals("CE")) {
+      String message =
+          "All CE addresses will be validated by a Field Officer. "
+              + "It is not necessary to submit this Invalidation request.";
+      log.with(caseDetails.getId()).warn(message);
+      throw new CTPException(Fault.BAD_REQUEST, message);
+    }
   }
 
   private void sendEvent(EventType eventType, EventPayload payload, Object caseId) {
