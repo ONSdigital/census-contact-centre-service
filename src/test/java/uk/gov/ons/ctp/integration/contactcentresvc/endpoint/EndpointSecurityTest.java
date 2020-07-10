@@ -7,10 +7,8 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_ADDRESS_LINE_3;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_ESTAB_TYPE;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_CASE_STATUS;
-import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_POSTCODE;
-import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_CASE_TYPE;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REQUEST_DATE_TIME;
-import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_TOWN_NAME;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.SOME_NOTES;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
@@ -183,16 +181,14 @@ public abstract class EndpointSecurityTest {
   }
 
   void testPutCase(HttpStatus expectedStatus) {
-    ModifyCaseRequestDTO requestBody =
-        ModifyCaseRequestDTO.builder().caseId(UUID_0).estabType(AN_ESTAB_TYPE).build();
+    ModifyCaseRequestDTO requestBody = ModifyCaseRequestDTO.builder().caseId(UUID_0).build();
 
     requestBody.setAddressLine1(AN_ADDRESS_LINE_1);
     requestBody.setAddressLine2(AN_ADDRESS_LINE_2);
     requestBody.setAddressLine3(AN_ADDRESS_LINE_3);
-    requestBody.setTownName(A_TOWN_NAME);
-    requestBody.setPostcode(A_POSTCODE);
-    requestBody.setRegion(A_REGION);
     requestBody.setDateTime(A_REQUEST_DATE_TIME);
+    requestBody.setCaseType(A_CASE_TYPE);
+    requestBody.setEstabType(AN_ESTAB_TYPE);
 
     HttpHeaders headers = new HttpHeaders();
     Map<String, String> param = new HashMap<String, String>();

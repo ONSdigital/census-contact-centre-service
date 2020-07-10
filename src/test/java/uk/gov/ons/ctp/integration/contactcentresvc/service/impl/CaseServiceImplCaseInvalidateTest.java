@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
@@ -15,7 +13,6 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,7 +22,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
 import uk.gov.ons.ctp.common.event.model.AddressNotValid;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
@@ -59,16 +55,7 @@ public class CaseServiceImplCaseInvalidateTest extends CaseServiceImplTestBase {
     assertEquals(dto.getCaseId().toString(), response.getId());
     assertNotNull(response.getDateTime());
 
-    ArgumentCaptor<AddressNotValid> payloadCaptor = ArgumentCaptor.forClass(AddressNotValid.class);
-
-    verify(eventPublisher)
-        .sendEvent(
-            eq(EventType.ADDRESS_NOT_VALID),
-            eq(Source.CONTACT_CENTRE_API),
-            eq(Channel.CC),
-            payloadCaptor.capture());
-
-    AddressNotValid payload = payloadCaptor.getValue();
+    AddressNotValid payload = verifyEventSent(EventType.ADDRESS_NOT_VALID, AddressNotValid.class);
     assertEquals(dto.getCaseId(), payload.getCollectionCase().getId());
     assertEquals(dto.getNotes(), payload.getNotes());
     assertEquals(dto.getStatus().name(), payload.getReason());

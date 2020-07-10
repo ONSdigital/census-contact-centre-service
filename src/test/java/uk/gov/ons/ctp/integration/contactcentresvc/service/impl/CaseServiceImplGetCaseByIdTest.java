@@ -126,7 +126,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
           .when(caseServiceClient)
           .getCaseById(eq(UUID_0), any());
 
-      CachedCase caseFromRepository = caseFromRepository();
+      CachedCase caseFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
       caseFromRepository.setCreatedDateTime(caseFromCaseService.getCreatedDateTime());
       Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
           .thenReturn(Optional.of(caseFromRepository));
@@ -183,15 +183,12 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
               .stream()
               .filter(e -> !e.getDescription().contains("Should be filtered out"))
               .map(
-                  e -> {
-                    CaseEventDTO expectedEvent =
-                        CaseEventDTO.builder()
-                            .description(e.getDescription())
-                            .category(e.getEventType())
-                            .createdDateTime(e.getCreatedDateTime())
-                            .build();
-                    return expectedEvent;
-                  })
+                  e ->
+                      CaseEventDTO.builder()
+                          .description(e.getDescription())
+                          .category(e.getEventType())
+                          .createdDateTime(e.getCreatedDateTime())
+                          .build())
               .collect(Collectors.toList());
       expectedCaseResult.setCaseEvents(expectedCaseEvents);
     }
@@ -227,14 +224,10 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    Mockito.verify(eventPublisher, never()).sendEvent(any(), any(), any(), any());
+    verifyEventNotSent();
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
-  }
-
-  private CachedCase caseFromRepository() {
-    return FixtureHelper.loadClassFixtures(CachedCase[].class).get(0);
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 }

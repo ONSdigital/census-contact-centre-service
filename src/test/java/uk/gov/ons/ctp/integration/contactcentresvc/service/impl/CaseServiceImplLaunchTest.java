@@ -34,8 +34,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.EventPublisher.Source;
-import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
@@ -53,7 +51,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Captor private ArgumentCaptor<UUID> individualCaseIdCaptor;
   @Captor private ArgumentCaptor<CaseContainerDTO> caseCaptor;
-  @Captor private ArgumentCaptor<SurveyLaunchedResponse> surveyLaunchedResponseCaptor;
 
   @Before
   public void setup() {
@@ -97,7 +94,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testLaunchHICase() throws Exception {
+  public void testLaunchHICase() {
     try {
       doLaunchTest("HI", false);
       fail();
@@ -180,7 +177,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectNorthernIslandCallsFromCeManagers() throws Exception {
+  public void shouldRejectNorthernIslandCallsFromCeManagers() {
     CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
     assertThatInvalidLaunchComboIsRejected(
         dto,
@@ -231,21 +228,16 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   private void verifySurveyLaunchedEventPublished(
       String caseType, boolean individual, UUID caseId, String questionnaireId) {
-    Mockito.verify(eventPublisher)
-        .sendEvent(
-            eq(EventType.SURVEY_LAUNCHED),
-            eq(Source.CONTACT_CENTRE_API),
-            eq(Channel.CC),
-            (EventPayload) surveyLaunchedResponseCaptor.capture());
-
+    SurveyLaunchedResponse payloadSent =
+        verifyEventSent(EventType.SURVEY_LAUNCHED, SurveyLaunchedResponse.class);
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
-      assertNotEquals(UUID_0, surveyLaunchedResponseCaptor.getValue().getCaseId());
+      assertNotEquals(UUID_0, payloadSent.getCaseId());
     } else {
-      assertEquals(caseId, surveyLaunchedResponseCaptor.getValue().getCaseId());
+      assertEquals(caseId, payloadSent.getCaseId());
     }
-    assertEquals(questionnaireId, surveyLaunchedResponseCaptor.getValue().getQuestionnaireId());
-    assertEquals(AN_AGENT_ID, surveyLaunchedResponseCaptor.getValue().getAgentId());
+    assertEquals(questionnaireId, payloadSent.getQuestionnaireId());
+    assertEquals(AN_AGENT_ID, payloadSent.getAgentId());
   }
 
   private void verifyCorrectIndividualCaseId(String caseType, boolean individual) {
@@ -260,7 +252,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
-    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     caseFromCaseService.setCaseType(caseType);
     caseFromCaseService.setAddressLevel(addressLevel);
     caseFromCaseService.setRegion(region);
@@ -306,9 +299,5 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     verifyCorrectIndividualCaseId(caseType, individual);
     verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
-  }
-
-  private List<CaseContainerDTO> casesFromCaseService() {
-    return FixtureHelper.loadClassFixtures(CaseContainerDTO[].class);
   }
 }

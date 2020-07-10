@@ -271,14 +271,12 @@ public class CaseEndpoint implements CTPEndpoint {
     return ResponseEntity.ok(response);
   }
 
-  // ---------------------------------------------------------------
-  // DUMMY ENDPOINTS FROM HERE
-  // ---------------------------------------------------------------
-
   /**
-   * DUMMY ENDPOINT FOR CC
+   * The PUT endpoint to modify an existing case.
    *
-   * <p>the PUT end point to modify an existing case
+   * <p>The behaviour is nuanced, since when the CaseType fundamentally changes, then instead of an
+   * update (resulting in an ADDRESS_MODIFIED event being sent), a new caseId will be generated and
+   * an ADDRESS_TYPE_CHANGED event will be sent instead.
    *
    * @param caseId case ID
    * @param requestBodyDTO the request body
@@ -292,8 +290,14 @@ public class CaseEndpoint implements CTPEndpoint {
       @Valid @RequestBody ModifyCaseRequestDTO requestBodyDTO)
       throws CTPException {
     log.with("requestBody", requestBodyDTO).info("Entering PUT modifyCase");
-    return ResponseEntity.ok(new CaseDTO());
+    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
+    CaseDTO result = caseService.modifyCase(requestBodyDTO);
+    return ResponseEntity.ok(result);
   }
+
+  // ---------------------------------------------------------------
+  // DUMMY ENDPOINTS FROM HERE
+  // ---------------------------------------------------------------
 
   /**
    * DUMMY ENDPOINT FOR CC
