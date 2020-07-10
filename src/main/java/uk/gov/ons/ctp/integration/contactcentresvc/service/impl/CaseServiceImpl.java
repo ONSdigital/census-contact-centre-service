@@ -429,6 +429,7 @@ public class CaseServiceImpl implements CaseService {
     response.setAddressLine2(modifyRequestDTO.getAddressLine2());
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
     response.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
   }
 
   @Override
