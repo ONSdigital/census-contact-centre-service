@@ -8,15 +8,17 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
@@ -420,11 +422,14 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     Mockito.verify(addressSvc, times(1)).uprnQuery(anyLong());
 
     // Verify content of case written to Firestore
+    ArgumentCaptor<CachedCase> cachedCaseCaptor = ArgumentCaptor.forClass(CachedCase.class);
+    Mockito.verify(dataRepo, times(1)).writeCachedCase(cachedCaseCaptor.capture());
+    CachedCase capturedCase = cachedCaseCaptor.getValue();
+    verifyCachedCaseContent(address, result.getId(), capturedCase);
+    
+    // Verify response
     CachedCase cachedCase = mapperFacade.map(address, CachedCase.class);
     cachedCase.setId(result.getId().toString());
-    Mockito.verify(dataRepo, times(1)).writeCachedCase(any(CachedCase.class));
-
-    // Verify response
     verifyCaseDTOContent(cachedCase, CaseType.HH.name(), false, result);
 
     // Verify the NewAddressEvent
@@ -432,6 +437,38 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     newAddress.setId(cachedCase.getId());
     verifyNewAddressEventSent(
         address.getCensusAddressType(), address.getCensusEstabType(), newAddress);
+  }
+
+  private void verifyCachedCaseContent(AddressIndexAddressCompositeDTO expectedAddress, UUID expectedId,
+      CachedCase actualCapturedCase) {
+    assertEquals(expectedId.toString(), actualCapturedCase.getId());
+    assertEquals(expectedAddress.getUprn(), actualCapturedCase.getUprn());
+    assertEquals(createFormattedAddress(expectedAddress), actualCapturedCase.getFormattedAddress());
+    assertEquals(expectedAddress.getAddressLine1(), actualCapturedCase.getAddressLine1());
+    assertEquals(expectedAddress.getAddressLine2(), actualCapturedCase.getAddressLine2());
+    assertEquals(expectedAddress.getAddressLine3(), actualCapturedCase.getAddressLine3());
+    assertEquals(expectedAddress.getTownName(), actualCapturedCase.getTownName());
+    assertEquals(expectedAddress.getPostcode(), actualCapturedCase.getPostcode());
+    assertEquals("HH", actualCapturedCase.getAddressType());
+    assertEquals(CaseType.HH, actualCapturedCase.getCaseType());
+    assertEquals(expectedAddress.getCensusEstabType(), actualCapturedCase.getEstabType());
+    assertEquals("E", actualCapturedCase.getRegion());
+    assertEquals(expectedAddress.getOrganisationName(), actualCapturedCase.getCeOrgName());
+    assertEquals(0, actualCapturedCase.getCaseEvents().size());
+}
+
+  private String createFormattedAddress(AddressIndexAddressCompositeDTO expectedAddress) {
+    ArrayList<String> elements = new ArrayList<>();
+    elements.add(expectedAddress.getAddressLine1());
+    elements.add(expectedAddress.getAddressLine2());
+    elements.add(expectedAddress.getAddressLine3());
+    elements.add(expectedAddress.getTownName());
+    elements.add(expectedAddress.getPostcode());
+    
+    return elements.stream()
+        .filter(e -> e != null)
+        .filter(e -> !e.isEmpty())
+        .collect(Collectors.joining(", "));    
   }
 
   private void verifyCaseDTOContent(
@@ -445,6 +482,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
     expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+    expectedNewCaseResult.setCaseEvents(new ArrayList<CaseEventDTO>());
     assertEquals(expectedNewCaseResult, actualCaseDto);
   }
 

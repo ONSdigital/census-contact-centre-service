@@ -88,6 +88,11 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void testGetCaseByCaseId_caseSPG_fromCacheWithEvents() {
+    doTestGetCaseByCaseId(CaseType.SPG, CASE_EVENTS_TRUE, USE_CACHED_CASE);
+  }
+
+  @Test
   public void shouldGetSecureEstablishmentByCaseId() throws CTPException {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(1);
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_1), any())).thenReturn(caseFromCaseService);

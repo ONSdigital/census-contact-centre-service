@@ -981,7 +981,8 @@ public class CaseServiceImpl implements CaseService {
     UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
-
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
+    
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
     dataRepo.writeCachedCase(cachedCase);
