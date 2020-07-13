@@ -829,7 +829,7 @@ public class CaseServiceImpl implements CaseService {
         log.with("caseId", caseId).debug("Case Id Not Found calling Case Service");
         Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
         if (cachedCase.isPresent()) {
-          log.with("caseId", caseId).debug("Using stored case details");
+          log.with("caseId", caseId).info("Using stored case details");
           caze = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
         } else {
           log.with("caseId", caseId).warn("Request for case Not Found");
