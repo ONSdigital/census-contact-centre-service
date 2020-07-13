@@ -462,15 +462,16 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   private String createFormattedAddress(AddressIndexAddressCompositeDTO expectedAddress) {
-    ArrayList<String> elements = new ArrayList<>();
-    elements.add(expectedAddress.getAddressLine1());
-    elements.add(expectedAddress.getAddressLine2());
-    elements.add(expectedAddress.getAddressLine3());
-    elements.add(expectedAddress.getTownName());
-    elements.add(expectedAddress.getPostcode());
+    String[] addressElements =
+        new String[] {
+          expectedAddress.getAddressLine1(),
+          expectedAddress.getAddressLine2(),
+          expectedAddress.getAddressLine3(),
+          expectedAddress.getTownName(),
+          expectedAddress.getPostcode()
+        };
 
-    return elements
-        .stream()
+    return Arrays.stream(addressElements)
         .filter(e -> e != null)
         .filter(e -> !e.isEmpty())
         .collect(Collectors.joining(", "));
