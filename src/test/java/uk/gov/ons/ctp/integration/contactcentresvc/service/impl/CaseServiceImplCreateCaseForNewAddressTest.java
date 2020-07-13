@@ -28,6 +28,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /**
@@ -111,6 +112,30 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     caseRequestDTO.setCeUsualResidents(11);
 
     doTestNewCaseForNewAddress(caseRequestDTO, "CE", true);
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_ceCaseTypeNotAllowedIfRegionN() throws Exception {
+    // Test that a request for a new case where the caseType is CE and the region is N will be
+    // rejected
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
+    // Simulate condition by making the request a CE with a region of N
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setRegion(Region.N);
+
+    try {
+      doTestNewCaseForNewAddress(caseRequestDTO, "CE", true);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(
+          e.toString(),
+          e.getMessage()
+              .matches(
+                  "All queries relating to Communal Establishments "
+                      + "in Northern Ireland should be escalated to NISRA HQ"));
+    }
   }
 
   private void doTestNewCaseForNewAddress(
