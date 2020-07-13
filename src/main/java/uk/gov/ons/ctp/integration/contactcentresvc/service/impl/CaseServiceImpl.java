@@ -188,6 +188,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     cachedCase.setAddressType(addressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
 
     dataRepo.writeCachedCase(cachedCase);
 
@@ -364,6 +365,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
     cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
     cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
     dataRepo.writeCachedCase(cachedCase);
   }
 
@@ -982,7 +984,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
     cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
-    
+
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
     dataRepo.writeCachedCase(cachedCase);

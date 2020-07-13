@@ -42,6 +42,6 @@ public class CachedCase {
   private String region;
 
   private String ceOrgName;
-  
+
   private List<CaseEventDTO> caseEvents;
 }

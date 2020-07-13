@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Before;
@@ -41,6 +42,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ModifyCaseRequestDTO;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -423,6 +425,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(cachedCase.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
+        .caseEvents(new ArrayList<CaseEventDTO>())
         .build();
   }
 
@@ -442,6 +445,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(caseContainerDTO.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
+        .caseEvents(new ArrayList<CaseEventDTO>())
         .build();
   }
 

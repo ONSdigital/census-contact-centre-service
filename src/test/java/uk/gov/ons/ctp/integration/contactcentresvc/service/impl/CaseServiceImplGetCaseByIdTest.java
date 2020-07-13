@@ -149,7 +149,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(UUID_0, requestParams);
 
-    verifyCase(results, expectedCaseResult, caseEvents);
+    verifyCase(results, expectedCaseResult, caseEvents, cached);
     assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
   }
 
@@ -201,7 +201,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   @SneakyThrows
-  private void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected) {
+  private void verifyCase(
+      CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected, boolean cached) {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
@@ -209,7 +210,10 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     assertEquals(
         expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
 
-    if (caseEventsExpected) {
+    if (caseEventsExpected && cached) {
+      // Cached case doesn't have any events
+      assertTrue(results.getCaseEvents().isEmpty());
+    } else if (caseEventsExpected) {
       // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
       // on the whitelist
       assertEquals(2, results.getCaseEvents().size());

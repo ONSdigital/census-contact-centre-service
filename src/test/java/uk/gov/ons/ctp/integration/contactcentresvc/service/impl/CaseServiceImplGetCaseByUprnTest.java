@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -425,8 +426,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     ArgumentCaptor<CachedCase> cachedCaseCaptor = ArgumentCaptor.forClass(CachedCase.class);
     Mockito.verify(dataRepo, times(1)).writeCachedCase(cachedCaseCaptor.capture());
     CachedCase capturedCase = cachedCaseCaptor.getValue();
-    verifyCachedCaseContent(address, result.getId(), capturedCase);
-    
+    verifyCachedCaseContent(address, result.getId(), CaseType.HH, capturedCase);
+
     // Verify response
     CachedCase cachedCase = mapperFacade.map(address, CachedCase.class);
     cachedCase.setId(result.getId().toString());
@@ -439,7 +440,10 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
         address.getCensusAddressType(), address.getCensusEstabType(), newAddress);
   }
 
-  private void verifyCachedCaseContent(AddressIndexAddressCompositeDTO expectedAddress, UUID expectedId,
+  private void verifyCachedCaseContent(
+      AddressIndexAddressCompositeDTO expectedAddress,
+      UUID expectedId,
+      CaseType expectedCaseType,
       CachedCase actualCapturedCase) {
     assertEquals(expectedId.toString(), actualCapturedCase.getId());
     assertEquals(expectedAddress.getUprn(), actualCapturedCase.getUprn());
@@ -449,13 +453,13 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(expectedAddress.getAddressLine3(), actualCapturedCase.getAddressLine3());
     assertEquals(expectedAddress.getTownName(), actualCapturedCase.getTownName());
     assertEquals(expectedAddress.getPostcode(), actualCapturedCase.getPostcode());
-    assertEquals("HH", actualCapturedCase.getAddressType());
-    assertEquals(CaseType.HH, actualCapturedCase.getCaseType());
+    assertEquals(expectedAddress.getCensusAddressType(), actualCapturedCase.getAddressType());
+    assertEquals(expectedCaseType, actualCapturedCase.getCaseType());
     assertEquals(expectedAddress.getCensusEstabType(), actualCapturedCase.getEstabType());
-    assertEquals("E", actualCapturedCase.getRegion());
+    assertEquals(expectedAddress.getCountryCode(), actualCapturedCase.getRegion());
     assertEquals(expectedAddress.getOrganisationName(), actualCapturedCase.getCeOrgName());
     assertEquals(0, actualCapturedCase.getCaseEvents().size());
-}
+  }
 
   private String createFormattedAddress(AddressIndexAddressCompositeDTO expectedAddress) {
     ArrayList<String> elements = new ArrayList<>();
@@ -464,11 +468,12 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     elements.add(expectedAddress.getAddressLine3());
     elements.add(expectedAddress.getTownName());
     elements.add(expectedAddress.getPostcode());
-    
-    return elements.stream()
+
+    return elements
+        .stream()
         .filter(e -> e != null)
         .filter(e -> !e.isEmpty())
-        .collect(Collectors.joining(", "));    
+        .collect(Collectors.joining(", "));
   }
 
   private void verifyCaseDTOContent(
