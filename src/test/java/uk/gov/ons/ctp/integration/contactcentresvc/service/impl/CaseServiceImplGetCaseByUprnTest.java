@@ -447,7 +447,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
       CachedCase actualCapturedCase) {
     assertEquals(expectedId.toString(), actualCapturedCase.getId());
     assertEquals(expectedAddress.getUprn(), actualCapturedCase.getUprn());
-    assertEquals(createFormattedAddress(expectedAddress), actualCapturedCase.getFormattedAddress());
+    assertEquals(expectedAddress.getFormattedAddress(), actualCapturedCase.getFormattedAddress());
     assertEquals(expectedAddress.getAddressLine1(), actualCapturedCase.getAddressLine1());
     assertEquals(expectedAddress.getAddressLine2(), actualCapturedCase.getAddressLine2());
     assertEquals(expectedAddress.getAddressLine3(), actualCapturedCase.getAddressLine3());
@@ -459,22 +459,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(expectedAddress.getCountryCode(), actualCapturedCase.getRegion());
     assertEquals(expectedAddress.getOrganisationName(), actualCapturedCase.getCeOrgName());
     assertEquals(0, actualCapturedCase.getCaseEvents().size());
-  }
-
-  private String createFormattedAddress(AddressIndexAddressCompositeDTO expectedAddress) {
-    String[] addressElements =
-        new String[] {
-          expectedAddress.getAddressLine1(),
-          expectedAddress.getAddressLine2(),
-          expectedAddress.getAddressLine3(),
-          expectedAddress.getTownName(),
-          expectedAddress.getPostcode()
-        };
-
-    return Arrays.stream(addressElements)
-        .filter(e -> e != null)
-        .filter(e -> !e.isEmpty())
-        .collect(Collectors.joining(", "));
   }
 
   private void verifyCaseDTOContent(
