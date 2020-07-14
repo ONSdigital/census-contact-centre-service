@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -253,6 +254,13 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
+  private CaseDTO getLatestCaseByUprn() {
+    // WRITEME
+    Set<CaseDTO> combinedResult = new HashSet<CaseDTO>();
+    // WRITEME
+    return null;
+  }
+
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
@@ -273,12 +281,16 @@ public class CaseServiceImpl implements CaseService {
       return Collections.singletonList(response);
     }
 
-    // New Case
-    CachedCase newcase = createNewCachedCase(uprn.getValue());
-    log.with("uprn", uprn)
-        .with("caseId", newcase.getId())
-        .debug("Returning new skeleton case for UPRN");
-    CaseDTO response = createNewCachedCaseResponse(newcase);
+    CaseDTO response = getLatestCaseByUprn();
+
+    if (response == null) {
+      // New Case
+      CachedCase newcase = createNewCachedCase(uprn.getValue());
+      log.with("uprn", uprn)
+          .with("caseId", newcase.getId())
+          .debug("Returning new skeleton case for UPRN");
+      response = createNewCachedCaseResponse(newcase);
+    }
     return Collections.singletonList(response);
   }
 
