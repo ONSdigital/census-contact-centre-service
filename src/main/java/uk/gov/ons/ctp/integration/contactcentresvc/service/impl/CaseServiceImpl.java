@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -254,13 +253,31 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
-  private CaseDTO getLatestCaseByUprn() {
-    // WRITEME
-    Set<CaseDTO> combinedResult = new HashSet<CaseDTO>();
-    // WRITEME
-    return null;
+  private SortedCaseCollection findCases(UniquePropertyReferenceNumber uprn, boolean addCaseEvents)
+      throws CTPException {
+    SortedCaseCollection sortedCases = new SortedCaseCollection();
+
+    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
+    log.with("uprn", uprn)
+        .with("cases", rmCases.size())
+        .debug("Found {} case details in RM for UPRN", rmCases.size());
+    sortedCases.add(rmCases);
+
+    List<CaseDTO> cachedCases =
+        dataRepo
+            .readCachedCasesByUprn(uprn)
+            .stream()
+            .map(this::createNewCachedCaseResponse)
+            .collect(Collectors.toList());
+    log.with("uprn", uprn)
+        .with("cases", cachedCases.size())
+        .debug("Found {} case details in Cache for UPRN", cachedCases.size());
+    sortedCases.add(cachedCases);
+
+    return sortedCases;
   }
 
+  // OLD CODE
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
@@ -281,18 +298,37 @@ public class CaseServiceImpl implements CaseService {
       return Collections.singletonList(response);
     }
 
-    CaseDTO response = getLatestCaseByUprn();
-
-    if (response == null) {
-      // New Case
-      CachedCase newcase = createNewCachedCase(uprn.getValue());
-      log.with("uprn", uprn)
-          .with("caseId", newcase.getId())
-          .debug("Returning new skeleton case for UPRN");
-      response = createNewCachedCaseResponse(newcase);
-    }
+    // New Case
+    CachedCase newcase = createNewCachedCase(uprn.getValue());
+    log.with("uprn", uprn)
+        .with("caseId", newcase.getId())
+        .debug("Returning new skeleton case for UPRN");
+    CaseDTO response = createNewCachedCaseResponse(newcase);
     return Collections.singletonList(response);
   }
+
+  //  @Override
+  //  public List<CaseDTO> getCaseByUPRN(
+  //      UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
+  //      throws CTPException {
+  //    log.with("uprn", uprn).debug("Fetching case details by UPRN");
+  //
+  //    SortedCaseCollection cases = findCases(uprn, requestParamsDTO.getCaseEvents());
+  //    Optional<CaseDTO> latest = cases.latest();
+  //
+  //    CaseDTO response;
+  //    if (latest.isPresent()) {
+  //      response = latest.get();
+  //    } else {
+  //      // New Case
+  //      CachedCase newcase = createNewCachedCase(uprn.getValue());
+  //      log.with("uprn", uprn)
+  //          .with("caseId", newcase.getId())
+  //          .debug("Returning new skeleton case for UPRN");
+  //      response = createNewCachedCaseResponse(newcase);
+  //    }
+  //    return Collections.singletonList(response);
+  //  }
 
   private void validateCaseRef(long caseRef) throws CTPException {
     if (!luhnChecker.isValid(Long.toString(caseRef))) {
@@ -1001,15 +1037,13 @@ public class CaseServiceImpl implements CaseService {
     return cachedCase;
   }
 
-  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
-
+  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) {
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
 
     EstabType estabType = EstabType.forCode(newCase.getEstabType());
     response.setEstabType(estabType);
     response.setSecureEstablishment(estabType.isSecure());
-
     return response;
   }
 
