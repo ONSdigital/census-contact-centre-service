@@ -278,58 +278,28 @@ public class CaseServiceImpl implements CaseService {
     return sortedCases;
   }
 
-  // OLD CODE
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching case details by UPRN");
 
-    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), requestParamsDTO.getCaseEvents());
-    if (!rmCases.isEmpty()) {
-      log.with("uprn", uprn).with("cases", rmCases.size()).debug("Returning case details for UPRN");
-      return rmCases;
-    }
+    SortedCaseCollection cases = findCases(uprn, requestParamsDTO.getCaseEvents());
+    Optional<CaseDTO> latest = cases.latest();
 
-    // Return stored case details if present
-    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
-    if (cachedCase.isPresent()) {
-      log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      CaseDTO response = createNewCachedCaseResponse(cachedCase.get());
-      return Collections.singletonList(response);
+    CaseDTO response;
+    if (latest.isPresent()) {
+      response = latest.get();
+    } else {
+      // New Case
+      CachedCase newcase = createNewCachedCase(uprn.getValue());
+      log.with("uprn", uprn)
+          .with("caseId", newcase.getId())
+          .debug("Returning new skeleton case for UPRN");
+      response = createNewCachedCaseResponse(newcase);
     }
-
-    // New Case
-    CachedCase newcase = createNewCachedCase(uprn.getValue());
-    log.with("uprn", uprn)
-        .with("caseId", newcase.getId())
-        .debug("Returning new skeleton case for UPRN");
-    CaseDTO response = createNewCachedCaseResponse(newcase);
     return Collections.singletonList(response);
   }
-
-  //  @Override
-  //  public List<CaseDTO> getCaseByUPRN(
-  //      UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
-  //      throws CTPException {
-  //    log.with("uprn", uprn).debug("Fetching case details by UPRN");
-  //
-  //    SortedCaseCollection cases = findCases(uprn, requestParamsDTO.getCaseEvents());
-  //    Optional<CaseDTO> latest = cases.latest();
-  //
-  //    CaseDTO response;
-  //    if (latest.isPresent()) {
-  //      response = latest.get();
-  //    } else {
-  //      // New Case
-  //      CachedCase newcase = createNewCachedCase(uprn.getValue());
-  //      log.with("uprn", uprn)
-  //          .with("caseId", newcase.getId())
-  //          .debug("Returning new skeleton case for UPRN");
-  //      response = createNewCachedCaseResponse(newcase);
-  //    }
-  //    return Collections.singletonList(response);
-  //  }
 
   private void validateCaseRef(long caseRef) throws CTPException {
     if (!luhnChecker.isValid(Long.toString(caseRef))) {

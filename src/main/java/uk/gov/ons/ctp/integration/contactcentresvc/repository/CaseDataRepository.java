@@ -19,16 +19,6 @@ public interface CaseDataRepository {
   void writeCachedCase(final CachedCase newCase) throws CTPException;
 
   /**
-   * Read a Case for an address by Unique Property Reference Number
-   *
-   * @param uprn of case to read
-   * @return Optional containing case for UPRN if available
-   * @throws CTPException error reading case
-   */
-  Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
-      throws CTPException;
-
-  /**
    * Get all Cached cases for an address by Unique Property Reference Number.
    *
    * @param uprn UPRN of the case to read

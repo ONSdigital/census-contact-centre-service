@@ -79,25 +79,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   }
 
   @Override
-  public Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
-      throws CTPException {
-
-    String key = String.valueOf(uprn.getValue());
-    List<CachedCase> results =
-        cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
-
-    if (results.isEmpty()) {
-      return Optional.empty();
-    } else if (results.size() > 1) {
-      log.with("uprn", key).error("More than one cached skeleton case for UPRN");
-      throw new CTPException(
-          Fault.SYSTEM_ERROR, "More than one cached skeleton case for UPRN: " + key);
-    } else {
-      return Optional.ofNullable(results.get(0));
-    }
-  }
-
-  @Override
   public List<CachedCase> readCachedCasesByUprn(UniquePropertyReferenceNumber uprn)
       throws CTPException {
     String key = String.valueOf(uprn.getValue());
