@@ -167,7 +167,7 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
-    checkCaseTypeForNewAddress(caseType, caseRequestDTO.getRegion());
+    rejectIfCEInNI(caseType, caseRequestDTO.getRegion());
 
     validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
@@ -1006,7 +1006,7 @@ public class CaseServiceImpl implements CaseService {
     return response;
   }
 
-  private void checkCaseTypeForNewAddress(
+  private void rejectIfCEInNI(
       CaseType caseType, uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region)
       throws CTPException {
     if ((caseType.name().equals("CE")) && (region.name().equals("N"))) {
