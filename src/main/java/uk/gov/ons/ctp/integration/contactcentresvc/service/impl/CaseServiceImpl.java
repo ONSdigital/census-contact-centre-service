@@ -636,7 +636,10 @@ public class CaseServiceImpl implements CaseService {
         .debug("Invalidate Case");
 
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, false);
-    checkCaseIsNotTypeCE(caseDetails);
+    String errorMessage =
+        "All CE addresses will be validated by a Field Officer. "
+            + "It is not necessary to submit this Invalidation request.";
+    rejectIfCaseIsTypeCE(caseDetails, errorMessage);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
@@ -1018,13 +1021,11 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  private void checkCaseIsNotTypeCE(CaseContainerDTO caseDetails) throws CTPException {
+  private void rejectIfCaseIsTypeCE(CaseContainerDTO caseDetails, String errorMessage)
+      throws CTPException {
     if (caseDetails.getCaseType().equals("CE")) {
-      String message =
-          "All CE addresses will be validated by a Field Officer. "
-              + "It is not necessary to submit this Invalidation request.";
-      log.with(caseDetails.getId()).warn(message);
-      throw new CTPException(Fault.BAD_REQUEST, message);
+      log.with(caseDetails.getId()).warn(errorMessage);
+      throw new CTPException(Fault.BAD_REQUEST, errorMessage);
     }
   }
 
