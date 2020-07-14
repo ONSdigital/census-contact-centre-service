@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
 
 import com.godaddy.logging.Logger;
@@ -269,7 +270,7 @@ public class CaseServiceImpl implements CaseService {
             .readCachedCasesByUprn(uprn)
             .stream()
             .map(this::createNewCachedCaseResponse)
-            .collect(Collectors.toList());
+            .collect(toList());
     log.with("uprn", uprn)
         .with("cases", cachedCases.size())
         .debug("Found {} case details in Cache for UPRN", cachedCases.size());
@@ -282,7 +283,7 @@ public class CaseServiceImpl implements CaseService {
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("uprn", uprn).debug("Fetching case details by UPRN");
+    log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
     SortedCaseCollection cases = findCases(uprn, requestParamsDTO.getCaseEvents());
     Optional<CaseDTO> latest = cases.latest();

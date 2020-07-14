@@ -11,6 +11,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -64,6 +66,11 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   private static final String SURVEY_NAME = "CENSUS";
   private static final String COLLECTION_EXERCISE_ID = "34d7f3bb-91c9-45d0-bb2d-90afce4fc790";
 
+  private static final UUID CACHED_CASE_ID_0 =
+      UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
+  private static final UUID CACHED_CASE_ID_1 =
+      UUID.fromString("c46e5dd4-4b17-45ac-a034-0e514e8592c0");
+
   List<CaseContainerDTO> casesFromRm;
   List<CachedCase> casesFromCache;
   private AddressIndexAddressCompositeDTO addressFromAI;
@@ -88,7 +95,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_withCaseDetailsForCaseTypeHH() throws Exception {
     casesFromRm.get(0).setCaseType(CaseType.HH.name());
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
     verifyCase(result, true, 0);
   }
@@ -96,8 +103,9 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_withCaseDetailsForCaseTypeCE() throws Exception {
     casesFromRm.get(1).setCaseType(CaseType.CE.name());
-    makeSecondRmCaseTheLatest();
-    mockCasesFromRm(UPRN);
+    setLastUpdated(casesFromRm.get(0), 2020, 5, 14);
+    setLastUpdated(casesFromRm.get(1), 2020, 5, 15);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
     verifyCase(result, true, 1);
   }
@@ -105,7 +113,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_withNoCaseDetailsForCaseTypeHH() throws Exception {
     casesFromRm.get(0).setCaseType(CaseType.HH.name());
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(false);
     verifyCase(result, false, 0);
   }
@@ -113,8 +121,9 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_withNoCaseDetailsForCaseTypeCE() throws Exception {
     casesFromRm.get(1).setCaseType(CaseType.CE.name());
-    makeSecondRmCaseTheLatest();
-    mockCasesFromRm(UPRN);
+    setLastUpdated(casesFromRm.get(0), 2020, 5, 14);
+    setLastUpdated(casesFromRm.get(1), 2020, 5, 15);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(false);
     verifyCase(result, false, 1);
   }
@@ -126,7 +135,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType("HI");
     casesFromRm.get(1).setCaseType("HI");
 
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     mockNothingInTheCache();
     mockAddressFromAI();
 
@@ -148,9 +157,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyNewCase(result);
   }
 
-  @Test
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_SPG() throws Exception {
-
+  private void verifyCreatedNewCase(String estabType) throws Exception {
     addressFromAI.setCensusEstabType("marina");
 
     mockNothingInRm();
@@ -162,29 +169,18 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_SPG() throws Exception {
+    verifyCreatedNewCase("marina");
+  }
+
+  @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_CE() throws Exception {
-
-    addressFromAI.setCensusEstabType("CARE HOME");
-
-    mockNothingInRm();
-    mockNothingInTheCache();
-    mockAddressFromAI();
-
-    CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result);
+    verifyCreatedNewCase("CARE HOME");
   }
 
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_NA() throws Exception {
-
-    addressFromAI.setCensusEstabType("NA");
-
-    mockNothingInRm();
-    mockNothingInTheCache();
-    mockAddressFromAI();
-
-    CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result);
+    verifyCreatedNewCase("NA");
   }
 
   @Test(expected = CTPException.class)
@@ -265,7 +261,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_mixedCaseTypes() throws Exception {
     casesFromRm.get(0).setCaseType("HI"); // Household Individual case
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
     verifyCase(result, true, 1);
   }
@@ -273,7 +269,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_caseSPG() throws Exception {
     casesFromRm.get(0).setCaseType("SPG");
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
     verifyCase(result, true, 0);
   }
@@ -281,34 +277,98 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   @Test
   public void testGetCaseByUprn_caseHH() throws Exception {
     casesFromRm.get(0).setCaseType("HH");
-    mockCasesFromRm(UPRN);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
     verifyCase(result, true, 0);
   }
 
   @Test
   public void shouldGetSecureEstablishmentByUprn() throws Exception {
-    makeSecondRmCaseTheLatest();
-    mockCasesFromRm(UPRN);
+    setLastUpdated(casesFromRm.get(0), 2020, 5, 14);
+    setLastUpdated(casesFromRm.get(1), 2020, 5, 15);
+    mockCasesFromRm();
     CaseDTO result = getCasesByUprn(false);
     assertTrue(result.isSecureEstablishment());
     assertEquals(new UniquePropertyReferenceNumber(AN_ESTAB_UPRN), result.getEstabUprn());
   }
 
+  // --- results from both RM and cache ...
+
+  @Test
+  public void shouldGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
+    mockCasesFromRm();
+    mockCasesFromCache();
+    CaseDTO result = getCasesByUprn(false);
+    assertEquals(CACHED_CASE_ID_1, result.getId());
+  }
+
+  @Test
+  public void shouldGetLatestFromCacheWhenResultsFromBothRmAndCacheWithSmallTimeDifference()
+      throws Exception {
+    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
+    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
+    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 4, 0, 0)));
+    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2019, 12, 12, 0, 0)));
+    mockCasesFromRm();
+    mockCasesFromCache();
+    CaseDTO result = getCasesByUprn(false);
+    assertEquals(CACHED_CASE_ID_0, result.getId());
+  }
+
+  @Test
+  public void shouldGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
+    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 2, 0, 0)));
+    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 3, 0, 0)));
+    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 0, 0)));
+    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 23, 0, 0)));
+    mockCasesFromRm();
+    mockCasesFromCache();
+    CaseDTO result = getCasesByUprn(false);
+    assertEquals(UUID_1, result.getId());
+  }
+
+  @Test
+  public void shouldGetLatestFromRmWhenResultsFromBothRmAndCacheWithSmallTimeDifferences()
+      throws Exception {
+    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 3, 0, 0)));
+    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
+    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 0, 0)));
+    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
+    mockCasesFromRm();
+    mockCasesFromCache();
+    CaseDTO result = getCasesByUprn(false);
+    assertEquals(UUID_1, result.getId());
+  }
+
+  @Test
+  public void shouldGetOtherLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
+    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 2, 0, 0)));
+    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 3, 0, 0)));
+    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 4, 0, 0)));
+    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2019, 12, 12, 0, 0)));
+    mockCasesFromRm();
+    mockCasesFromCache();
+    CaseDTO result = getCasesByUprn(false);
+    assertEquals(UUID_0, result.getId());
+  }
+
+  // ---- helpers methods below ---
+
   private UniquePropertyReferenceNumber createUprn(String uprn) {
     return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
   }
 
-  private void makeSecondRmCaseTheLatest() {
-    LocalDateTime firstRmCaseLastUpdated =
-        LocalDateTime.ofInstant(casesFromRm.get(0).getLastUpdated().toInstant(), ZoneOffset.UTC);
-
-    Date laterDate = Date.from(firstRmCaseLastUpdated.plusDays(1).toInstant(ZoneOffset.UTC));
-    casesFromRm.get(1).setLastUpdated(laterDate);
+  private Date utcDate(LocalDateTime dateTime) {
+    return Date.from(dateTime.toInstant(ZoneOffset.UTC));
   }
 
-  private void mockCasesFromRm(UniquePropertyReferenceNumber uprn) {
-    when(caseServiceClient.getCaseByUprn(eq(uprn.getValue()), any())).thenReturn(casesFromRm);
+  private void setLastUpdated(CaseContainerDTO caze, int year, int month, int dayOfMonth) {
+    LocalDateTime dateTime = LocalDateTime.of(year, month, dayOfMonth, 0, 0);
+    caze.setLastUpdated(utcDate(dateTime));
+  }
+
+  private void mockCasesFromRm() {
+    when(caseServiceClient.getCaseByUprn(eq(UPRN.getValue()), any())).thenReturn(casesFromRm);
   }
 
   private void mockNothingInRm() {
@@ -323,6 +383,10 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
   private void mockCachedCase() throws Exception {
     when(dataRepo.readCachedCasesByUprn(UPRN)).thenReturn(List.of(casesFromCache.get(0)));
+  }
+
+  private void mockCasesFromCache() throws Exception {
+    when(dataRepo.readCachedCasesByUprn(UPRN)).thenReturn(casesFromCache);
   }
 
   private void mockNothingInTheCache() throws Exception {
@@ -448,21 +512,20 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   private void verifyCachedCaseContent(
-      UUID expectedId, CaseType expectedCaseType, CachedCase actualCapturedCase) {
-    assertEquals(expectedId.toString(), actualCapturedCase.getId());
-    assertEquals(addressFromAI.getUprn(), actualCapturedCase.getUprn());
-    assertEquals(addressFromAI.getFormattedAddress(), actualCapturedCase.getFormattedAddress());
-    assertEquals(addressFromAI.getAddressLine1(), actualCapturedCase.getAddressLine1());
-    assertEquals(addressFromAI.getAddressLine2(), actualCapturedCase.getAddressLine2());
-    assertEquals(addressFromAI.getAddressLine3(), actualCapturedCase.getAddressLine3());
-    assertEquals(addressFromAI.getTownName(), actualCapturedCase.getTownName());
-    assertEquals(addressFromAI.getPostcode(), actualCapturedCase.getPostcode());
-    assertEquals(addressFromAI.getCensusAddressType(), actualCapturedCase.getAddressType());
-    assertEquals(expectedCaseType, actualCapturedCase.getCaseType());
-    assertEquals(addressFromAI.getCensusEstabType(), actualCapturedCase.getEstabType());
-    assertEquals(addressFromAI.getCountryCode(), actualCapturedCase.getRegion());
-    assertEquals(addressFromAI.getOrganisationName(), actualCapturedCase.getCeOrgName());
-    assertEquals(0, actualCapturedCase.getCaseEvents().size());
+      UUID expectedId, CaseType expectedCaseType, CachedCase expectedCase) {
+    assertEquals(expectedId.toString(), expectedCase.getId());
+    assertEquals(addressFromAI.getUprn(), expectedCase.getUprn());
+    assertEquals(addressFromAI.getAddressLine1(), expectedCase.getAddressLine1());
+    assertEquals(addressFromAI.getAddressLine2(), expectedCase.getAddressLine2());
+    assertEquals(addressFromAI.getAddressLine3(), expectedCase.getAddressLine3());
+    assertEquals(addressFromAI.getTownName(), expectedCase.getTownName());
+    assertEquals(addressFromAI.getPostcode(), expectedCase.getPostcode());
+    assertEquals(addressFromAI.getCensusAddressType(), expectedCase.getAddressType());
+    assertEquals(expectedCaseType, expectedCase.getCaseType());
+    assertEquals(addressFromAI.getCensusEstabType(), expectedCase.getEstabType());
+    assertEquals(addressFromAI.getCountryCode(), expectedCase.getRegion());
+    assertEquals(addressFromAI.getOrganisationName(), expectedCase.getCeOrgName());
+    assertEquals(0, expectedCase.getCaseEvents().size());
   }
 
   private void verifyCaseDTOContent(
