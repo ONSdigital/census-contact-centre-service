@@ -12,5 +12,6 @@
   "caseType": "HH",
   "estabType": "Household",
   "region": "E",
-  "ceOrgName": "The Cached Case Organisation"
+  "ceOrgName": "The Cached Case Organisation",
+  "caseEvents": [ ]
 }
