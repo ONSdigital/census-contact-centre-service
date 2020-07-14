@@ -1012,7 +1012,8 @@ public class CaseServiceImpl implements CaseService {
   private void rejectIfCEInNI(
       CaseType caseType, uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region)
       throws CTPException {
-    if ((caseType.name().equals("CE")) && (region.name().equals("N"))) {
+    if (caseType == CaseType.CE
+        && region == uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N) {
       String message =
           "All queries relating to Communal Establishments in Northern Ireland "
               + "should be escalated to NISRA HQ";
@@ -1023,7 +1024,7 @@ public class CaseServiceImpl implements CaseService {
 
   private void rejectIfCaseIsTypeCE(CaseContainerDTO caseDetails, String errorMessage)
       throws CTPException {
-    if (caseDetails.getCaseType().equals("CE")) {
+    if (CaseType.valueOf(caseDetails.getCaseType()) == CaseType.CE) {
       log.with(caseDetails.getId()).warn(errorMessage);
       throw new CTPException(Fault.BAD_REQUEST, errorMessage);
     }
