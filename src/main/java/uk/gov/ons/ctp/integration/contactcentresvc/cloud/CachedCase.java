@@ -1,11 +1,13 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.cloud;
 
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.ons.ctp.common.domain.CaseType;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 
 @Data
 @Builder
@@ -40,4 +42,6 @@ public class CachedCase {
   private String region;
 
   private String ceOrgName;
+
+  private List<CaseEventDTO> caseEvents;
 }

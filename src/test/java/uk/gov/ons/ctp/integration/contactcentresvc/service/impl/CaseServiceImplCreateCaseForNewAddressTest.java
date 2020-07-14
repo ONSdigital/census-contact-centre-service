@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.times;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Region;
@@ -158,6 +160,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     String caseTypeName = caseRequestDTO.getCaseType().name();
     expectedCase.setAddressType(expectedAddressType);
     expectedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
+    expectedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
     assertEquals(expectedCase, storedCase);
 
     // Verify the NewAddressEvent

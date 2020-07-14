@@ -190,6 +190,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     cachedCase.setAddressType(addressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
 
     dataRepo.writeCachedCase(cachedCase);
 
@@ -366,6 +367,7 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
     cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
     cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
     dataRepo.writeCachedCase(cachedCase);
   }
 
@@ -431,6 +433,7 @@ public class CaseServiceImpl implements CaseService {
     response.setAddressLine2(modifyRequestDTO.getAddressLine2());
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
     response.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
   }
 
   @Override
@@ -829,7 +832,7 @@ public class CaseServiceImpl implements CaseService {
         log.with("caseId", caseId).debug("Case Id Not Found calling Case Service");
         Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
         if (cachedCase.isPresent()) {
-          log.with("caseId", caseId).debug("Using stored case details");
+          log.with("caseId", caseId).info("Using stored case details");
           caze = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
         } else {
           log.with("caseId", caseId).warn("Request for case Not Found");
@@ -983,6 +986,7 @@ public class CaseServiceImpl implements CaseService {
     UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
+    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
 
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
