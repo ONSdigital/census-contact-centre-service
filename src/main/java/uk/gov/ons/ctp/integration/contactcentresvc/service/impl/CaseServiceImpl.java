@@ -167,7 +167,10 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
-    rejectIfCEInNI(caseType, caseRequestDTO.getRegion());
+    String errorMessage =
+        "All queries relating to Communal Establishments in Northern Ireland "
+            + "should be escalated to NISRA HQ";
+    rejectIfCEInNI(caseType, caseRequestDTO.getRegion(), errorMessage);
 
     validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
@@ -639,7 +642,8 @@ public class CaseServiceImpl implements CaseService {
     String errorMessage =
         "All CE addresses will be validated by a Field Officer. "
             + "It is not necessary to submit this Invalidation request.";
-    rejectIfCaseIsTypeCE(caseDetails, errorMessage);
+    CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
+    rejectIfCaseIsTypeCE(caseType, errorMessage);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
@@ -1010,22 +1014,18 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void rejectIfCEInNI(
-      CaseType caseType, uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region)
+      CaseType caseType,
+      uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region,
+      String errorMessage)
       throws CTPException {
-    if (caseType == CaseType.CE
-        && region == uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N) {
-      String message =
-          "All queries relating to Communal Establishments in Northern Ireland "
-              + "should be escalated to NISRA HQ";
-      log.with(caseType.name()).with(region.name()).warn(message);
-      throw new CTPException(Fault.BAD_REQUEST, message);
+    if (region == uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N) {
+      rejectIfCaseIsTypeCE(caseType, errorMessage);
     }
   }
 
-  private void rejectIfCaseIsTypeCE(CaseContainerDTO caseDetails, String errorMessage)
-      throws CTPException {
-    if (CaseType.valueOf(caseDetails.getCaseType()) == CaseType.CE) {
-      log.with(caseDetails.getId()).warn(errorMessage);
+  private void rejectIfCaseIsTypeCE(CaseType caseType, String errorMessage) throws CTPException {
+    if (caseType == CaseType.CE) {
+      log.with(caseType.name()).warn(errorMessage);
       throw new CTPException(Fault.BAD_REQUEST, errorMessage);
     }
   }
