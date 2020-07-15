@@ -33,9 +33,9 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   private RetryableCloudDataStore cloudDataStore;
 
   // This is the name of the document that is used to create and retain the new-case collection
-  private static String PLACEHOLDER_CASE_NAME = "placeholder";
+  private static final String PLACEHOLDER_CASE_NAME = "placeholder";
 
-  private static String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
+  private static final String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
 
   @PostConstruct
   public void init() throws CTPException {
