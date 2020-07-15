@@ -223,7 +223,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     }
 
     assertEquals(expectedCaseResult, results);
-    Mockito.verify(dataRepo, never()).readCachedCaseByUPRN(any());
     Mockito.verify(dataRepo, never()).writeCachedCase(any());
     Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
     verifyEventNotSent();

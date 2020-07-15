@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
@@ -18,13 +19,13 @@ public interface CaseDataRepository {
   void writeCachedCase(final CachedCase newCase) throws CTPException;
 
   /**
-   * Read a Case for an address by Unique Property Reference Number
+   * Get all Cached cases for an address by Unique Property Reference Number.
    *
-   * @param uprn of case to read
-   * @return Optional containing case for UPRN if available
-   * @throws CTPException error reading case
+   * @param uprn UPRN of the case to read
+   * @return list of cached cases found that match the given UPRN
+   * @throws CTPException on error
    */
-  Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
+  List<CachedCase> readCachedCasesByUprn(final UniquePropertyReferenceNumber uprn)
       throws CTPException;
 
   /**

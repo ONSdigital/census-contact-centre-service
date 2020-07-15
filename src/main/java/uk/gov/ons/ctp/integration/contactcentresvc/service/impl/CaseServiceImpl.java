@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
 
 import com.godaddy.logging.Logger;
@@ -259,32 +260,49 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
+  private Optional<CaseDTO> findLatestCase(
+      UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+
+    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
+    log.with("uprn", uprn)
+        .with("cases", rmCases.size())
+        .debug("Found {} case details in RM for UPRN", rmCases.size());
+    timeOrderedCases.add(rmCases);
+
+    List<CaseDTO> cachedCases =
+        dataRepo
+            .readCachedCasesByUprn(uprn)
+            .stream()
+            .map(this::createNewCachedCaseResponse)
+            .collect(toList());
+    log.with("uprn", uprn)
+        .with("cases", cachedCases.size())
+        .debug("Found {} case details in Cache for UPRN", cachedCases.size());
+    timeOrderedCases.add(cachedCases);
+
+    return timeOrderedCases.latest();
+  }
+
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("uprn", uprn).debug("Fetching case details by UPRN");
+    log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), requestParamsDTO.getCaseEvents());
-    if (!rmCases.isEmpty()) {
-      log.with("uprn", uprn).with("cases", rmCases.size()).debug("Returning case details for UPRN");
-      return rmCases;
+    Optional<CaseDTO> latest = findLatestCase(uprn, requestParamsDTO.getCaseEvents());
+
+    CaseDTO response;
+    if (latest.isPresent()) {
+      response = latest.get();
+    } else {
+      // New Case
+      CachedCase newcase = createNewCachedCase(uprn.getValue());
+      log.with("uprn", uprn)
+          .with("caseId", newcase.getId())
+          .debug("Returning new skeleton case for UPRN");
+      response = createNewCachedCaseResponse(newcase);
     }
-
-    // Return stored case details if present
-    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
-    if (cachedCase.isPresent()) {
-      log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      CaseDTO response = createNewCachedCaseResponse(cachedCase.get());
-      return Collections.singletonList(response);
-    }
-
-    // New Case
-    CachedCase newcase = createNewCachedCase(uprn.getValue());
-    log.with("uprn", uprn)
-        .with("caseId", newcase.getId())
-        .debug("Returning new skeleton case for UPRN");
-    CaseDTO response = createNewCachedCaseResponse(newcase);
     return Collections.singletonList(response);
   }
 
@@ -1001,15 +1019,13 @@ public class CaseServiceImpl implements CaseService {
     return cachedCase;
   }
 
-  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
-
+  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) {
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
 
     EstabType estabType = EstabType.forCode(newCase.getEstabType());
     response.setEstabType(estabType);
     response.setSecureEstablishment(estabType.isSecure());
-
     return response;
   }
 

@@ -33,7 +33,9 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   private RetryableCloudDataStore cloudDataStore;
 
   // This is the name of the document that is used to create and retain the new-case collection
-  private static String PLACEHOLDER_CASE_NAME = "placeholder";
+  private static final String PLACEHOLDER_CASE_NAME = "placeholder";
+
+  private static final String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
 
   @PostConstruct
   public void init() throws CTPException {
@@ -77,23 +79,10 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
   }
 
   @Override
-  public Optional<CachedCase> readCachedCaseByUPRN(final UniquePropertyReferenceNumber uprn)
+  public List<CachedCase> readCachedCasesByUprn(UniquePropertyReferenceNumber uprn)
       throws CTPException {
-
     String key = String.valueOf(uprn.getValue());
-    String[] searchByUprnPath = new String[] {"uprn"};
-    List<CachedCase> results =
-        cloudDataStore.search(CachedCase.class, caseSchema, searchByUprnPath, key);
-
-    if (results.isEmpty()) {
-      return Optional.empty();
-    } else if (results.size() > 1) {
-      log.with("uprn", key).error("More than one cached skeleton case for UPRN");
-      throw new CTPException(
-          Fault.SYSTEM_ERROR, "More than one cached skeleton case for UPRN: " + key);
-    } else {
-      return Optional.ofNullable(results.get(0));
-    }
+    return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
   }
 
   @Override
