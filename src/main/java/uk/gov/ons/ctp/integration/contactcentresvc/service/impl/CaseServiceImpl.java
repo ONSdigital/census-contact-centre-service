@@ -896,7 +896,11 @@ public class CaseServiceImpl implements CaseService {
     address.setAddressLine3(refusalRequest.getAddressLine3());
     address.setTownName(refusalRequest.getTownName());
     address.setPostcode(refusalRequest.getPostcode());
-    address.setRegion(refusalRequest.getRegion().name());
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region =
+        refusalRequest.getRegion();
+    if (region != null) {
+      address.setRegion(region.name());
+    }
     address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
     refusal.setAddress(address);
 
