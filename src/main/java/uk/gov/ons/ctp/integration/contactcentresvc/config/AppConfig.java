@@ -16,7 +16,6 @@ public class AppConfig {
 
   private String surveyName;
   private String collectionExerciseId;
-  private ReportSettings reportSettings;
   private AddressIndexSettings addressIndexSettings;
   private CaseServiceSettings caseServiceSettings;
   private KeyStore keystore;

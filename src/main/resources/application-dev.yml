@@ -5,3 +5,13 @@ logging:
     org.springframework: WARN
   profile: CLOUD
   useJson: true
+  
+management:
+  metrics:
+    tags:
+      application: ContactCentreService
+    export:
+      stackdriver:
+        project-id: census-integration-dev
+        enabled: true
+        

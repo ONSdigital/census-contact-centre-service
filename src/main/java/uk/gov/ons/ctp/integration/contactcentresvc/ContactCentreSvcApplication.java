@@ -1,6 +1,12 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import com.godaddy.logging.LoggingConfigs;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.config.MeterFilterReply;
+import io.micrometer.stackdriver.StackdriverConfig;
+import io.micrometer.stackdriver.StackdriverMeterRegistry;
+import java.time.Duration;
 import java.util.HashMap;
 import javax.annotation.PostConstruct;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -43,6 +49,15 @@ public class ContactCentreSvcApplication {
 
   @Value("${queueconfig.event-exchange}")
   private String eventExchange;
+
+  @Value("${management.metrics.export.stackdriver.project-id}")
+  private String stackdriverProjectId;
+
+  @Value("${management.metrics.export.stackdriver.enabled}")
+  private boolean stackdriverEnabled;
+
+  @Value("${management.metrics.export.stackdriver.step}")
+  private String stackdriverStep;
 
   // Table to convert from AddressIndex response status values to values that can be returned to the
   // invoker of this service
@@ -156,5 +171,48 @@ public class ContactCentreSvcApplication {
     if (useJsonLogging) {
       LoggingConfigs.setCurrent(LoggingConfigs.getCurrent().useJson());
     }
+  }
+
+  @Bean
+  StackdriverConfig stackdriverConfig() {
+    return new StackdriverConfig() {
+      @Override
+      public Duration step() {
+        return Duration.parse(stackdriverStep);
+      }
+
+      @Override
+      public boolean enabled() {
+        return stackdriverEnabled;
+      }
+
+      @Override
+      public String projectId() {
+        return stackdriverProjectId;
+      }
+
+      @Override
+      public String get(String key) {
+        return null;
+      }
+    };
+  }
+
+  @Bean
+  public MeterFilter meterFilter() {
+    return new MeterFilter() {
+      @Override
+      public MeterFilterReply accept(Meter.Id id) {
+        if (id.getName().startsWith("rabbitmq")) {
+          return MeterFilterReply.DENY;
+        }
+        return MeterFilterReply.NEUTRAL;
+      }
+    };
+  }
+
+  @Bean
+  StackdriverMeterRegistry meterRegistry(StackdriverConfig stackdriverConfig) {
+    return StackdriverMeterRegistry.builder(stackdriverConfig).build();
   }
 }
