@@ -10,7 +10,7 @@ This repository contains the Contact Centre Data service. This microservice is a
 Do the following steps to set up the code to run locally:
 * Install Java 11 locally
 * Make sure that you have a suitable settings.xml file in your local .m2 directory
-* Clone the census-contact-centre locally
+* Clone the census-contact-centre-service locally
 
 ## Running
 There are two ways of running this service:
