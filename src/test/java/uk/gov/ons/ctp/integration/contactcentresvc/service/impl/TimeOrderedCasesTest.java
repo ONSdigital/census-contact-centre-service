@@ -12,13 +12,13 @@ import java.util.List;
 import org.junit.Test;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 
-public class SortedCaseCollectionTest {
+public class TimeOrderedCasesTest {
   private static final Date DATE1 = makeDate(2020, 6, 14);
   private static final Date DATE2 = makeDate(2020, 6, 15);
   private static final Date DATE3 = makeDate(2021, 2, 3);
   private static final Date DATE4 = makeDate(2021, 2, 4);
 
-  private SortedCaseCollection sortedCases = new SortedCaseCollection();
+  private TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
   private List<CaseDTO> caseList = new ArrayList<>();
 
@@ -28,16 +28,16 @@ public class SortedCaseCollectionTest {
 
   @Test
   public void shouldReturnEmptyWithNoContents() {
-    assertTrue(sortedCases.latest().isEmpty());
+    assertTrue(timeOrderedCases.latest().isEmpty());
   }
 
   @Test
   public void shouldFindOnlyResult() {
     CaseDTO c = createCase(null, DATE1);
     caseList.add(c);
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c, timeOrderedCases.latest().get());
   }
 
   @Test
@@ -46,9 +46,9 @@ public class SortedCaseCollectionTest {
     CaseDTO c2 = createCase(null, DATE2);
     caseList.add(c1);
     caseList.add(c2);
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c2, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c2, timeOrderedCases.latest().get());
   }
 
   @Test
@@ -57,9 +57,9 @@ public class SortedCaseCollectionTest {
     CaseDTO c2 = createCase(DATE2, null);
     caseList.add(c1);
     caseList.add(c2);
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c2, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c2, timeOrderedCases.latest().get());
   }
 
   @Test
@@ -68,9 +68,9 @@ public class SortedCaseCollectionTest {
     CaseDTO c2 = createCase(DATE2, DATE1);
     caseList.add(c1);
     caseList.add(c2);
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c1, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c1, timeOrderedCases.latest().get());
   }
 
   @Test
@@ -82,9 +82,9 @@ public class SortedCaseCollectionTest {
     CaseDTO c5 = createCase(null, DATE1);
     CaseDTO c6 = createCase(null, DATE2);
     caseList.addAll(List.of(c1, c2, c3, c4, c5, c6));
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c3, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c3, timeOrderedCases.latest().get());
   }
 
   @Test
@@ -96,9 +96,9 @@ public class SortedCaseCollectionTest {
     CaseDTO c5 = createCase(null, DATE1);
     CaseDTO c6 = createCase(null, DATE2);
     caseList.addAll(List.of(c1, c2, c3, c4, c5, c6));
-    sortedCases.add(caseList);
-    assertTrue(sortedCases.latest().isPresent());
-    assertEquals(c4, sortedCases.latest().get());
+    timeOrderedCases.add(caseList);
+    assertTrue(timeOrderedCases.latest().isPresent());
+    assertEquals(c4, timeOrderedCases.latest().get());
   }
 
   private CaseDTO createCase(Date created, Date updated) {

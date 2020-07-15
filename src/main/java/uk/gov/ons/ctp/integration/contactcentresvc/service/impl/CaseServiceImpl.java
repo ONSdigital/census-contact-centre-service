@@ -260,15 +260,15 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
-  private SortedCaseCollection findCases(UniquePropertyReferenceNumber uprn, boolean addCaseEvents)
-      throws CTPException {
-    SortedCaseCollection sortedCases = new SortedCaseCollection();
+  private Optional<CaseDTO> findLatestCase(
+      UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
     List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
     log.with("uprn", uprn)
         .with("cases", rmCases.size())
         .debug("Found {} case details in RM for UPRN", rmCases.size());
-    sortedCases.add(rmCases);
+    timeOrderedCases.add(rmCases);
 
     List<CaseDTO> cachedCases =
         dataRepo
@@ -279,9 +279,9 @@ public class CaseServiceImpl implements CaseService {
     log.with("uprn", uprn)
         .with("cases", cachedCases.size())
         .debug("Found {} case details in Cache for UPRN", cachedCases.size());
-    sortedCases.add(cachedCases);
+    timeOrderedCases.add(cachedCases);
 
-    return sortedCases;
+    return timeOrderedCases.latest();
   }
 
   @Override
@@ -290,8 +290,7 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    SortedCaseCollection cases = findCases(uprn, requestParamsDTO.getCaseEvents());
-    Optional<CaseDTO> latest = cases.latest();
+    Optional<CaseDTO> latest = findLatestCase(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
     if (latest.isPresent()) {

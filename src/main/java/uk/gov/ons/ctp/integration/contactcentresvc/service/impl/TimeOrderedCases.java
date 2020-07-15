@@ -8,15 +8,15 @@ import java.util.TreeSet;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 
 /**
- * Collection of CaseDTO objects, which may have been populated by RM or our local cache, and sorted
- * by latest date first , where each object takes it's date in the following order:
+ * Hold a time ordered collection of cases, which may have been populated by RM or our local cache,
+ * and sorted by latest date first , where each object takes it's date in the following order:
  *
  * <ol>
  *   <li>lastUpdated
  *   <li>createdDateTime
  * </ol>
  */
-public class SortedCaseCollection {
+public class TimeOrderedCases {
 
   static class CaseDateComparator implements Comparator<CaseDTO> {
     @Override
@@ -34,7 +34,7 @@ public class SortedCaseCollection {
 
   private TreeSet<CaseDTO> caseSet = new TreeSet<>(new CaseDateComparator());
 
-  public SortedCaseCollection() {}
+  public TimeOrderedCases() {}
 
   public void add(Collection<CaseDTO> cases) {
     caseSet.addAll(cases);
