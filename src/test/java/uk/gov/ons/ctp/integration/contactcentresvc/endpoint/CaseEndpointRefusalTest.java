@@ -10,7 +10,6 @@ import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAd
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +37,6 @@ public final class CaseEndpointRefusalTest {
   private static final String AGENT_ID = "agentId";
   private static final String CALL_ID = "callId";
   private static final String TITLE = "title";
-  private static final String NOTES = "notes";
-  private static final String TEL_NO = "telNo";
   private static final String FORENAME = "forename";
   private static final String SURNAME = "surname";
   private static final String ADDRESS_LINE_1 = "addressLine1";
@@ -50,6 +47,7 @@ public final class CaseEndpointRefusalTest {
   private static final String REASON = "reason";
   private static final String POSTCODE = "postcode";
   private static final String UPRN = "uprn";
+  private static final String IS_HOUSEHOLDER = "isHouseholder";
   private static final String DATE_TIME = "dateTime";
 
   private static final String RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
@@ -112,16 +110,6 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
-  public void refusalTelNoNull() throws Exception {
-    assertOk(TEL_NO, (String) null);
-  }
-
-  @Test
-  public void refusalTelNoBlank() throws Exception {
-    assertOk(TEL_NO, "");
-  }
-
-  @Test
   public void refusalTitleNull() throws Exception {
     assertOk(TITLE, (String) null);
   }
@@ -134,26 +122,6 @@ public final class CaseEndpointRefusalTest {
   @Test
   public void refusalTitleTooLong() throws Exception {
     assertBadRequest(TITLE, "Mrrrrrrrrrrrr");
-  }
-
-  @Test
-  public void refusalNotesValid() throws Exception {
-    assertOk(NOTES, "Note: this is valid");
-  }
-
-  @Test
-  public void refusalNotesNull() throws Exception {
-    assertOk(NOTES, (String) null);
-  }
-
-  @Test
-  public void refusalNotesBlank() throws Exception {
-    assertOk(NOTES, "");
-  }
-
-  @Test
-  public void refusalNotesTooLong() throws Exception {
-    assertBadRequest(NOTES, StringUtils.repeat("A", 513));
   }
 
   @Test
@@ -342,6 +310,21 @@ public final class CaseEndpointRefusalTest {
   @Test
   public void refusalPostcodeBad() throws Exception {
     assertBadRequest(POSTCODE, "SO100 100HJ");
+  }
+
+  @Test
+  public void isHouseholderOk() throws Exception {
+    assertOk(IS_HOUSEHOLDER, "True");
+  }
+
+  @Test
+  public void isHouseholderNull() throws Exception {
+    assertBadRequest(IS_HOUSEHOLDER, (String) null);
+  }
+
+  @Test
+  public void isHouseholderBlank() throws Exception {
+    assertBadRequest(IS_HOUSEHOLDER, "");
   }
 
   @Test

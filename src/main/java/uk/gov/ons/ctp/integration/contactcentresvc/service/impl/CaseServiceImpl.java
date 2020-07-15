@@ -42,6 +42,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCase;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.ContactCompact;
 import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
@@ -866,18 +867,17 @@ public class CaseServiceImpl implements CaseService {
     // Create message payload
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
     refusal.setType(mapToType(refusalRequest.getReason()));
-    refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
     refusal.setAgentId(refusalRequest.getAgentId());
     refusal.setCallId(refusalRequest.getCallId());
+    refusal.setHouseholder(refusalRequest.getIsHouseholder());
 
     // Populate contact
-    Contact contact = new Contact();
+    ContactCompact contact = new ContactCompact();
     contact.setTitle(refusalRequest.getTitle());
     contact.setForename(refusalRequest.getForename());
     contact.setSurname(refusalRequest.getSurname());
-    contact.setTelNo(refusalRequest.getTelNo());
     refusal.setContact(contact);
 
     // Populate address

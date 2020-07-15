@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 
@@ -14,7 +15,7 @@ import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.model.AddressCompact;
-import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.ContactCompact;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
@@ -97,11 +98,9 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
         RefusalRequestDTO.builder()
             .caseId(caseId == null ? null : caseId.toString())
             .agentId("123")
-            .notes("Description of refusal")
             .title("Mr")
             .forename("Steve")
             .surname("Jones")
-            .telNo("+447890000000")
             .addressLine1("1 High Street")
             .addressLine2("Delph")
             .addressLine3("Oldham")
@@ -110,6 +109,7 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
             .uprn(uprn)
             .region(A_REGION)
             .reason(reason)
+            .isHouseholder(true)
             .dateTime(dateTime)
             .callId(A_CALL_ID)
             .build();
@@ -127,14 +127,14 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     // Validate payload of published event
     RespondentRefusalDetails refusal =
         verifyEventSent(EventType.REFUSAL_RECEIVED, RespondentRefusalDetails.class);
-    assertEquals("Description of refusal", refusal.getReport());
     assertEquals("123", refusal.getAgentId());
     assertEquals(A_CALL_ID, refusal.getCallId());
+    assertTrue(refusal.isHouseholder());
     assertEquals(expectedEventCaseId, refusal.getCollectionCase().getId());
 
     verifyRefusalAddress(refusal);
     assertEquals(reason.name() + "_REFUSAL", refusal.getType());
-    Contact expectedContact = new Contact("Mr", "Steve", "Jones", "+447890000000");
+    ContactCompact expectedContact = new ContactCompact("Mr", "Steve", "Jones");
     assertEquals(expectedContact, refusal.getContact());
   }
 
