@@ -273,8 +273,8 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
-  public void refusalCallIdRequired() throws Exception {
-    assertBadRequest(CALL_ID, (String) null);
+  public void refusalCallIdOptional() throws Exception {
+    assertOk(CALL_ID, (String) null);
   }
 
   @Test
