@@ -32,7 +32,7 @@ When running successfully version information can be obtained from the info endp
     
 * localhost:8171/info
     
-## Docker image build
+## Docker Image Build
 
 Is switched off by default for clean deploy. Switch on with;
 
