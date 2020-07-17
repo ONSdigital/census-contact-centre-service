@@ -226,13 +226,15 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
+    // CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
 
-    rejectHouseholdIndividual(caseDetails);
+    // rejectHouseholdIndividual(caseDetails);
 
     // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
     // this far.
-    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
+    // CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
+
+    CaseDTO caseServiceResponse = getLatestCaseFromRmOrCache(caseId, getCaseEvents);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -1059,5 +1061,54 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("transactionId", transactionId)
         .debug("{} event published", eventType);
+  }
+
+  private CaseDTO getLatestCaseFromRmOrCache(UUID caseId, Boolean getCaseEvents)
+      throws CTPException {
+
+    List<CaseDTO> cases = new ArrayList<>();
+    CaseContainerDTO caseDetails = null;
+    CaseDTO caseDto = null;
+
+    try {
+      caseDetails = getCaseFromRm(caseId, getCaseEvents);
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
+      } else {
+        log.with("caseId", caseId)
+            .with("status", ex.getStatus())
+            .error("Error calling Case Service");
+        throw ex;
+      }
+    }
+
+    if (caseDetails != null) {
+      rejectHouseholdIndividual(caseDetails);
+      caseDto = mapCaseContainerDTO(caseDetails);
+      cases.add(caseDto);
+    }
+
+    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
+    if (cachedCase.isPresent()) {
+      log.with("caseId", caseId).info("Case details found in store");
+      caseDetails = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
+      rejectHouseholdIndividual(caseDetails);
+      caseDto = mapCaseContainerDTO(caseDetails);
+      cases.add(caseDto);
+    }
+
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+    timeOrderedCases.add(cases);
+    Optional<CaseDTO> latest = timeOrderedCases.latest();
+    caseDto = null; // reset to null before setting to the latest
+    if (latest.isPresent()) {
+      caseDto = latest.get();
+    } else {
+      log.with("caseId", caseId).warn("Request for case Not Found");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
+    }
+
+    return caseDto;
   }
 }
