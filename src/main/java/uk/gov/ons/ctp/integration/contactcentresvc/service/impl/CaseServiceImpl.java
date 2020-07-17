@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
 import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
 
 import com.godaddy.logging.Logger;
@@ -42,6 +43,7 @@ import uk.gov.ons.ctp.common.event.model.CollectionCase;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseCompact;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.Contact;
+import uk.gov.ons.ctp.common.event.model.ContactCompact;
 import uk.gov.ons.ctp.common.event.model.EventPayload;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
@@ -167,6 +169,11 @@ public class CaseServiceImpl implements CaseService {
   public CaseDTO createCaseForNewAddress(NewCaseRequestDTO caseRequestDTO) throws CTPException {
     CaseType caseType = caseRequestDTO.getCaseType();
 
+    String errorMessage =
+        "All queries relating to Communal Establishments in Northern Ireland "
+            + "should be escalated to NISRA HQ";
+    rejectIfCEInNI(caseType, caseRequestDTO.getRegion(), errorMessage);
+
     validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
     // Reject if CE with non-positive number of residents
@@ -254,32 +261,49 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
+  private Optional<CaseDTO> findLatestCase(
+      UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+
+    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
+    log.with("uprn", uprn)
+        .with("cases", rmCases.size())
+        .debug("Found {} case details in RM for UPRN", rmCases.size());
+    timeOrderedCases.add(rmCases);
+
+    List<CaseDTO> cachedCases =
+        dataRepo
+            .readCachedCasesByUprn(uprn)
+            .stream()
+            .map(this::createNewCachedCaseResponse)
+            .collect(toList());
+    log.with("uprn", uprn)
+        .with("cases", cachedCases.size())
+        .debug("Found {} case details in Cache for UPRN", cachedCases.size());
+    timeOrderedCases.add(cachedCases);
+
+    return timeOrderedCases.latest();
+  }
+
   @Override
   public List<CaseDTO> getCaseByUPRN(
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
-    log.with("uprn", uprn).debug("Fetching case details by UPRN");
+    log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), requestParamsDTO.getCaseEvents());
-    if (!rmCases.isEmpty()) {
-      log.with("uprn", uprn).with("cases", rmCases.size()).debug("Returning case details for UPRN");
-      return rmCases;
+    Optional<CaseDTO> latest = findLatestCase(uprn, requestParamsDTO.getCaseEvents());
+
+    CaseDTO response;
+    if (latest.isPresent()) {
+      response = latest.get();
+    } else {
+      // New Case
+      CachedCase newcase = createNewCachedCase(uprn.getValue());
+      log.with("uprn", uprn)
+          .with("caseId", newcase.getId())
+          .debug("Returning new skeleton case for UPRN");
+      response = createNewCachedCaseResponse(newcase);
     }
-
-    // Return stored case details if present
-    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseByUPRN(uprn);
-    if (cachedCase.isPresent()) {
-      log.with("uprn", uprn).debug("Returning stored case details for UPRN");
-      CaseDTO response = createNewCachedCaseResponse(cachedCase.get());
-      return Collections.singletonList(response);
-    }
-
-    // New Case
-    CachedCase newcase = createNewCachedCase(uprn.getValue());
-    log.with("uprn", uprn)
-        .with("caseId", newcase.getId())
-        .debug("Returning new skeleton case for UPRN");
-    CaseDTO response = createNewCachedCaseResponse(newcase);
     return Collections.singletonList(response);
   }
 
@@ -634,7 +658,11 @@ public class CaseServiceImpl implements CaseService {
         .debug("Invalidate Case");
 
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, false);
-    checkCaseIsNotTypeCE(caseDetails);
+    String errorMessage =
+        "All CE addresses will be validated by a Field Officer. "
+            + "It is not necessary to submit this Invalidation request.";
+    CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
+    rejectIfCaseIsTypeCE(caseType, errorMessage);
 
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
 
@@ -772,7 +800,6 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequest.setFulfilmentCode(product.getFulfilmentCode());
     fulfilmentRequest.setCaseId(caseId.toString());
     fulfilmentRequest.setContact(contact);
-    fulfilmentRequest.setAddress(caseDTOMapper.map(caze, Address.class));
 
     return fulfilmentRequest;
   }
@@ -866,18 +893,17 @@ public class CaseServiceImpl implements CaseService {
     // Create message payload
     RespondentRefusalDetails refusal = new RespondentRefusalDetails();
     refusal.setType(mapToType(refusalRequest.getReason()));
-    refusal.setReport(refusalRequest.getNotes());
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
     refusal.setAgentId(refusalRequest.getAgentId());
     refusal.setCallId(refusalRequest.getCallId());
+    refusal.setHouseholder(refusalRequest.getIsHouseholder());
 
     // Populate contact
-    Contact contact = new Contact();
+    ContactCompact contact = new ContactCompact();
     contact.setTitle(refusalRequest.getTitle());
     contact.setForename(refusalRequest.getForename());
     contact.setSurname(refusalRequest.getSurname());
-    contact.setTelNo(refusalRequest.getTelNo());
     refusal.setContact(contact);
 
     // Populate address
@@ -887,7 +913,11 @@ public class CaseServiceImpl implements CaseService {
     address.setAddressLine3(refusalRequest.getAddressLine3());
     address.setTownName(refusalRequest.getTownName());
     address.setPostcode(refusalRequest.getPostcode());
-    address.setRegion(refusalRequest.getRegion().name());
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region =
+        refusalRequest.getRegion();
+    if (region != null) {
+      address.setRegion(region.name());
+    }
     address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
     refusal.setAddress(address);
 
@@ -992,25 +1022,30 @@ public class CaseServiceImpl implements CaseService {
     return cachedCase;
   }
 
-  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) throws CTPException {
-
+  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) {
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
 
     EstabType estabType = EstabType.forCode(newCase.getEstabType());
     response.setEstabType(estabType);
     response.setSecureEstablishment(estabType.isSecure());
-
     return response;
   }
 
-  private void checkCaseIsNotTypeCE(CaseContainerDTO caseDetails) throws CTPException {
-    if (caseDetails.getCaseType().equals("CE")) {
-      String message =
-          "All CE addresses will be validated by a Field Officer. "
-              + "It is not necessary to submit this Invalidation request.";
-      log.with(caseDetails.getId()).warn(message);
-      throw new CTPException(Fault.BAD_REQUEST, message);
+  private void rejectIfCEInNI(
+      CaseType caseType,
+      uk.gov.ons.ctp.integration.contactcentresvc.representation.Region region,
+      String errorMessage)
+      throws CTPException {
+    if (region == uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N) {
+      rejectIfCaseIsTypeCE(caseType, errorMessage);
+    }
+  }
+
+  private void rejectIfCaseIsTypeCE(CaseType caseType, String errorMessage) throws CTPException {
+    if (caseType == CaseType.CE) {
+      log.with(caseType.name()).warn(errorMessage);
+      throw new CTPException(Fault.BAD_REQUEST, errorMessage);
     }
   }
 

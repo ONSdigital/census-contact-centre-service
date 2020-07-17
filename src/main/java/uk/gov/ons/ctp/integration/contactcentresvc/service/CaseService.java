@@ -24,7 +24,9 @@ public interface CaseService {
   CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO) throws CTPException;
 
   /**
-   * Return HH, CE and SPG cases but filter out any HI cases at address
+   * Return the latest HH, CE and SPG (but not HI) case at the address given by the UPRN.
+   *
+   * <p>If our cached case is newer, we will return that.
    *
    * @param uprn Unique Property Reference No for which to return cases
    * @param requestParamsDTO request details
