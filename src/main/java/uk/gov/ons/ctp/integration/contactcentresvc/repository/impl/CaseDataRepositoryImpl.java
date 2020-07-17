@@ -37,6 +37,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
 
   private static final String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
 
+  private static final String[] SEARCH_BY_CASEID_PATH = new String[] {"id"};
+
   @PostConstruct
   public void init() throws CTPException {
     caseSchema = gcpProject + "-" + caseSchemaName.toLowerCase();
@@ -83,6 +85,11 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       throws CTPException {
     String key = String.valueOf(uprn.getValue());
     return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
+  }
+
+  public List<CachedCase> readCachedCasesById(UUID caseId) throws CTPException {
+    String key = caseId.toString();
+    return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_CASEID_PATH, key);
   }
 
   @Override

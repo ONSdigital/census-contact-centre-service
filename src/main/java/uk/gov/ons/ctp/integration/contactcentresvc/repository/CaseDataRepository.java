@@ -36,4 +36,13 @@ public interface CaseDataRepository {
    * @throws CTPException for error reading case
    */
   Optional<CachedCase> readCachedCaseById(final UUID caseId) throws CTPException;
+
+  /**
+   * Get all Cached cases for an address by Id
+   *
+   * @param caseId of the case to read
+   * @return list of cached cases found that match the given caseId
+   * @throws CTPException on error
+   */
+  List<CachedCase> readCachedCasesById(UUID caseId) throws CTPException;
 }

@@ -1089,19 +1089,22 @@ public class CaseServiceImpl implements CaseService {
       cases.add(caseDto);
     }
 
-    Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
-    if (cachedCase.isPresent()) {
-      log.with("caseId", caseId).info("Case details found in store");
-      caseDetails = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
-      rejectHouseholdIndividual(caseDetails);
-      caseDto = mapCaseContainerDTO(caseDetails);
-      cases.add(caseDto);
-    }
+    List<CaseDTO> cachedCases =
+        dataRepo
+            .readCachedCasesById(caseId)
+            .stream()
+            .map(this::createNewCachedCaseResponse)
+            .collect(toList());
+    log.with("caseId", caseId)
+        .with("cases", cachedCases.size())
+        .debug("Found {} case details in Cache for caseId", cachedCases.size());
 
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
     timeOrderedCases.add(cases);
+    timeOrderedCases.add(cachedCases);
     Optional<CaseDTO> latest = timeOrderedCases.latest();
-    caseDto = null; // reset to null before setting to the latest
+
+    caseDto = null;
     if (latest.isPresent()) {
       caseDto = latest.get();
     } else {
