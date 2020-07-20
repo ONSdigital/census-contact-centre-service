@@ -219,6 +219,14 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
+  private void rejectHouseholdIndividual(CaseDTO caseDetails) {
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.with(caseDetails.getId())
+          .info("Case is not suitable as it is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
+    }
+  }
+
   @Override
   public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
@@ -235,6 +243,8 @@ public class CaseServiceImpl implements CaseService {
     // CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
 
     CaseDTO caseServiceResponse = getLatestCaseFromRmOrCache(caseId, getCaseEvents);
+
+    rejectHouseholdIndividual(caseServiceResponse);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -1084,7 +1094,8 @@ public class CaseServiceImpl implements CaseService {
     }
 
     if (caseDetails != null) {
-      rejectHouseholdIndividual(caseDetails);
+      //      rejectHouseholdIndividual(
+      //          caseDetails); // TODO make sure that this is also done to CachedCases
       caseDto = mapCaseContainerDTO(caseDetails);
       cases.add(caseDto);
     }
@@ -1098,6 +1109,14 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("cases", cachedCases.size())
         .debug("Found {} case details in Cache for caseId", cachedCases.size());
+
+    // remove any Household individual cases from the list of cached cases found
+    //    for (int i = 0; i > cachedCases.size(); i++) {
+    //      String caseType = cachedCases.get(i).getCaseType();
+    //      if (caseType.equals(CaseType.HI.name())) {
+    //        cachedCases.remove(i);
+    //      }
+    //    }
 
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
     timeOrderedCases.add(cases);
