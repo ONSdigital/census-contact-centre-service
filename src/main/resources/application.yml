@@ -40,6 +40,11 @@ management:
         project-id: dummy-project-id
         enabled: false
         step: PT1M
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
 
 server:
   port: 8171
