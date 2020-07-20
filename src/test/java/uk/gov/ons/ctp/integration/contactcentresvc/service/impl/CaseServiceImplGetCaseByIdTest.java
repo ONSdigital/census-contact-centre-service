@@ -12,7 +12,6 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUI
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -124,6 +123,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     // Build results to be returned from search
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     caseFromCaseService.setCaseType(caseType.name());
+    CachedCase caseFromRepository;
     CaseDTO expectedCaseResult;
 
     if (cached) {
@@ -131,13 +131,22 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
           .when(caseServiceClient)
           .getCaseById(eq(UUID_0), any());
 
-      CachedCase caseFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
-      caseFromRepository.setCreatedDateTime(caseFromCaseService.getCreatedDateTime());
-      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
-          .thenReturn(Optional.of(caseFromRepository));
+      List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+      Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
+      caseFromRepository = casesFromRepository.get(1); // 1 has a more recent createdDateTime than 0
+      caseFromRepository.setCaseType(CaseType.valueOf(caseType.name()));
 
-      CaseContainerDTO expectedCase = mapperFacade.map(caseFromRepository, CaseContainerDTO.class);
-      expectedCaseResult = createExpectedCaseDTO(expectedCase, caseEvents);
+      expectedCaseResult = mapperFacade.map(caseFromRepository, CaseDTO.class);
+
+      // We need to account for the mapping from a CachedCase to a CaseDTO missing a few fields:
+      expectedCaseResult.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+      expectedCaseResult.setEstabType(EstabType.HOLIDAY_PARK);
+      if (!caseEvents) {
+        expectedCaseResult.setCaseEvents(null);
+      }
+      // CaseContainerDTO expectedCase = mapperFacade.map(caseFromRepository,
+      // CaseContainerDTO.class);
+      // expectedCaseResult = createExpectedCaseDTO(expectedCase, caseEvents);
 
     } else {
       Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any()))
@@ -150,7 +159,13 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     CaseDTO results = target.getCaseById(UUID_0, requestParams);
 
     verifyCase(results, expectedCaseResult, caseEvents, cached);
-    assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
+
+    if (cached) {
+      assertEquals(asMillis("2020-06-12T11:55:23.195Z"), results.getCreatedDateTime().getTime());
+    } else {
+      assertEquals(
+          asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
+    }
   }
 
   private UniquePropertyReferenceNumber createUprn(String uprn) {

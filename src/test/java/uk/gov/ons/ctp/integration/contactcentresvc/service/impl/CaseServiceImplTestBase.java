@@ -49,6 +49,8 @@ public abstract class CaseServiceImplTestBase {
 
   @Mock AddressService addressSvc;
 
+  @Mock TimeOrderedCases timeOrderedCases;
+
   static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
 
