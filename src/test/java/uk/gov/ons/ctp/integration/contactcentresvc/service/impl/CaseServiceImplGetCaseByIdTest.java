@@ -144,9 +144,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       if (!caseEvents) {
         expectedCaseResult.setCaseEvents(null);
       }
-      // CaseContainerDTO expectedCase = mapperFacade.map(caseFromRepository,
-      // CaseContainerDTO.class);
-      // expectedCaseResult = createExpectedCaseDTO(expectedCase, caseEvents);
 
     } else {
       Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any()))
