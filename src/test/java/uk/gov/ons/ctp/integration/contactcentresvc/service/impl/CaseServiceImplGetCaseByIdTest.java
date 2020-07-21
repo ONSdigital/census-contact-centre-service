@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,6 +47,9 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   private static final boolean NO_CACHED_CASE = false;
 
   private static final String AN_ESTAB_UPRN = "334111111111";
+
+  private static final String CACHED_CASE_UPRN_1 = "1347459999";
+  private static final String CACHED_CASE_UPRN_2 = "334999999999";
 
   @Before
   public void setup() {
@@ -118,19 +122,24 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     }
   }
 
-  //  @Test
-  //  public void shouldGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
-  //    mockCasesFromRm();
-  //    mockCasesFromCache();
-  //    CaseDTO result = getCasesByUprn(false);
-  //    assertEquals(CACHED_CASE_ID_1, result.getId());
-  //  }
-
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
     Boolean caseEvents = false;
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+
+    // Make sure that expected case has the most recent created date and a different uprn from the
+    // other cases with that id
+    CachedCase expectedCase = casesFromRepository.get(0);
+    expectedCase.setId(UUID_0.toString());
+    expectedCase.setCreatedDateTime(new Date());
+    expectedCase.setUprn(CACHED_CASE_UPRN_1);
+
+    casesFromRepository.get(1).setId(UUID_0.toString());
+    casesFromRepository.get(1).setUprn(CACHED_CASE_UPRN_2);
+
+    caseFromCaseService.setId(UUID_0);
+    caseFromCaseService.setUprn(CACHED_CASE_UPRN_2);
 
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
     Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
@@ -138,10 +147,9 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(UUID_0, requestParams);
-    //    assertEquals(UUID_0, results.getId());
 
     // Check the value of the uprn to confirm that it was the latest case that was returned
-    assertEquals(new UniquePropertyReferenceNumber("334999999999"), results.getUprn());
+    assertEquals(new UniquePropertyReferenceNumber(CACHED_CASE_UPRN_1), results.getUprn());
   }
 
   @SneakyThrows
