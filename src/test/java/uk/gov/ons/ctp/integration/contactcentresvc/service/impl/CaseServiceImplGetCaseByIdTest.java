@@ -11,6 +11,8 @@ import static org.mockito.Mockito.never;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -140,6 +142,41 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
     caseFromCaseService.setId(UUID_0);
     caseFromCaseService.setUprn(CACHED_CASE_UPRN_2);
+
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
+
+    // Run the request
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
+    CaseDTO results = target.getCaseById(UUID_0, requestParams);
+
+    // Check the value of the uprn to confirm that it was the latest case that was returned
+    assertEquals(new UniquePropertyReferenceNumber(CACHED_CASE_UPRN_1), results.getUprn());
+  }
+
+  @Test
+  public void testGetLatestFromCacheWhenResultsFromBothRmAndCacheWithSmallTimeDifference()
+      throws Exception {
+    Boolean caseEvents = false;
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+
+    // Make sure that expected case has the most recent created date and a different uprn from the
+    // other cases with that id
+    CachedCase expectedCase = casesFromRepository.get(0);
+    expectedCase.setId(UUID_0.toString());
+    expectedCase.setUprn(CACHED_CASE_UPRN_1);
+
+    CachedCase closeContenderCase = casesFromRepository.get(1);
+    closeContenderCase.setId(UUID_0.toString());
+    closeContenderCase.setUprn(CACHED_CASE_UPRN_2);
+
+    expectedCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
+    closeContenderCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
+
+    caseFromCaseService.setId(UUID_0);
+    caseFromCaseService.setUprn(CACHED_CASE_UPRN_2);
+    caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 10, 4, 6)));
 
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
     Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
@@ -283,5 +320,9 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
   private List<CaseContainerDTO> casesFromCaseService() {
     return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
+  }
+
+  private Date utcDate(LocalDateTime dateTime) {
+    return Date.from(dateTime.toInstant(ZoneOffset.UTC));
   }
 }
