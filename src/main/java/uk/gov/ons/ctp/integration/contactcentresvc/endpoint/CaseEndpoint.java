@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import io.micrometer.core.annotation.Timed;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -37,6 +38,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
 /** The REST controller for ContactCentreSvc find cases end points */
+@Timed
 @RestController
 @RequestMapping(value = "/cases", produces = "application/json")
 public class CaseEndpoint implements CTPEndpoint {

@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import io.micrometer.core.annotation.Timed;
 import java.util.List;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentsReq
 import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 
 /** The REST controller for ContactCentreSvc Fulfilments end points */
+@Timed
 @RestController
 @RequestMapping(value = "/", produces = "application/json")
 public final class FulfilmentsEndpoint implements CTPEndpoint {

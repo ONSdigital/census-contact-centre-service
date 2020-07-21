@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import io.micrometer.core.annotation.Timed;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryR
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** The REST endpoint controller for ContactCentreSvc Details */
+@Timed
 @RestController
 @RequestMapping(value = "/addresses", produces = "application/json")
 public final class AddressEndpoint implements CTPEndpoint {
