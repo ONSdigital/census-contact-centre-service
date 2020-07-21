@@ -118,6 +118,32 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     }
   }
 
+  //  @Test
+  //  public void shouldGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
+  //    mockCasesFromRm();
+  //    mockCasesFromCache();
+  //    CaseDTO result = getCasesByUprn(false);
+  //    assertEquals(CACHED_CASE_ID_1, result.getId());
+  //  }
+
+  @Test
+  public void testGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
+    Boolean caseEvents = false;
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
+
+    // Run the request
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
+    CaseDTO results = target.getCaseById(UUID_0, requestParams);
+    //    assertEquals(UUID_0, results.getId());
+
+    // Check the value of the uprn to confirm that it was the latest case that was returned
+    assertEquals(new UniquePropertyReferenceNumber("334999999999"), results.getUprn());
+  }
+
   @SneakyThrows
   private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents, boolean cached) {
     // Build results to be returned from search
