@@ -137,15 +137,25 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     // Make sure that expected case has the most recent date
     cachedCase0.setCreatedDateTime(new Date());
 
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
+    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+  }
+
+  private void doGetCaseById(
+      Boolean caseEvents,
+      CaseContainerDTO caseFromCaseService,
+      List<CachedCase> casesFromRepository,
+      UUID caseId,
+      String expectedUprn)
+      throws CTPException {
+    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
+    Mockito.when(dataRepo.readCachedCasesById(eq(caseId))).thenReturn(casesFromRepository);
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
-    CaseDTO results = target.getCaseById(UUID_0, requestParams);
+    CaseDTO results = target.getCaseById(caseId, requestParams);
 
     // Check the value of the uprn to confirm that it is the expected case that has been returned
-    assertEquals(new UniquePropertyReferenceNumber(CACHED_CASE_UPRN_0), results.getUprn());
+    assertEquals(new UniquePropertyReferenceNumber(expectedUprn), results.getUprn());
   }
 
   @Test
@@ -165,15 +175,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     cachedCase1.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
     caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 10, 4, 6)));
 
-    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
-
-    // Run the request
-    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
-    CaseDTO results = target.getCaseById(UUID_0, requestParams);
-
-    // Check the value of the uprn to confirm that it was the latest case that was returned
-    assertEquals(new UniquePropertyReferenceNumber(CACHED_CASE_UPRN_0), results.getUprn());
+    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
   @SneakyThrows
