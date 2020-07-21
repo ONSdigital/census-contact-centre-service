@@ -140,24 +140,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
-  private void doGetCaseById(
-      Boolean caseEvents,
-      CaseContainerDTO caseFromCaseService,
-      List<CachedCase> casesFromRepository,
-      UUID caseId,
-      String expectedUprn)
-      throws CTPException {
-    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCachedCasesById(eq(caseId))).thenReturn(casesFromRepository);
-
-    // Run the request
-    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
-    CaseDTO results = target.getCaseById(caseId, requestParams);
-
-    // Check the value of the uprn to confirm that it is the expected case that has been returned
-    assertEquals(new UniquePropertyReferenceNumber(expectedUprn), results.getUprn());
-  }
-
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCacheWithSmallTimeDifference()
       throws Exception {
@@ -177,6 +159,33 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
     doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
+
+  @Test
+  public void testGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
+    Boolean caseEvents = false;
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    CachedCase cachedCase0 = casesFromRepository.get(0);
+
+    setUpIdsAndUprns(caseFromCaseService, cachedCase0, casesFromRepository.get(1));
+
+    // Make sure that expected case has the most recent date
+    caseFromCaseService.setLastUpdated(new Date());
+
+    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
+  }
+
+  //  @Test
+  //  public void shouldGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
+  //    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 2, 0, 0)));
+  //    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 3, 0, 0)));
+  //    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 0, 0)));
+  //    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 23, 0, 0)));
+  //    mockCasesFromRm();
+  //    mockCasesFromCache();
+  //    CaseDTO result = getCasesByUprn(false);
+  //    assertEquals(UUID_1, result.getId());
+  //  }
 
   @SneakyThrows
   private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents, boolean cached) {
@@ -325,5 +334,23 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
     caseFromCaseService.setId(UUID_0);
     caseFromCaseService.setUprn(RM_CASE_UPRN_0);
+  }
+
+  private void doGetCaseById(
+      Boolean caseEvents,
+      CaseContainerDTO caseFromCaseService,
+      List<CachedCase> casesFromRepository,
+      UUID caseId,
+      String expectedUprn)
+      throws CTPException {
+    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
+    Mockito.when(dataRepo.readCachedCasesById(eq(caseId))).thenReturn(casesFromRepository);
+
+    // Run the request
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
+    CaseDTO results = target.getCaseById(caseId, requestParams);
+
+    // Check the value of the uprn to confirm that it is the expected case that has been returned
+    assertEquals(new UniquePropertyReferenceNumber(expectedUprn), results.getUprn());
   }
 }
