@@ -127,7 +127,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
-    Boolean caseEvents = false;
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase0 = casesFromRepository.get(0);
@@ -137,13 +136,12 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     // Make sure that expected case has the most recent date
     cachedCase0.setCreatedDateTime(new Date());
 
-    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCacheWithSmallTimeDifference()
       throws Exception {
-    Boolean caseEvents = false;
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase0 = casesFromRepository.get(0);
@@ -157,12 +155,11 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     cachedCase1.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
     caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 10, 4, 6)));
 
-    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
   @Test
   public void testGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
-    Boolean caseEvents = false;
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase0 = casesFromRepository.get(0);
@@ -172,20 +169,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     // Make sure that expected case has the most recent date
     caseFromCaseService.setLastUpdated(new Date());
 
-    doGetCaseById(caseEvents, caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
   }
-
-  //  @Test
-  //  public void shouldGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
-  //    casesFromCache.get(0).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 2, 0, 0)));
-  //    casesFromCache.get(1).setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 3, 0, 0)));
-  //    casesFromRm.get(0).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 0, 0)));
-  //    casesFromRm.get(1).setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 23, 0, 0)));
-  //    mockCasesFromRm();
-  //    mockCasesFromCache();
-  //    CaseDTO result = getCasesByUprn(false);
-  //    assertEquals(UUID_1, result.getId());
-  //  }
 
   @SneakyThrows
   private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents, boolean cached) {
@@ -337,7 +322,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   private void doGetCaseById(
-      Boolean caseEvents,
       CaseContainerDTO caseFromCaseService,
       List<CachedCase> casesFromRepository,
       UUID caseId,
@@ -347,7 +331,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     Mockito.when(dataRepo.readCachedCasesById(eq(caseId))).thenReturn(casesFromRepository);
 
     // Run the request
-    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
     CaseDTO results = target.getCaseById(caseId, requestParams);
 
     // Check the value of the uprn to confirm that it is the expected case that has been returned
