@@ -5,3 +5,9 @@ logging:
     org.springframework: WARN
   profile: CLOUD
   useJson: true
+
+management:
+  metrics:
+    export:
+      stackdriver:
+        enabled: true

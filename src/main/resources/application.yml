@@ -37,14 +37,9 @@ management:
       application: ContactCentreService
     export:
       stackdriver:
-        project-id: dummy-project-id
-        enabled: false
+        project-id: ${GOOGLE_CLOUD_PROJECT}
+        enabled: true
         step: PT1M
-    web:
-      server:
-        request:
-          autotime:
-            enabled: true
 
 server:
   port: 8171
