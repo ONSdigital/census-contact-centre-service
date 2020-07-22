@@ -203,8 +203,10 @@ public class ContactCentreSvcApplication {
     return new MeterFilter() {
       @Override
       public MeterFilterReply accept(Meter.Id id) {
-        // RM use this to remove Rabbit clutter from the metrics as they have alternate means of monitoring it
-        // We will probable want to experiment with removing this to see what value we get from rabbit metrics
+        // RM use this to remove Rabbit clutter from the metrics as they have alternate means of
+        // monitoring it
+        // We will probable want to experiment with removing this to see what value we get from
+        // rabbit metrics
         // a) once we have Grafana setup, and b) once we try out micrometer in a perf environment
         if (id.getName().startsWith("rabbitmq")) {
           return MeterFilterReply.DENY;
