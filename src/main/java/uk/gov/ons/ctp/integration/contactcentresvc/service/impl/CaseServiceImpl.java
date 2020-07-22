@@ -812,7 +812,6 @@ public class CaseServiceImpl implements CaseService {
     fulfilmentRequest.setFulfilmentCode(product.getFulfilmentCode());
     fulfilmentRequest.setCaseId(caseId.toString());
     fulfilmentRequest.setContact(contact);
-    fulfilmentRequest.setAddress(caseDTOMapper.map(caze, Address.class));
 
     return fulfilmentRequest;
   }

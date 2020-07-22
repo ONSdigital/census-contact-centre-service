@@ -25,7 +25,6 @@ import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
-import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.Contact;
 import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
@@ -364,36 +363,6 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     assertEquals(requestBodyDTOFixture.getForename(), actualContact.getForename());
     assertEquals(requestBodyDTOFixture.getSurname(), actualContact.getSurname());
     assertEquals(null, actualContact.getTelNo());
-
-    Address actualAddress = actualFulfilmentRequest.getAddress();
-    assertEquals(
-        cached ? cachedCase.getAddressLine1() : caseFromCaseService.getAddressLine1(),
-        actualAddress.getAddressLine1());
-    assertEquals(
-        cached ? cachedCase.getAddressLine2() : caseFromCaseService.getAddressLine2(),
-        actualAddress.getAddressLine2());
-    assertEquals(
-        cached ? cachedCase.getAddressLine3() : caseFromCaseService.getAddressLine3(),
-        actualAddress.getAddressLine3());
-    assertEquals(
-        cached ? cachedCase.getTownName() : caseFromCaseService.getTownName(),
-        actualAddress.getTownName());
-    assertEquals(
-        cached ? cachedCase.getPostcode() : caseFromCaseService.getPostcode(),
-        actualAddress.getPostcode());
-    assertEquals(
-        cached ? cachedCase.getRegion() : caseFromCaseService.getRegion(),
-        actualAddress.getRegion());
-    assertEquals(cached ? null : caseFromCaseService.getLatitude(), actualAddress.getLatitude());
-    assertEquals(cached ? null : caseFromCaseService.getLongitude(), actualAddress.getLongitude());
-    assertEquals(
-        cached ? cachedCase.getUprn() : caseFromCaseService.getUprn(), actualAddress.getUprn());
-    assertEquals(
-        cached ? cachedCase.getAddressType() : caseFromCaseService.getAddressType(),
-        actualAddress.getAddressType());
-    assertEquals(
-        cached ? cachedCase.getEstabType() : caseFromCaseService.getEstabType(),
-        actualAddress.getEstabType());
   }
 
   private void doFulfilmentRequestBySMSSuccess(
