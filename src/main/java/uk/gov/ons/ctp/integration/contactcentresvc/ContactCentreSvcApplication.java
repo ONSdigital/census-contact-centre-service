@@ -1,11 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
-import com.godaddy.logging.LoggingConfigs;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.config.MeterFilter;
-import io.micrometer.core.instrument.config.MeterFilterReply;
-import io.micrometer.stackdriver.StackdriverConfig;
-import io.micrometer.stackdriver.StackdriverMeterRegistry;
 import java.time.Duration;
 import java.util.HashMap;
 import javax.annotation.PostConstruct;
@@ -25,6 +19,13 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.web.client.RestTemplate;
+import com.godaddy.logging.LoggingConfigs;
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.config.MeterFilterReply;
+import io.micrometer.stackdriver.StackdriverConfig;
+import io.micrometer.stackdriver.StackdriverMeterRegistry;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
 import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
@@ -219,5 +220,10 @@ public class ContactCentreSvcApplication {
   @Bean
   StackdriverMeterRegistry meterRegistry(StackdriverConfig stackdriverConfig) {
     return StackdriverMeterRegistry.builder(stackdriverConfig).build();
+  }
+  
+  @Bean
+  public TimedAspect timedAspect(StackdriverMeterRegistry registry) {
+      return new TimedAspect(registry);
   }
 }
