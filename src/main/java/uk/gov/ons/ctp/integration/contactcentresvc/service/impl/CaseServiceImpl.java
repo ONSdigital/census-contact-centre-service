@@ -234,14 +234,6 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    // CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
-
-    // rejectHouseholdIndividual(caseDetails);
-
-    // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
-    // this far.
-    // CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
-
     CaseDTO caseServiceResponse = getLatestCaseFromRmOrCache(caseId, getCaseEvents);
 
     rejectHouseholdIndividual(caseServiceResponse);
@@ -1093,8 +1085,6 @@ public class CaseServiceImpl implements CaseService {
     }
 
     if (caseDetails != null) {
-      //      rejectHouseholdIndividual(
-      //          caseDetails); // TODO make sure that this is also done to CachedCases
       caseDto = mapCaseContainerDTO(caseDetails);
       cases.add(caseDto);
     }
@@ -1108,14 +1098,6 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("cases", cachedCases.size())
         .debug("Found {} case details in Cache for caseId", cachedCases.size());
-
-    // remove any Household individual cases from the list of cached cases found
-    //    for (int i = 0; i > cachedCases.size(); i++) {
-    //      String caseType = cachedCases.get(i).getCaseType();
-    //      if (caseType.equals(CaseType.HI.name())) {
-    //        cachedCases.remove(i);
-    //      }
-    //    }
 
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
     timeOrderedCases.add(cases);
