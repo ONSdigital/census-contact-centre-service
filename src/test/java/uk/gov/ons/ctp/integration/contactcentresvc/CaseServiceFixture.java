@@ -27,4 +27,5 @@ public final class CaseServiceFixture {
   public static final Date A_REQUEST_DATE_TIME = new Date();
   public static final String AN_AGENT_ID = "123";
   public static final String A_QUESTIONNAIRE_ID = "566786126";
+  public static final String A_UAC = "dummy-uac-value";
 }

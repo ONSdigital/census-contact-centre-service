@@ -295,6 +295,28 @@ public class CaseEndpoint implements CTPEndpoint {
     return ResponseEntity.ok(result);
   }
 
+  /**
+   * the GET end point to request a UAC from AD for a given caseid
+   *
+   * @param caseId the id of the case
+   * @param requestBodyDTO the request body
+   * @return response entity
+   * @throws CTPException something went wrong
+   */
+  @RequestMapping(value = "/{caseId}/uac", method = RequestMethod.GET)
+  @ResponseStatus(value = HttpStatus.OK)
+  public ResponseEntity<UACResponseDTO> getUACForCase(
+      @PathVariable(value = "caseId") final UUID caseId, @Valid UACRequestDTO requestParamsDTO)
+      throws CTPException {
+
+    log.with("pathParam", caseId)
+        .with("requestBody", requestParamsDTO)
+        .info("Entering GET getUACForCase");
+
+    UACResponseDTO response = caseService.getUACForCaseId(caseId, requestParamsDTO);
+    return ResponseEntity.ok(response);
+  }
+
   // ---------------------------------------------------------------
   // DUMMY ENDPOINTS FROM HERE
   // ---------------------------------------------------------------
@@ -318,31 +340,6 @@ public class CaseEndpoint implements CTPEndpoint {
     log.with("pathParam", postcode).info("Entering GET getCCSCaseByPostcode");
 
     CaseDTO response = new CaseDTO();
-    return ResponseEntity.ok(response);
-  }
-
-  /**
-   * DUMMY ENDPOINT FOR AD
-   *
-   * <p>the GET end point to request a UAC from AD for a given caseid
-   *
-   * @param caseId the id of the case
-   * @param requestBodyDTO the request body
-   * @return response entity
-   * @throws CTPException something went wrong
-   */
-  @RequestMapping(value = "/{caseId}/uac", method = RequestMethod.GET)
-  @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<UACResponseDTO> getUACForCase(
-      @PathVariable(value = "caseId") final UUID caseId, @Valid UACRequestDTO requestBodyDTO)
-      throws CTPException {
-
-    log.with("pathParam", caseId)
-        .with("requestBody", requestBodyDTO)
-        .info("Entering GET getUACForCase");
-
-    validateMatchingCaseId(caseId, requestBodyDTO.getCaseId());
-    UACResponseDTO response = new UACResponseDTO();
     return ResponseEntity.ok(response);
   }
 

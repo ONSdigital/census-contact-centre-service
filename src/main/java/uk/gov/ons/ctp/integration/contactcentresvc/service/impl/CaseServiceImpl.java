@@ -74,6 +74,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
@@ -527,18 +529,65 @@ public class CaseServiceImpl implements CaseService {
 
     CaseContainerDTO caseDetails = getLaunchCase(caseId);
 
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
+        getNewQidForCase(caseDetails, requestParamsDTO.getIndividual());
+
+    String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
+    String formType = newQuestionnaireIdDto.getFormType();
+
+    String eqUrl = createLaunchUrl(formType, caseDetails, requestParamsDTO, questionnaireId);
+    publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
+    return eqUrl;
+  }
+
+  @Override
+  public UACResponseDTO getUACForCaseId(UUID caseId, UACRequestDTO requestParamsDTO)
+      throws CTPException {
+    log.with("caseId", caseId)
+        .with("request", requestParamsDTO)
+        .debug("Processing request to get UAC for Case");
+
+    CaseContainerDTO caseDetails = getLaunchCase(caseId);
+
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
+        getNewQidForCase(caseDetails, requestParamsDTO.getIndividual());
+
+    UACResponseDTO response =
+        UACResponseDTO.builder()
+            .id(newQuestionnaireIdDto.getQuestionnaireId())
+            .uac(newQuestionnaireIdDto.getUac())
+            .dateTime(DateTimeUtil.nowUTC())
+            .build();
+
+    return response;
+  }
+
+  /**
+   * Request a new questionnaire Id for a Case
+   *
+   * @param caseDetails of case for which to get questionnaire Id
+   * @param individual whether request for individual questionnaire
+   * @return
+   */
+  private SingleUseQuestionnaireIdDTO getNewQidForCase(
+      CaseContainerDTO caseDetails, boolean individual) throws CTPException {
+
     CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
 
-    UUID individualCaseId = createIndividualCaseId(caseType, caseDetails, requestParamsDTO);
+    UUID parentCaseId = caseDetails.getId();
+    UUID individualCaseId = null;
+    if (caseType == CaseType.HH && individual) {
+      caseDetails = createIndividualCase(caseDetails);
+      individualCaseId = caseDetails.getId();
+    }
 
     // Get RM to allocate a new questionnaire ID
     log.info("Before new QID");
-    boolean individual = requestParamsDTO.getIndividual();
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
-        caseServiceClient.getSingleUseQuestionnaireId(caseId, individual, individualCaseId);
+        caseServiceClient.getSingleUseQuestionnaireId(parentCaseId, individual, individualCaseId);
     String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
     String formType = newQuestionnaireIdDto.getFormType();
     log.with("newQuestionnaireID", questionnaireId)
@@ -549,13 +598,11 @@ public class CaseServiceImpl implements CaseService {
       rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
     }
 
-    String eqUrl = createLaunchUrl(formType, caseDetails, requestParamsDTO, questionnaireId);
-    publishSurveyLaunchedEvent(caseDetails.getId(), questionnaireId, requestParamsDTO.getAgentId());
-    return eqUrl;
+    return newQuestionnaireIdDto;
   }
 
   /**
-   * Get the Case for which the client has requested a launch URL
+   * Get the Case for which the client has requested a launch URL/UAC
    *
    * @param caseId of case to get
    * @return CaseContainerDTO for case requested
@@ -573,16 +620,16 @@ public class CaseServiceImpl implements CaseService {
           log.with("caseid", caseId)
               .with("status", ex.getStatus())
               .with("message", ex.getMessage())
-              .warn("New skeleton case created but launch URL not available.");
+              .warn("New skeleton case created but not yet available.");
           throw new CTPException(
               Fault.ACCEPTED_UNABLE_TO_PROCESS,
-              "Unable to provide launch URL at present, please try again later.");
+              "Unable to provide launch URL/UAC at present, please try again later.");
         }
       }
       log.with("caseid", caseId)
           .with("status", ex.getStatus())
           .with("message", ex.getMessage())
-          .error("Unable to provide launch URL, failed to call case service");
+          .error("Unable to provide launch URL/UAC, failed to call case service");
       throw ex;
     }
   }
@@ -600,18 +647,13 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  // Create a new case if for a HH individual
-  private UUID createIndividualCaseId(
-      CaseType caseType, CaseContainerDTO caseDetails, LaunchRequestDTO requestParamsDTO) {
-    boolean individual = requestParamsDTO.getIndividual();
-    UUID individualCaseId = null;
-    if (caseType == CaseType.HH && individual) {
-      individualCaseId = UUID.randomUUID();
-      caseDetails.setId(individualCaseId);
-      caseDetails.setCaseType(CaseType.HI.name());
-      log.with("individualCaseId", individualCaseId).info("Creating new HI case");
-    }
-    return individualCaseId;
+  // Create a new case for a HH individual
+  private CaseContainerDTO createIndividualCase(CaseContainerDTO caseDetails) {
+    UUID individualCaseId = UUID.randomUUID();
+    caseDetails.setId(individualCaseId);
+    caseDetails.setCaseType(CaseType.HI.name());
+    log.with("individualCaseId", individualCaseId).info("Creating new HI case");
+    return caseDetails;
   }
 
   private String createLaunchUrl(

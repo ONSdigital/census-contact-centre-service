@@ -8,7 +8,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
@@ -109,11 +108,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.of(new CachedCase()));
-    List<LaunchRequestDTO> requestsFromCCSvc =
-        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
-    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
-    launchRequestDTO.setIndividual(false);
-    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+    target.getLaunchURLForCaseId(UUID_0, new LaunchRequestDTO());
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -122,11 +117,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     Mockito.when(dataRepo.readCachedCaseById(UUID_0)).thenReturn(Optional.empty());
-    List<LaunchRequestDTO> requestsFromCCSvc =
-        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
-    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
-    launchRequestDTO.setIndividual(true);
-    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+    target.getLaunchURLForCaseId(UUID_0, new LaunchRequestDTO());
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -134,11 +125,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
-    List<LaunchRequestDTO> requestsFromCCSvc =
-        FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
-    LaunchRequestDTO launchRequestDTO = requestsFromCCSvc.get(0);
-    launchRequestDTO.setIndividual(true);
-    target.getLaunchURLForCaseId(UUID_0, launchRequestDTO);
+    target.getLaunchURLForCaseId(UUID_0, new LaunchRequestDTO());
   }
 
   @SneakyThrows
@@ -159,25 +146,25 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldRejectCeManagerFormFromUnitRegionEast() {
+  public void shouldRejectCeManagerFormFromUnitRegionE() {
     CaseContainerDTO dto = mockGetCaseById("CE", "U", "E");
     assertThatCeManagerFormFromUnitRegionIsRejected(dto);
   }
 
   @Test
-  public void shouldRejectCeManagerFormFromUnitRegionWest() {
+  public void shouldRejectCeManagerFormFromUnitRegionW() {
     CaseContainerDTO dto = mockGetCaseById("CE", "U", "W");
     assertThatCeManagerFormFromUnitRegionIsRejected(dto);
   }
 
   @Test
-  public void shouldRejectCeManagerFormFromUnitRegionNorth() {
+  public void shouldRejectCeManagerFormFromUnitRegionN() {
     CaseContainerDTO dto = mockGetCaseById("CE", "U", "N");
     assertThatCeManagerFormFromUnitRegionIsRejected(dto);
   }
 
   @Test
-  public void shouldRejectNorthernIslandCallsFromCeManagers() {
+  public void shouldRejectCeManagerFormFromEstabRegionN() {
     CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
     assertThatInvalidLaunchComboIsRejected(
         dto,
@@ -249,16 +236,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     } else {
       assertNull(individualCaseIdCaptor.getValue());
     }
-  }
-
-  private CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
-    CaseContainerDTO caseFromCaseService =
-        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
-    caseFromCaseService.setCaseType(caseType);
-    caseFromCaseService.setAddressLevel(addressLevel);
-    caseFromCaseService.setRegion(region);
-    when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
-    return caseFromCaseService;
   }
 
   private void doLaunchTest(String caseType, boolean individual) throws Exception {
