@@ -39,7 +39,8 @@ management:
       stackdriver:
         project-id: ${GOOGLE_CLOUD_PROJECT}
         enabled: true
-        step: PT1M
+        step: PT2M
+        
 
 server:
   port: 8171
