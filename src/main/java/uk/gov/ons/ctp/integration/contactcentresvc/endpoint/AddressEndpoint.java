@@ -1,13 +1,13 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
-import io.micrometer.core.annotation.Timed;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
+import io.micrometer.core.annotation.Timed;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
@@ -58,6 +58,14 @@ public final class AddressEndpoint implements CTPEndpoint {
   public AddressQueryResponseDTO getAddressesByPostcode(
       @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
     log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
+    
+    
+    try {
+      Thread.sleep((long) (Math.random() * 5000L));
+    } catch(InterruptedException whatever) {
+      
+    }
+    
     return addressService.postcodeQuery(postcodeQueryRequest);
   }
 }
