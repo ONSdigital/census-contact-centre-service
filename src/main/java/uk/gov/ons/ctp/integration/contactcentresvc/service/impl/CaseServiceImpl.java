@@ -1097,14 +1097,14 @@ public class CaseServiceImpl implements CaseService {
     timeOrderedCases.add(cachedCases);
     Optional<CaseDTO> latest = timeOrderedCases.latest();
 
-    caseDto = null;
+    CaseDTO latestCaseDto = null;
     if (latest.isPresent()) {
-      caseDto = latest.get();
+      latestCaseDto = latest.get();
     } else {
       log.with("caseId", caseId).warn("Request for case Not Found");
       throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
     }
 
-    return caseDto;
+    return latestCaseDto;
   }
 }
