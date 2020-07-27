@@ -3,8 +3,6 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 import com.godaddy.logging.LoggingConfigs;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.config.MeterFilterReply;
 import io.micrometer.stackdriver.StackdriverConfig;
@@ -201,14 +199,14 @@ public class ContactCentreSvcApplication {
     };
   }
 
-//  @Bean
-//  Timer myTimer(MeterRegistry meterRegistry) {
-//    return Timer.builder("phil")
-//        .description("request latency in seconds")
-//        .publishPercentiles(0.5, 0.9, 0.95, 0.99) // median and 95th percentile
-//        .publishPercentileHistogram()
-//        .register(meterRegistry);
-//  }
+  //  @Bean
+  //  Timer myTimer(MeterRegistry meterRegistry) {
+  //    return Timer.builder("phil")
+  //        .description("request latency in seconds")
+  //        .publishPercentiles(0.5, 0.9, 0.95, 0.99) // median and 95th percentile
+  //        .publishPercentileHistogram()
+  //        .register(meterRegistry);
+  //  }
 
   @Bean
   public MeterFilter meterFilter() {
