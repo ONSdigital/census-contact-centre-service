@@ -201,14 +201,14 @@ public class ContactCentreSvcApplication {
     };
   }
 
-  @Bean
-  Timer myTimer(MeterRegistry meterRegistry) {
-    return Timer.builder("phil")
-        .description("request latency in seconds")
-        .publishPercentiles(0.5, 0.9, 0.95, 0.99) // median and 95th percentile
-        .publishPercentileHistogram()
-        .register(meterRegistry);
-  }
+//  @Bean
+//  Timer myTimer(MeterRegistry meterRegistry) {
+//    return Timer.builder("phil")
+//        .description("request latency in seconds")
+//        .publishPercentiles(0.5, 0.9, 0.95, 0.99) // median and 95th percentile
+//        .publishPercentileHistogram()
+//        .register(meterRegistry);
+//  }
 
   @Bean
   public MeterFilter meterFilter() {
@@ -230,6 +230,8 @@ public class ContactCentreSvcApplication {
 
   @Bean
   StackdriverMeterRegistry meterRegistry(StackdriverConfig stackdriverConfig) {
+
+    StackdriverMeterRegistry.builder(stackdriverConfig).build();
     return StackdriverMeterRegistry.builder(stackdriverConfig).build();
   }
 
