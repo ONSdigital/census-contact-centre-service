@@ -1058,8 +1058,7 @@ public class CaseServiceImpl implements CaseService {
         .debug("{} event published", eventType);
   }
 
-  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents)
-      throws CTPException {
+  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
 
     List<CaseDTO> cases = new ArrayList<>();
     CaseContainerDTO caseDetails = null;
