@@ -10,15 +10,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -51,7 +51,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   private static final String AN_ESTAB_UPRN = "334111111111";
 
   private static final String CACHED_CASE_UPRN_0 = "1347459987";
-  private static final String CACHED_CASE_UPRN_1 = "1347459999";
   private static final String RM_CASE_UPRN_0 = "1347459988";
 
   @Before
@@ -129,12 +128,12 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase0 = casesFromRepository.get(0);
+    CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase0, casesFromRepository.get(1));
+    setUpIdsAndUprns(caseFromCaseService, cachedCase);
 
     // Make sure that expected case has the most recent date
-    cachedCase0.setCreatedDateTime(new Date());
+    cachedCase.setCreatedDateTime(new Date());
 
     doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
@@ -144,16 +143,14 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase0 = casesFromRepository.get(0);
-    CachedCase cachedCase1 = casesFromRepository.get(1);
+    CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase0, cachedCase1);
+    setUpIdsAndUprns(caseFromCaseService, cachedCase);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
-    cachedCase0.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
-    cachedCase1.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
-    caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 1, 1, 10, 4, 6)));
+    cachedCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
+    caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
 
     doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
@@ -163,16 +160,14 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase0 = casesFromRepository.get(0);
-    CachedCase cachedCase1 = casesFromRepository.get(1);
+    CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase0, cachedCase1);
+    setUpIdsAndUprns(caseFromCaseService, cachedCase);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
     caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
-    cachedCase0.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
-    cachedCase1.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 1, 1, 10, 4, 6)));
+    cachedCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
 
     doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
   }
@@ -182,7 +177,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
 
-    setUpIdsAndUprns(caseFromCaseService, casesFromRepository.get(0), casesFromRepository.get(1));
+    setUpIdsAndUprns(caseFromCaseService, casesFromRepository.get(0));
 
     // Make sure that expected case has the most recent date
     caseFromCaseService.setLastUpdated(new Date());
@@ -204,8 +199,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
           .getCaseById(eq(UUID_0), any());
 
       List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-      Mockito.when(dataRepo.readCachedCasesById(eq(UUID_0))).thenReturn(casesFromRepository);
-      caseFromRepository = casesFromRepository.get(1); // 1 has a more recent createdDateTime than 0
+      caseFromRepository = casesFromRepository.get(1);
+      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(caseFromRepository));
       caseFromRepository.setCaseType(CaseType.valueOf(caseType.name()));
 
       expectedCaseResult = mapperFacade.map(caseFromRepository, CaseDTO.class);
@@ -328,12 +323,9 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   private void setUpIdsAndUprns(
-      CaseContainerDTO caseFromCaseService, CachedCase cachedCase0, CachedCase cachedCase1) {
-    cachedCase0.setId(UUID_0.toString());
-    cachedCase0.setUprn(CACHED_CASE_UPRN_0);
-
-    cachedCase1.setId(UUID_0.toString());
-    cachedCase1.setUprn(CACHED_CASE_UPRN_1);
+      CaseContainerDTO caseFromCaseService, CachedCase cachedCase) {
+    cachedCase.setId(UUID_0.toString());
+    cachedCase.setUprn(CACHED_CASE_UPRN_0);
 
     caseFromCaseService.setId(UUID_0);
     caseFromCaseService.setUprn(RM_CASE_UPRN_0);
@@ -346,7 +338,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       String expectedUprn)
       throws CTPException {
     Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCachedCasesById(eq(caseId))).thenReturn(casesFromRepository);
+    Mockito.when(dataRepo.readCachedCaseById(eq(caseId))).thenReturn(Optional.of(casesFromRepository.get(0)));
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);

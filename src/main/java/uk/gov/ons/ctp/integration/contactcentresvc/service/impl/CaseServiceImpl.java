@@ -1091,7 +1091,7 @@ public class CaseServiceImpl implements CaseService {
 
     List<CaseDTO> cachedCases =
         dataRepo
-            .readCachedCasesById(caseId)
+            .readCachedCaseById(caseId)
             .stream()
             .map(this::createNewCachedCaseResponse)
             .collect(toList());

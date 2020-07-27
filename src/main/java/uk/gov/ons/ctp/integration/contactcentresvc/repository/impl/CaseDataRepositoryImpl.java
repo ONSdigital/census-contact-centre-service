@@ -37,8 +37,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
 
   private static final String[] SEARCH_BY_UPRN_PATH = new String[] {"uprn"};
 
-  private static final String[] SEARCH_BY_CASEID_PATH = new String[] {"id"};
-
   @PostConstruct
   public void init() throws CTPException {
     caseSchema = gcpProject + "-" + caseSchemaName.toLowerCase();
@@ -64,8 +62,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
         // when it holds at least one document. So we therefore have to leave the placeholder
         // object to keep the collection.
         CachedCase dummyCase = new CachedCase();
-        cloudDataStore.storeObject(
-            collectionName, PLACEHOLDER_CASE_NAME, dummyCase, PLACEHOLDER_CASE_NAME);
+        cloudDataStore.storeObject(collectionName, PLACEHOLDER_CASE_NAME, dummyCase,
+            PLACEHOLDER_CASE_NAME);
       } catch (Exception e) {
         log.error("Failed to create collection", e);
         throw new CTPException(Fault.SYSTEM_ERROR, e);
@@ -85,11 +83,6 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
       throws CTPException {
     String key = String.valueOf(uprn.getValue());
     return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_UPRN_PATH, key);
-  }
-
-  public List<CachedCase> readCachedCasesById(UUID caseId) throws CTPException {
-    String key = caseId.toString();
-    return cloudDataStore.search(CachedCase.class, caseSchema, SEARCH_BY_CASEID_PATH, key);
   }
 
   @Override
