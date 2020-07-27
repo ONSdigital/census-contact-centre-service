@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +27,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import lombok.SneakyThrows;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -200,7 +201,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
       List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
       caseFromRepository = casesFromRepository.get(1);
-      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(caseFromRepository));
+      Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
+          .thenReturn(Optional.of(caseFromRepository));
       caseFromRepository.setCaseType(CaseType.valueOf(caseType.name()));
 
       expectedCaseResult = mapperFacade.map(caseFromRepository, CaseDTO.class);
@@ -322,8 +324,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     return Date.from(dateTime.toInstant(ZoneOffset.UTC));
   }
 
-  private void setUpIdsAndUprns(
-      CaseContainerDTO caseFromCaseService, CachedCase cachedCase) {
+  private void setUpIdsAndUprns(CaseContainerDTO caseFromCaseService, CachedCase cachedCase) {
     cachedCase.setId(UUID_0.toString());
     cachedCase.setUprn(CACHED_CASE_UPRN_0);
 
@@ -338,7 +339,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       String expectedUprn)
       throws CTPException {
     Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
-    Mockito.when(dataRepo.readCachedCaseById(eq(caseId))).thenReturn(Optional.of(casesFromRepository.get(0)));
+    Mockito.when(dataRepo.readCachedCaseById(eq(caseId)))
+        .thenReturn(Optional.of(casesFromRepository.get(0)));
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);

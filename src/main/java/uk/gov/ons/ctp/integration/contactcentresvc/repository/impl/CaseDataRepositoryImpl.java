@@ -62,8 +62,8 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
         // when it holds at least one document. So we therefore have to leave the placeholder
         // object to keep the collection.
         CachedCase dummyCase = new CachedCase();
-        cloudDataStore.storeObject(collectionName, PLACEHOLDER_CASE_NAME, dummyCase,
-            PLACEHOLDER_CASE_NAME);
+        cloudDataStore.storeObject(
+            collectionName, PLACEHOLDER_CASE_NAME, dummyCase, PLACEHOLDER_CASE_NAME);
       } catch (Exception e) {
         log.error("Failed to create collection", e);
         throw new CTPException(Fault.SYSTEM_ERROR, e);
