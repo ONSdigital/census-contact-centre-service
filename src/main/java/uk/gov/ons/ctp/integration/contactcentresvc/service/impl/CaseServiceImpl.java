@@ -1061,11 +1061,11 @@ public class CaseServiceImpl implements CaseService {
   private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
 
     List<CaseDTO> cases = new ArrayList<>();
-    CaseContainerDTO caseDetails = null;
+    CaseContainerDTO caseFromRM = null;
     CaseDTO caseDto = null;
 
     try {
-      caseDetails = getCaseFromRm(caseId, getCaseEvents);
+      caseFromRM = getCaseFromRm(caseId, getCaseEvents);
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
@@ -1077,8 +1077,8 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    if (caseDetails != null) {
-      caseDto = mapCaseContainerDTO(caseDetails);
+    if (caseFromRM != null) {
+      caseDto = mapCaseContainerDTO(caseFromRM);
       cases.add(caseDto);
     }
 
