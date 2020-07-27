@@ -62,7 +62,7 @@ public final class AddressEndpoint implements CTPEndpoint {
     try {
       Thread.sleep((long) (Math.random() * 5000L));
     } catch (InterruptedException whatever) {
-
+      log.info("Happy now, checkstyle?!");
     }
 
     return addressService.postcodeQuery(postcodeQueryRequest);
