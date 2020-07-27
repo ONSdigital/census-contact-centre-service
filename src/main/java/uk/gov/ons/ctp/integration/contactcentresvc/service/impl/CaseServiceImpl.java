@@ -226,7 +226,7 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseDTO caseServiceResponse = getLatestCaseFromRmOrCache(caseId, getCaseEvents);
+    CaseDTO caseServiceResponse = getLatestCaseById(caseId, getCaseEvents);
 
     rejectHouseholdIndividual(caseServiceResponse);
 
@@ -257,7 +257,7 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
-  private Optional<CaseDTO> findLatestCase(
+  private Optional<CaseDTO> getLatestCaseByUPRN(
       UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
@@ -287,7 +287,7 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    Optional<CaseDTO> latest = findLatestCase(uprn, requestParamsDTO.getCaseEvents());
+    Optional<CaseDTO> latest = getLatestCaseByUPRN(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
     if (latest.isPresent()) {
@@ -1058,7 +1058,7 @@ public class CaseServiceImpl implements CaseService {
         .debug("{} event published", eventType);
   }
 
-  private CaseDTO getLatestCaseFromRmOrCache(UUID caseId, Boolean getCaseEvents)
+  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents)
       throws CTPException {
 
     List<CaseDTO> cases = new ArrayList<>();
