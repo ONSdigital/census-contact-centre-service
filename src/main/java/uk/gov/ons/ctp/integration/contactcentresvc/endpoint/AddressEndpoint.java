@@ -60,7 +60,7 @@ public final class AddressEndpoint implements CTPEndpoint {
     log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
 
     try {
-      Thread.sleep((long) (Math.random() * 5000L));
+      Thread.sleep((5000L));
     } catch (InterruptedException whatever) {
       log.info("Happy now, checkstyle?!");
     }
