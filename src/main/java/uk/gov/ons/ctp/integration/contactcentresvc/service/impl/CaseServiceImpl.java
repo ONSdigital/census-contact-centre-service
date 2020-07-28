@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1082,19 +1083,24 @@ public class CaseServiceImpl implements CaseService {
       cases.add(caseDto);
     }
 
-    List<CaseDTO> cachedCases =
-        dataRepo
-            .readCachedCaseById(caseId)
-            .stream()
-            .map(this::createNewCachedCaseResponse)
-            .collect(toList());
-    log.with("caseId", caseId)
-        .with("cases", cachedCases.size())
-        .debug("Found {} case details in Cache for caseId", cachedCases.size());
+    Optional<CaseDTO> cachedCase =
+        dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
+
+    log.with("caseId", caseId).debug("Found {} case details in Cache for caseId", cachedCase);
 
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
     timeOrderedCases.add(cases);
-    timeOrderedCases.add(cachedCases);
+    Boolean cachedCaseFound = true;
+    CaseDTO caseToAdd = null;
+    try {
+      caseToAdd = cachedCase.get();
+    } catch (NoSuchElementException e) {
+      cachedCaseFound = false;
+      log.with(e.getMessage()).info("The value of cachedCase.get() was null");
+    }
+    if (cachedCaseFound) {
+      timeOrderedCases.addCase(caseToAdd);
+    }
     Optional<CaseDTO> latest = timeOrderedCases.latest();
 
     CaseDTO latestCaseDto = null;
