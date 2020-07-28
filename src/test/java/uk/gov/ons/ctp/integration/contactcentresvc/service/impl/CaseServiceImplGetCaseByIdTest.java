@@ -32,6 +32,7 @@ import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
@@ -131,7 +132,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase);
+    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date
     cachedCase.setCreatedDateTime(new Date());
@@ -146,7 +148,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase);
+    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
@@ -163,7 +166,8 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
     CachedCase cachedCase = casesFromRepository.get(0);
 
-    setUpIdsAndUprns(caseFromCaseService, cachedCase);
+    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
@@ -178,12 +182,32 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
     List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
 
-    setUpIdsAndUprns(caseFromCaseService, casesFromRepository.get(0));
+    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date
     caseFromCaseService.setLastUpdated(new Date());
 
     doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
+  }
+
+  @Test
+  public void testRMCaseNotFound() throws CTPException {
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+
+    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
+
+    // The RM case should not be found so it should not matter if it has the most recent date
+    caseFromCaseService.setLastUpdated(new Date());
+
+    doGetCaseByIdNotFoundInRM(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+  }
+
+  @Test
+  public void testRMAndCachedCaseNotFound() throws CTPException {
+    doGetCaseByIdNotFound(UUID_0);
   }
 
   @SneakyThrows
@@ -324,14 +348,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     return Date.from(dateTime.toInstant(ZoneOffset.UTC));
   }
 
-  private void setUpIdsAndUprns(CaseContainerDTO caseFromCaseService, CachedCase cachedCase) {
-    cachedCase.setId(UUID_0.toString());
-    cachedCase.setUprn(CACHED_CASE_UPRN_0);
-
-    caseFromCaseService.setId(UUID_0);
-    caseFromCaseService.setUprn(RM_CASE_UPRN_0);
-  }
-
   private void doGetCaseById(
       CaseContainerDTO caseFromCaseService,
       List<CachedCase> casesFromRepository,
@@ -348,5 +364,55 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
     // Check the value of the uprn to confirm that it is the expected case that has been returned
     assertEquals(new UniquePropertyReferenceNumber(expectedUprn), results.getUprn());
+  }
+
+  private void doGetCaseByIdNotFoundInRM(
+      CaseContainerDTO caseFromCaseService,
+      List<CachedCase> casesFromRepository,
+      UUID caseId,
+      String expectedUprn)
+      throws CTPException {
+    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)); // Not in RM
+    Mockito.when(dataRepo.readCachedCaseById(eq(caseId)))
+        .thenReturn(Optional.of(casesFromRepository.get(0)));
+
+    // Run the request
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
+    CaseDTO results = target.getCaseById(caseId, requestParams);
+
+    // Check the value of the uprn to confirm that it is the expected case that has been returned
+    assertEquals(new UniquePropertyReferenceNumber(expectedUprn), results.getUprn());
+  }
+
+  private void doGetCaseByIdNotFound(UUID caseId) throws CTPException {
+    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)); // Not in RM
+    Mockito.when(dataRepo.readCachedCaseById(eq(caseId))).thenReturn(Optional.empty());
+
+    Fault fault = null;
+    String message = null;
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
+    // Run the request
+    try {
+      target.getCaseById(caseId, requestParams);
+    } catch (CTPException e) {
+      fault = e.getFault();
+      message = e.getMessage();
+    }
+
+    assertEquals(Fault.RESOURCE_NOT_FOUND, fault);
+    assertTrue(message.contains("Case Id Not Found:"));
+  }
+
+  private void setUpCaseFromCaseService(
+      CaseContainerDTO caseFromCaseService, UUID caseId, String uprn) {
+    caseFromCaseService.setId(caseId);
+    caseFromCaseService.setUprn(uprn);
+  }
+
+  private void setUpCachedCase(CachedCase cachedCase, String caseId, String uprn) {
+    cachedCase.setId(caseId);
+    cachedCase.setUprn(uprn);
   }
 }
