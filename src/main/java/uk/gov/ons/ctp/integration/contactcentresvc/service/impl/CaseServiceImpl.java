@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -284,20 +283,10 @@ public class CaseServiceImpl implements CaseService {
     Optional<CaseDTO> cachedCase =
         dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
 
-    log.with("caseId", caseId).debug("Found {} case details in Cache for caseId", cachedCase);
-
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
     timeOrderedCases.add(cases);
-    Boolean cachedCaseFound = true;
-    CaseDTO caseToAdd = null;
-    try {
-      caseToAdd = cachedCase.get();
-    } catch (NoSuchElementException e) {
-      cachedCaseFound = false;
-      log.with(e.getMessage()).info("The value of cachedCase.get() was null");
-    }
-    if (cachedCaseFound) {
-      timeOrderedCases.addCase(caseToAdd);
+    if (cachedCase.isPresent()) {
+      timeOrderedCases.addCase(cachedCase.get());
     }
     Optional<CaseDTO> latest = timeOrderedCases.latest();
 
