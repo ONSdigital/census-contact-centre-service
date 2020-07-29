@@ -231,9 +231,9 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
       List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
       caseFromRepository = casesFromRepository.get(1);
+      caseFromRepository.setCaseType(caseType);
       Mockito.when(dataRepo.readCachedCaseById(eq(UUID_0)))
           .thenReturn(Optional.of(caseFromRepository));
-      caseFromRepository.setCaseType(CaseType.valueOf(caseType.name()));
 
       expectedCaseResult = mapperFacade.map(caseFromRepository, CaseDTO.class);
 
