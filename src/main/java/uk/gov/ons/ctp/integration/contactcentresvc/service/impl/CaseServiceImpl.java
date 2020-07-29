@@ -465,7 +465,7 @@ public class CaseServiceImpl implements CaseService {
     UUID originalCaseId = modifyRequestDTO.getCaseId();
     UUID caseId = originalCaseId;
 
-    CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, false);
+    CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
     rejectHouseholdIndividual(caseDetails);
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
     CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());

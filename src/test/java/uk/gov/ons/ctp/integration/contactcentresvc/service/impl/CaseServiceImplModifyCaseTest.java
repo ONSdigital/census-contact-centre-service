@@ -86,17 +86,17 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   private void verifyRmCaseCall(int times) {
-    verify(caseServiceClient, times(times)).getCaseById(any(), eq(false));
+    verify(caseServiceClient, times(times)).getCaseById(any(), eq(true));
   }
 
   private void mockRmHasCase() {
-    when(caseServiceClient.getCaseById(eq(UUID_0), eq(false))).thenReturn(caseContainerDTO);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true))).thenReturn(caseContainerDTO);
   }
 
   private void mockRmCannotFindCase() {
     ResponseStatusException rmLookupMockException =
         new ResponseStatusException(HttpStatus.NOT_FOUND);
-    when(caseServiceClient.getCaseById(eq(UUID_0), eq(false))).thenThrow(rmLookupMockException);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true))).thenThrow(rmLookupMockException);
   }
 
   @Test
