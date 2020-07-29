@@ -1063,7 +1063,6 @@ public class CaseServiceImpl implements CaseService {
 
     List<CaseDTO> cases = new ArrayList<>();
     CaseContainerDTO caseFromRM = null;
-    CaseDTO caseDto = null;
 
     try {
       caseFromRM = getCaseFromRm(caseId, getCaseEvents);
@@ -1079,7 +1078,7 @@ public class CaseServiceImpl implements CaseService {
     }
 
     if (caseFromRM != null) {
-      caseDto = mapCaseContainerDTO(caseFromRM);
+      CaseDTO caseDto = mapCaseContainerDTO(caseFromRM);
       cases.add(caseDto);
     }
 
