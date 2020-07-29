@@ -213,7 +213,7 @@ public class CaseServiceImpl implements CaseService {
     return createNewCachedCaseResponse(cachedCase);
   }
 
-  private void rejectHouseholdIndividual(CaseContainerDTO caseDetails) {
+  private void rejectHouseholdIndividual(CaseDTO caseDetails) {
     if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
       log.with(caseDetails.getId())
           .info("Case is not suitable as it is a household individual case");
@@ -228,13 +228,9 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
+    CaseDTO caseServiceResponse = getLatestCaseById(caseId, getCaseEvents);
 
-    rejectHouseholdIndividual(caseDetails);
-
-    // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
-    // this far.
-    CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
+    rejectHouseholdIndividual(caseServiceResponse);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -263,7 +259,51 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
-  private Optional<CaseDTO> findLatestCase(
+  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
+
+    List<CaseDTO> cases = new ArrayList<>();
+    CaseContainerDTO caseFromRM = null;
+
+    try {
+      caseFromRM = getCaseFromRm(caseId, getCaseEvents);
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
+      } else {
+        log.with("caseId", caseId)
+            .with("status", ex.getStatus())
+            .error("Error calling Case Service");
+        throw ex;
+      }
+    }
+
+    if (caseFromRM != null) {
+      CaseDTO caseDto = mapCaseContainerDTO(caseFromRM);
+      cases.add(caseDto);
+    }
+
+    Optional<CaseDTO> cachedCase =
+        dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
+
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+    timeOrderedCases.add(cases);
+    if (cachedCase.isPresent()) {
+      timeOrderedCases.addCase(cachedCase.get());
+    }
+    Optional<CaseDTO> latest = timeOrderedCases.latest();
+
+    CaseDTO latestCaseDto = null;
+    if (latest.isPresent()) {
+      latestCaseDto = latest.get();
+    } else {
+      log.with("caseId", caseId).warn("Request for case Not Found");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
+    }
+
+    return latestCaseDto;
+  }
+
+  private Optional<CaseDTO> getLatestCaseByUprn(
       UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
@@ -293,7 +333,7 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    Optional<CaseDTO> latest = findLatestCase(uprn, requestParamsDTO.getCaseEvents());
+    Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
     if (latest.isPresent()) {
@@ -326,9 +366,10 @@ public class CaseServiceImpl implements CaseService {
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
-    rejectHouseholdIndividual(caseDetails);
 
     CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
+
+    rejectHouseholdIndividual(caseServiceResponse);
 
     filterCaseEvents(caseServiceResponse, getCaseEvents);
 
@@ -468,7 +509,6 @@ public class CaseServiceImpl implements CaseService {
     UUID caseId = originalCaseId;
 
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, false);
-    rejectHouseholdIndividual(caseDetails);
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
     CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());
 
@@ -476,6 +516,8 @@ public class CaseServiceImpl implements CaseService {
 
     CaseDTO response = caseDTOMapper.map(caseDetails, CaseDTO.class);
     String caseRef = caseDetails.getCaseRef();
+
+    rejectHouseholdIndividual(response);
 
     if (caseTypeChanged) {
       rejectNorthernIrelandHouseholdToCE(requestedCaseType, caseDetails);
