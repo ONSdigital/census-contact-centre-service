@@ -210,6 +210,11 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     doGetCaseByIdNotFound(UUID_0);
   }
 
+  @Test
+  public void testHandleErrorFromRM() throws CTPException {
+    doGetCaseByIdGetsError(UUID_0);
+  }
+
   @SneakyThrows
   private void doTestGetCaseByCaseId(CaseType caseType, boolean caseEvents, boolean cached) {
     // Build results to be returned from search
@@ -403,6 +408,22 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
     assertEquals(Fault.RESOURCE_NOT_FOUND, fault);
     assertTrue(message.contains("Case Id Not Found:"));
+  }
+
+  private void doGetCaseByIdGetsError(UUID caseId) throws CTPException {
+    Mockito.when(caseServiceClient.getCaseById(eq(caseId), any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)); // RM problems
+
+    HttpStatus status = null;
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
+    // Run the request
+    try {
+      target.getCaseById(caseId, requestParams);
+    } catch (ResponseStatusException e) {
+      status = e.getStatus();
+    }
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, status);
   }
 
   private void setUpCaseFromCaseService(
