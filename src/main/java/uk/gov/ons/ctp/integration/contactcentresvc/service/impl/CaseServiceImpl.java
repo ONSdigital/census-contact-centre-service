@@ -258,7 +258,61 @@ public class CaseServiceImpl implements CaseService {
     return caseServiceListResponse;
   }
 
-  private Optional<CaseDTO> getLatestCaseByUPRN(
+  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
+
+    List<CaseDTO> cases = new ArrayList<>();
+    CaseContainerDTO caseFromRM = null;
+
+    try {
+      caseFromRM = getCaseFromRm(caseId, getCaseEvents);
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
+      } else {
+        log.with("caseId", caseId)
+            .with("status", ex.getStatus())
+            .error("Error calling Case Service");
+        throw ex;
+      }
+    }
+
+    if (caseFromRM != null) {
+      CaseDTO caseDto = mapCaseContainerDTO(caseFromRM);
+      cases.add(caseDto);
+    }
+
+    Optional<CaseDTO> cachedCase =
+        dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
+
+    log.with("caseId", caseId).debug("Found {} case details in Cache for caseId", cachedCase);
+
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+    timeOrderedCases.add(cases);
+    Boolean cachedCaseFound = true;
+    CaseDTO caseToAdd = null;
+    try {
+      caseToAdd = cachedCase.get();
+    } catch (NoSuchElementException e) {
+      cachedCaseFound = false;
+      log.with(e.getMessage()).info("The value of cachedCase.get() was null");
+    }
+    if (cachedCaseFound) {
+      timeOrderedCases.addCase(caseToAdd);
+    }
+    Optional<CaseDTO> latest = timeOrderedCases.latest();
+
+    CaseDTO latestCaseDto = null;
+    if (latest.isPresent()) {
+      latestCaseDto = latest.get();
+    } else {
+      log.with("caseId", caseId).warn("Request for case Not Found");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
+    }
+
+    return latestCaseDto;
+  }
+
+  private Optional<CaseDTO> getLatestCaseByUprn(
       UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
     TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
@@ -288,7 +342,7 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
 
-    Optional<CaseDTO> latest = getLatestCaseByUPRN(uprn, requestParamsDTO.getCaseEvents());
+    Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
     if (latest.isPresent()) {
@@ -1057,59 +1111,5 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("transactionId", transactionId)
         .debug("{} event published", eventType);
-  }
-
-  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
-
-    List<CaseDTO> cases = new ArrayList<>();
-    CaseContainerDTO caseFromRM = null;
-
-    try {
-      caseFromRM = getCaseFromRm(caseId, getCaseEvents);
-    } catch (ResponseStatusException ex) {
-      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
-        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
-      } else {
-        log.with("caseId", caseId)
-            .with("status", ex.getStatus())
-            .error("Error calling Case Service");
-        throw ex;
-      }
-    }
-
-    if (caseFromRM != null) {
-      CaseDTO caseDto = mapCaseContainerDTO(caseFromRM);
-      cases.add(caseDto);
-    }
-
-    Optional<CaseDTO> cachedCase =
-        dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
-
-    log.with("caseId", caseId).debug("Found {} case details in Cache for caseId", cachedCase);
-
-    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
-    timeOrderedCases.add(cases);
-    Boolean cachedCaseFound = true;
-    CaseDTO caseToAdd = null;
-    try {
-      caseToAdd = cachedCase.get();
-    } catch (NoSuchElementException e) {
-      cachedCaseFound = false;
-      log.with(e.getMessage()).info("The value of cachedCase.get() was null");
-    }
-    if (cachedCaseFound) {
-      timeOrderedCases.addCase(caseToAdd);
-    }
-    Optional<CaseDTO> latest = timeOrderedCases.latest();
-
-    CaseDTO latestCaseDto = null;
-    if (latest.isPresent()) {
-      latestCaseDto = latest.get();
-    } else {
-      log.with("caseId", caseId).warn("Request for case Not Found");
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
-    }
-
-    return latestCaseDto;
   }
 }
