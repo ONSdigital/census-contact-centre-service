@@ -129,66 +129,67 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCache() throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase = casesFromRepository.get(0);
+    List<CachedCase> listCachedCases = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    CachedCase caseFromRepository = listCachedCases.get(0);
 
-    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCachedCase(caseFromRepository, UUID_0.toString(), CACHED_CASE_UPRN_0);
     setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date
-    cachedCase.setCreatedDateTime(new Date());
+    caseFromRepository.setCreatedDateTime(new Date());
 
-    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, caseFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
   @Test
   public void testGetLatestFromCacheWhenResultsFromBothRmAndCacheWithSmallTimeDifference()
       throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase = casesFromRepository.get(0);
+    List<CachedCase> listCachedCases = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    CachedCase caseFromRepository = listCachedCases.get(0);
 
-    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCachedCase(caseFromRepository, UUID_0.toString(), CACHED_CASE_UPRN_0);
     setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
-    cachedCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
+    caseFromRepository.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
     caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
 
-    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, CACHED_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, caseFromRepository, UUID_0, CACHED_CASE_UPRN_0);
   }
 
   @Test
   public void testGetLatestFromRmWhenResultsFromBothRmAndCacheWithSmallTimeDifferences()
       throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
-    CachedCase cachedCase = casesFromRepository.get(0);
+    List<CachedCase> listCachedCases = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    CachedCase caseFromRepository = listCachedCases.get(0);
 
-    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCachedCase(caseFromRepository, UUID_0.toString(), CACHED_CASE_UPRN_0);
     setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date and that it is only 1 second closer
     // than the next most recent date
     caseFromCaseService.setLastUpdated(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 6)));
-    cachedCase.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
+    caseFromRepository.setCreatedDateTime(utcDate(LocalDateTime.of(2020, 2, 3, 10, 4, 5)));
 
-    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, caseFromRepository, UUID_0, RM_CASE_UPRN_0);
   }
 
   @Test
   public void testGetLatestFromRmWhenResultsFromBothRmAndCache() throws Exception {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
-    List<CachedCase> casesFromRepository = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    List<CachedCase> listCachedCases = FixtureHelper.loadPackageFixtures(CachedCase[].class);
+    CachedCase caseFromRepository = listCachedCases.get(0);
 
-    setUpCachedCase(casesFromRepository.get(0), UUID_0.toString(), CACHED_CASE_UPRN_0);
+    setUpCachedCase(caseFromRepository, UUID_0.toString(), CACHED_CASE_UPRN_0);
     setUpCaseFromCaseService(caseFromCaseService, UUID_0, RM_CASE_UPRN_0);
 
     // Make sure that expected case has the most recent date
     caseFromCaseService.setLastUpdated(new Date());
 
-    doGetCaseById(caseFromCaseService, casesFromRepository, UUID_0, RM_CASE_UPRN_0);
+    doGetCaseById(caseFromCaseService, caseFromRepository, UUID_0, RM_CASE_UPRN_0);
   }
 
   @Test
@@ -355,13 +356,13 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
   private void doGetCaseById(
       CaseContainerDTO caseFromCaseService,
-      List<CachedCase> casesFromRepository,
+      CachedCase caseFromRepository,
       UUID caseId,
       String expectedUprn)
       throws CTPException {
     Mockito.when(caseServiceClient.getCaseById(eq(caseId), any())).thenReturn(caseFromCaseService);
     Mockito.when(dataRepo.readCachedCaseById(eq(caseId)))
-        .thenReturn(Optional.of(casesFromRepository.get(0)));
+        .thenReturn(Optional.of(caseFromRepository));
 
     // Run the request
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(false);
