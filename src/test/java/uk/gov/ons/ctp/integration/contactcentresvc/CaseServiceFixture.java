@@ -20,11 +20,14 @@ public final class CaseServiceFixture {
   public static final String AN_ADDRESS_LINE_1 = "1 High Street";
   public static final String AN_ADDRESS_LINE_2 = "Delph";
   public static final String AN_ADDRESS_LINE_3 = "Oldham";
-  public static final String A_TOWN_NAME = "Manchester";
-  public static final String A_POSTCODE = "OL3 5DJ";
   public static final Region A_REGION = Region.E;
   public static final String A_RESPONSE_DATE_TIME = "2019-03-28T11:56:40.705Z";
   public static final Date A_REQUEST_DATE_TIME = new Date();
   public static final String AN_AGENT_ID = "123";
   public static final String A_QUESTIONNAIRE_ID = "566786126";
+  public static final String A_UAC = "dummy-uac-value";
+  public static final String NI_LAUNCH_ERR_MSG =
+      "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
+  public static final String UNIT_LAUNCH_ERR_MSG =
+      "A CE Manager form can only be launched against an establishment address not a UNIT.";
 }
