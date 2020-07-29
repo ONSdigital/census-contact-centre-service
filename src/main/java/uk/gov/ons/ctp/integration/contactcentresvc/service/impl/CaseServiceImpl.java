@@ -552,14 +552,11 @@ public class CaseServiceImpl implements CaseService {
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
         getNewQidForCase(caseDetails, requestParamsDTO.getIndividual());
 
-    UACResponseDTO response =
-        UACResponseDTO.builder()
-            .id(newQuestionnaireIdDto.getQuestionnaireId())
-            .uac(newQuestionnaireIdDto.getUac())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
-
-    return response;
+    return UACResponseDTO.builder()
+        .id(newQuestionnaireIdDto.getQuestionnaireId())
+        .uac(newQuestionnaireIdDto.getUac())
+        .dateTime(DateTimeUtil.nowUTC())
+        .build();
   }
 
   /**

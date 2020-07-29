@@ -9,6 +9,8 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_UAC;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.NI_LAUNCH_ERR_MSG;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UNIT_LAUNCH_ERR_MSG;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
 import java.util.Optional;
@@ -23,7 +25,6 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
-import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
@@ -65,7 +66,7 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testGetUACHICase() throws Exception {
+  public void testGetUACHICase() {
     try {
       doGetUACTest("HI", false);
       fail();
@@ -102,34 +103,32 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionE() {
-    CaseContainerDTO dto = mockGetCaseById("CE", "U", "E");
-    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+    mockGetCaseById("CE", "U", "E");
+    assertThatInvalidLaunchComboIsRejected(UNIT_LAUNCH_ERR_MSG);
   }
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionW() {
-    CaseContainerDTO dto = mockGetCaseById("CE", "U", "W");
-    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+    mockGetCaseById("CE", "U", "W");
+    assertThatInvalidLaunchComboIsRejected(UNIT_LAUNCH_ERR_MSG);
   }
 
   @Test
   public void shouldRejectCeManagerFormFromUnitRegionN() {
-    CaseContainerDTO dto = mockGetCaseById("CE", "U", "N");
-    assertThatCeManagerFormFromUnitRegionIsRejected(dto);
+    mockGetCaseById("CE", "U", "N");
+    assertThatInvalidLaunchComboIsRejected(UNIT_LAUNCH_ERR_MSG);
   }
 
   @Test
   public void shouldRejectCeManagerFormFromEstabRegionN() {
-    CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
-    assertThatInvalidLaunchComboIsRejected(
-        dto,
-        "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
+    mockGetCaseById("CE", "E", "N");
+    assertThatInvalidLaunchComboIsRejected(NI_LAUNCH_ERR_MSG);
   }
 
   @SneakyThrows
-  private void assertThatInvalidLaunchComboIsRejected(CaseContainerDTO dto, String expectedMsg) {
+  private void assertThatInvalidLaunchComboIsRejected(String expectedMsg) {
     try {
-      doGetUACTest(false, dto, FormType.C);
+      doGetUACTest(false, FormType.C);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -137,20 +136,12 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
     }
   }
 
-  @SneakyThrows
-  private void assertThatCeManagerFormFromUnitRegionIsRejected(CaseContainerDTO dto) {
-    assertThatInvalidLaunchComboIsRejected(
-        dto, "A CE Manager form can only be launched against an establishment address not a UNIT.");
-  }
-
   private void doGetUACTest(String caseType, boolean individual) throws Exception {
-    CaseContainerDTO caseFromCaseService = mockGetCaseById(caseType, "U", A_REGION.name());
-    doGetUACTest(individual, caseFromCaseService, FormType.H);
+    mockGetCaseById(caseType, "U", A_REGION.name());
+    doGetUACTest(individual, FormType.H);
   }
 
-  private void doGetUACTest(
-      boolean individual, CaseContainerDTO caseFromCaseService, FormType formType)
-      throws Exception {
+  private void doGetUACTest(boolean individual, FormType formType) throws Exception {
 
     // Fake RM response for creating questionnaire ID
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto = new SingleUseQuestionnaireIdDTO();

@@ -299,7 +299,7 @@ public class CaseEndpoint implements CTPEndpoint {
    * the GET end point to request a UAC from AD for a given caseid
    *
    * @param caseId the id of the case
-   * @param requestBodyDTO the request body
+   * @param requestParamsDTO the request params
    * @return response entity
    * @throws CTPException something went wrong
    */
