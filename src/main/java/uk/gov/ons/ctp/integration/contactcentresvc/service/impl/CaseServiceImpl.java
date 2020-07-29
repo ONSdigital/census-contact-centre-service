@@ -389,7 +389,6 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
     cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
     cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
-    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
     dataRepo.writeCachedCase(cachedCase);
   }
 
@@ -456,6 +455,7 @@ public class CaseServiceImpl implements CaseService {
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
     response.setCeOrgName(modifyRequestDTO.getCeOrgName());
     response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    response.setCaseEvents(Collections.emptyList());
   }
 
   @Override

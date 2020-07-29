@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,7 +95,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType(CaseType.HH.name());
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
-    verifyCase(result, true, 0);
+    verifyNonCachedCase(result, true, 0);
   }
 
   @Test
@@ -107,7 +105,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     setLastUpdated(casesFromRm.get(1), 2020, 5, 15);
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
-    verifyCase(result, true, 1);
+    verifyNonCachedCase(result, true, 1);
   }
 
   @Test
@@ -115,7 +113,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType(CaseType.HH.name());
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(false);
-    verifyCase(result, false, 0);
+    verifyNonCachedCase(result, false, 0);
   }
 
   @Test
@@ -125,7 +123,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     setLastUpdated(casesFromRm.get(1), 2020, 5, 15);
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(false);
-    verifyCase(result, false, 1);
+    verifyNonCachedCase(result, false, 1);
   }
 
   @Test
@@ -263,7 +261,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType("HI"); // Household Individual case
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
-    verifyCase(result, true, 1);
+    verifyNonCachedCase(result, true, 1);
   }
 
   @Test
@@ -271,7 +269,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType("SPG");
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
-    verifyCase(result, true, 0);
+    verifyNonCachedCase(result, true, 0);
   }
 
   @Test
@@ -279,7 +277,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     casesFromRm.get(0).setCaseType("HH");
     mockCasesFromRm();
     CaseDTO result = getCasesByUprn(true);
-    verifyCase(result, true, 0);
+    verifyNonCachedCase(result, true, 0);
   }
 
   @Test
@@ -354,10 +352,6 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
   // ---- helpers methods below ---
 
-  private UniquePropertyReferenceNumber createUprn(String uprn) {
-    return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
-  }
-
   private Date utcDate(LocalDateTime dateTime) {
     return Date.from(dateTime.toInstant(ZoneOffset.UTC));
   }
@@ -403,89 +397,17 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     return cachedCaseCaptor.getValue();
   }
 
-  private void verifyNotWrittenCachedCase() throws Exception {
-    verify(dataRepo, never()).writeCachedCase(any());
-  }
-
   private void mockAddressFromAI() throws Exception {
     when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
   }
 
-  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
-
-    CaseDTO expectedCaseResult =
-        CaseDTO.builder()
-            .id(caseFromCaseService.getId())
-            .caseRef(caseFromCaseService.getCaseRef())
-            .caseType(caseFromCaseService.getCaseType())
-            .estabType(EstabType.forCode(caseFromCaseService.getEstabType()))
-            .estabDescription(caseFromCaseService.getEstabType())
-            .allowedDeliveryChannels(ALL_DELIVERY_CHANNELS)
-            .createdDateTime(caseFromCaseService.getCreatedDateTime())
-            .lastUpdated(caseFromCaseService.getLastUpdated())
-            .addressLine1(caseFromCaseService.getAddressLine1())
-            .addressLine2(caseFromCaseService.getAddressLine2())
-            .addressLine3(caseFromCaseService.getAddressLine3())
-            .addressType(caseFromCaseService.getAddressType())
-            .townName(caseFromCaseService.getTownName())
-            .region(caseFromCaseService.getRegion().substring(0, 1))
-            .postcode(caseFromCaseService.getPostcode())
-            .ceOrgName(caseFromCaseService.getOrganisationName())
-            .uprn(createUprn(caseFromCaseService.getUprn()))
-            .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
-            .secureEstablishment(caseFromCaseService.isSecureEstablishment())
-            .build();
-    if (caseEvents) {
-      List<CaseEventDTO> expectedCaseEvents =
-          caseFromCaseService
-              .getCaseEvents()
-              .stream()
-              .filter(e -> !e.getDescription().contains("Should be filtered out"))
-              .map(
-                  e ->
-                      CaseEventDTO.builder()
-                          .description(e.getDescription())
-                          .category(e.getEventType())
-                          .createdDateTime(e.getCreatedDateTime())
-                          .build())
-              .collect(Collectors.toList());
-      expectedCaseResult.setCaseEvents(expectedCaseEvents);
-    }
-    return expectedCaseResult;
-  }
-
-  private void verifyCase(CaseDTO results, boolean caseEventsExpected, int dataIndex)
+  private void verifyNonCachedCase(CaseDTO results, boolean caseEventsExpected, int dataIndex)
       throws Exception {
     CaseDTO expectedCaseResult =
         createExpectedCaseDTO(casesFromRm.get(dataIndex), caseEventsExpected);
-    assertEquals(expectedCaseResult.getId(), results.getId());
-    assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
-    assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
-    assertEquals(expectedCaseResult.getCeOrgName(), results.getCeOrgName());
-    assertEquals(
-        expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
 
-    if (caseEventsExpected) {
-      // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
-      // on the whitelist
-      assertEquals(2, results.getCaseEvents().size());
-      CaseEventDTO event = results.getCaseEvents().get(0);
-      assertEquals("Initial creation of case", event.getDescription());
-      assertEquals("CASE_CREATED", event.getCategory());
-      assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), event.getCreatedDateTime().getTime());
-      event = results.getCaseEvents().get(1);
-      assertEquals("Create Household Visit", event.getDescription());
-      assertEquals("CASE_UPDATED", event.getCategory());
-      assertEquals(asMillis("2019-05-16T12:12:12.343Z"), event.getCreatedDateTime().getTime());
-    } else {
-      assertNull(results.getCaseEvents());
-    }
-
-    assertEquals(expectedCaseResult, results);
+    verifyCase(results, expectedCaseResult, caseEventsExpected);
     verifyHasReadCachedCases();
-    verifyNotWrittenCachedCase();
-    verify(addressSvc, never()).uprnQuery(anyLong());
-    verifyEventNotSent();
   }
 
   private void verifyNewCase(CaseDTO result) throws Exception {

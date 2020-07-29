@@ -1,5 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -13,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Before;
@@ -425,11 +426,24 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(cachedCase.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
-        .caseEvents(new ArrayList<CaseEventDTO>())
+        .caseEvents(cachedCase.getCaseEvents())
         .build();
   }
 
   private CachedCase createExpectedCachedCaseFromExistingRmCase(UUID id) {
+    List<CaseEventDTO> expectedCaseEvents =
+        caseContainerDTO
+            .getCaseEvents()
+            .stream()
+            .map(
+                ce ->
+                    CaseEventDTO.builder()
+                        .category(ce.getEventType())
+                        .description(ce.getDescription())
+                        .createdDateTime(ce.getCreatedDateTime())
+                        .build())
+            .collect(toList());
+
     return CachedCase.builder()
         .id(id.toString())
         .uprn(caseContainerDTO.getUprn())
@@ -445,7 +459,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(caseContainerDTO.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
-        .caseEvents(new ArrayList<CaseEventDTO>())
+        .caseEvents(expectedCaseEvents)
         .build();
   }
 
@@ -563,6 +577,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertEquals(caseContainerDTO.getUprn(), uprnStr(response.getUprn()));
     assertEquals(caseContainerDTO.getEstabUprn(), uprnStr(response.getEstabUprn()));
     assertEquals(ALL_DELIVERY_CHANNELS, response.getAllowedDeliveryChannels());
+    assertTrue(response.getCaseEvents().isEmpty());
   }
 
   @Test

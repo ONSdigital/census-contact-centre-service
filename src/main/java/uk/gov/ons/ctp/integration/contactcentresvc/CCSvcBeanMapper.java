@@ -81,7 +81,12 @@ public class CCSvcBeanMapper extends ConfigurableMapper {
         .byDefault()
         .register();
 
-    factory.classMap(CachedCase.class, CaseContainerDTO.class).byDefault().register();
+    factory
+        .classMap(CachedCase.class, CaseContainerDTO.class)
+        .field("ceOrgName", "organisationName")
+        .byDefault()
+        .register();
+
     factory.classMap(CaseContainerDTO.class, Address.class).byDefault().register();
     factory.classMap(CaseContainerDTO.class, AddressCompact.class).byDefault().register();
   }
