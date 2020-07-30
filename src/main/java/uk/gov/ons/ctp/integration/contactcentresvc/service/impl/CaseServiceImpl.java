@@ -52,6 +52,7 @@ import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -229,12 +230,11 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(caseId, getCaseEvents);
 
     rejectHouseholdIndividual(caseDetails);
+    filterCaseEvents(caseDetails, getCaseEvents);
 
     // Convert from Case service to Contact Centre DTOs NB. A request for an SPG case will not get
     // this far.
     CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
-
-    filterCaseEvents(caseServiceResponse, getCaseEvents);
 
     log.with("caseId", caseId).debug("Returning case details for caseId");
 
@@ -325,10 +325,9 @@ public class CaseServiceImpl implements CaseService {
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
     rejectHouseholdIndividual(caseDetails);
+    filterCaseEvents(caseDetails, getCaseEvents);
 
     CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
-
-    filterCaseEvents(caseServiceResponse, getCaseEvents);
 
     log.with("caseRef", caseRef).debug("Returning case details for case reference");
 
@@ -733,16 +732,16 @@ public class CaseServiceImpl implements CaseService {
     sendEvent(EventType.NEW_ADDRESS_REPORTED, payload, payload.getCollectionCase().getId());
   }
 
-  private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {
+  private void filterCaseEvents(CaseContainerDTO caseDTO, Boolean getCaseEvents) {
     if (getCaseEvents) {
       // Only return whitelisted events
       Set<String> whitelistedEventCategories =
           appConfig.getCaseServiceSettings().getWhitelistedEventCategories();
-      List<CaseEventDTO> filteredEvents =
+      List<EventDTO> filteredEvents =
           caseDTO
               .getCaseEvents()
               .stream()
-              .filter(e -> whitelistedEventCategories.contains(e.getCategory()))
+              .filter(e -> whitelistedEventCategories.contains(e.getEventType()))
               .collect(Collectors.toList());
       caseDTO.setCaseEvents(filteredEvents);
     } else {
@@ -966,12 +965,8 @@ public class CaseServiceImpl implements CaseService {
                 .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
                 .collect(Collectors.toList());
 
-    // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
-
-    // Clean up the events before returning them
-    caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, listCaseEvents));
-    return caseServiceResponse;
+    casesToReturn.stream().forEach(c -> filterCaseEvents(c, listCaseEvents));
+    return mapCaseContainerDTOList(casesToReturn);
   }
 
   /**
