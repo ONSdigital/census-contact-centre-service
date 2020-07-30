@@ -495,6 +495,7 @@ public class CaseServiceImpl implements CaseService {
     UUID caseId = originalCaseId;
 
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
+    caseDetails.setCreatedDateTime(DateTimeUtil.nowUTC());
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
     CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());
 
