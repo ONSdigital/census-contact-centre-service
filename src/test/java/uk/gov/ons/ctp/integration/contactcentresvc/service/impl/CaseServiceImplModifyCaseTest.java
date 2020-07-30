@@ -1,6 +1,5 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -57,6 +56,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Before
   public void setup() {
+    mockCaseEventWhiteList();
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
@@ -431,18 +431,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   private CachedCase createExpectedCachedCaseFromExistingRmCase(UUID id) {
-    List<CaseEventDTO> expectedCaseEvents =
-        caseContainerDTO
-            .getCaseEvents()
-            .stream()
-            .map(
-                ce ->
-                    CaseEventDTO.builder()
-                        .category(ce.getEventType())
-                        .description(ce.getDescription())
-                        .createdDateTime(ce.getCreatedDateTime())
-                        .build())
-            .collect(toList());
+    List<CaseEventDTO> expectedCaseEvents = filterEvents(caseContainerDTO);
 
     return CachedCase.builder()
         .id(id.toString())

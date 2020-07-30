@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
 import ma.glasnost.orika.MapperFacade;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +38,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerD
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
@@ -153,7 +155,7 @@ public abstract class CaseServiceImplTestBase {
     return expectedCaseResult;
   }
 
-  private List<CaseEventDTO> filterEvents(CaseContainerDTO caseFromCaseService) {
+  List<CaseEventDTO> filterEvents(CaseContainerDTO caseFromCaseService) {
     return caseFromCaseService
         .getCaseEvents()
         .stream()
@@ -180,5 +182,12 @@ public abstract class CaseServiceImplTestBase {
     caseFromCaseService.setRegion(region);
     when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
     return caseFromCaseService;
+  }
+
+  void mockCaseEventWhiteList() {
+    CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
+    Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
+    caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
+    when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
   }
 }

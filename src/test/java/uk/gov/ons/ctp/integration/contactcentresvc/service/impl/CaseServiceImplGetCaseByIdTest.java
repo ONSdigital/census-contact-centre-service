@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -32,7 +31,6 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -53,11 +51,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
   @Before
   public void setup() {
-    // For case retrieval, mock out a whitelist of allowable case events
-    CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
-    Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
-    caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
-    Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+    mockCaseEventWhiteList();
   }
 
   @Test
