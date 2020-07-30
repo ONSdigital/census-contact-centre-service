@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +47,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.Add
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
@@ -225,11 +226,21 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void testGetCaseByUprn_caseSvcNotFoundResponse_cachedCase() throws Exception {
+  public void shouldGetCachedCaseWithoutCaseEvents() throws Exception {
     mockNothingInRm();
     mockCachedCase();
     CaseDTO result = getCasesByUprn(false);
-    verifyCachedCase(result);
+    verifyCachedCase(result, false);
+    assertTrue(result.getCaseEvents().isEmpty());
+  }
+
+  @Test
+  public void shouldGetCachedCaseWithCaseEvents() throws Exception {
+    mockNothingInRm();
+    mockCachedCase();
+    CaseDTO result = getCasesByUprn(true);
+    verifyCachedCase(result, true);
+    assertFalse(result.getCaseEvents().isEmpty());
   }
 
   @Test(expected = ResponseStatusException.class)
@@ -461,7 +472,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
     expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
-    expectedNewCaseResult.setCaseEvents(new ArrayList<CaseEventDTO>());
+    expectedNewCaseResult.setCaseEvents(Collections.emptyList());
     assertEquals(expectedNewCaseResult, actualCaseDto);
   }
 
@@ -487,13 +498,16 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(payload, payloadSent);
   }
 
-  private void verifyCachedCase(CaseDTO result) throws Exception {
+  private void verifyCachedCase(CaseDTO result, boolean caseEvents) throws Exception {
     CachedCase cachedCase = casesFromCache.get(0);
 
     CaseDTO expectedResult = mapperFacade.map(cachedCase, CaseDTO.class);
     expectedResult.setCaseType(CaseType.HH.name());
     expectedResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+    if (!caseEvents) {
+      expectedResult.setCaseEvents(Collections.emptyList());
+    }
 
     assertEquals(expectedResult, result);
 

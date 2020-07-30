@@ -103,11 +103,7 @@ public abstract class EndpointSecurityTest {
     UUID caseId = UUID.randomUUID();
     ResponseEntity<String> response =
         restTemplate.getForEntity(
-            base.toString()
-                + "/cases/"
-                + caseId
-                + "/uac?adLocation=12345&individual=false&caseId="
-                + caseId,
+            base.toString() + "/cases/" + caseId + "/uac?adLocationId=12345&individual=false",
             String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }

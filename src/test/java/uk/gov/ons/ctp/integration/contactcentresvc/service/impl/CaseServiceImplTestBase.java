@@ -2,16 +2,18 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -21,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.event.EventPublisher;
@@ -110,7 +113,7 @@ public abstract class CaseServiceImplTestBase {
         expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
 
     if (!caseEventsExpected) {
-      assertNull(results.getCaseEvents());
+      assertTrue(results.getCaseEvents().isEmpty());
     }
 
     assertEquals(expectedCaseResult, results);
@@ -142,6 +145,7 @@ public abstract class CaseServiceImplTestBase {
             .uprn(createUprn(caseFromCaseService.getUprn()))
             .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
             .secureEstablishment(caseFromCaseService.isSecureEstablishment())
+            .caseEvents(Collections.emptyList())
             .build();
     if (caseEvents) {
       expectedCaseResult.setCaseEvents(filterEvents(caseFromCaseService));
@@ -166,5 +170,15 @@ public abstract class CaseServiceImplTestBase {
 
   UniquePropertyReferenceNumber createUprn(String uprn) {
     return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
+  }
+
+  CaseContainerDTO mockGetCaseById(String caseType, String addressLevel, String region) {
+    CaseContainerDTO caseFromCaseService =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
+    caseFromCaseService.setCaseType(caseType);
+    caseFromCaseService.setAddressLevel(addressLevel);
+    caseFromCaseService.setRegion(region);
+    when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+    return caseFromCaseService;
   }
 }
