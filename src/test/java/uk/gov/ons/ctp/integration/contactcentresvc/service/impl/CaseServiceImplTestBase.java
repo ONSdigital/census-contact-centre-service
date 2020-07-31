@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.SneakyThrows;
 import ma.glasnost.orika.MapperFacade;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -105,8 +104,8 @@ public abstract class CaseServiceImplTestBase {
     verify(dataRepo, never()).writeCachedCase(any());
   }
 
-  @SneakyThrows
-  void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected) {
+  void verifyCase(CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected)
+      throws Exception {
     assertEquals(expectedCaseResult.getId(), results.getId());
     assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
     assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
