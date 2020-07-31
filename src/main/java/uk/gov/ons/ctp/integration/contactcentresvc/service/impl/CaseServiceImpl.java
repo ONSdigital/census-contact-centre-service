@@ -323,8 +323,7 @@ public class CaseServiceImpl implements CaseService {
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
-    boolean addCaseEvents = requestParamsDTO.getCaseEvents();
-    Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, addCaseEvents);
+    Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
     if (latest.isPresent()) {
@@ -955,8 +954,7 @@ public class CaseServiceImpl implements CaseService {
 
   private List<CaseContainerDTO> getCasesFromRm(long uprn, boolean getCaseEvents) {
     var caseList = caseServiceClient.getCaseByUprn(uprn, getCaseEvents);
-    caseList.stream().map(c -> filterCaseEvents(c, getCaseEvents)).collect(toList());
-    return caseList;
+    return caseList.stream().map(c -> filterCaseEvents(c, getCaseEvents)).collect(toList());
   }
 
   /**
