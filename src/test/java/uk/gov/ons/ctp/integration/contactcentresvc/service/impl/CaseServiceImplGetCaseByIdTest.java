@@ -1,24 +1,20 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,9 +31,7 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
-import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 
@@ -57,11 +51,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
   @Before
   public void setup() {
-    // For case retrieval, mock out a whitelist of allowable case events
-    CaseServiceSettings caseServiceSettings = new CaseServiceSettings();
-    Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
-    caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
-    Mockito.when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+    mockCaseEventWhiteList();
   }
 
   @Test
@@ -241,7 +231,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       expectedCaseResult.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
       expectedCaseResult.setEstabType(EstabType.HOLIDAY_PARK);
       if (!caseEvents) {
-        expectedCaseResult.setCaseEvents(null);
+        expectedCaseResult.setCaseEvents(Collections.emptyList());
       }
 
     } else {
@@ -254,7 +244,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(caseEvents);
     CaseDTO results = target.getCaseById(UUID_0, requestParams);
 
-    verifyCase(results, expectedCaseResult, caseEvents, cached);
+    verifyCase(results, expectedCaseResult, caseEvents);
 
     if (cached) {
       assertEquals(asMillis("2020-06-12T11:55:23.195Z"), results.getCreatedDateTime().getTime());
@@ -262,88 +252,6 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
       assertEquals(
           asMillis("2019-05-14T16:11:41.343+01:00"), results.getCreatedDateTime().getTime());
     }
-  }
-
-  private UniquePropertyReferenceNumber createUprn(String uprn) {
-    return uprn == null ? null : new UniquePropertyReferenceNumber(uprn);
-  }
-
-  private CaseDTO createExpectedCaseDTO(CaseContainerDTO caseFromCaseService, boolean caseEvents) {
-
-    CaseDTO expectedCaseResult =
-        CaseDTO.builder()
-            .id(caseFromCaseService.getId())
-            .caseRef(caseFromCaseService.getCaseRef())
-            .caseType(caseFromCaseService.getCaseType())
-            .estabType(EstabType.forCode(caseFromCaseService.getEstabType()))
-            .estabDescription(caseFromCaseService.getEstabType())
-            .allowedDeliveryChannels(ALL_DELIVERY_CHANNELS)
-            .createdDateTime(caseFromCaseService.getCreatedDateTime())
-            .lastUpdated(caseFromCaseService.getLastUpdated())
-            .addressLine1(caseFromCaseService.getAddressLine1())
-            .addressLine2(caseFromCaseService.getAddressLine2())
-            .addressLine3(caseFromCaseService.getAddressLine3())
-            .addressType(caseFromCaseService.getAddressType())
-            .townName(caseFromCaseService.getTownName())
-            .region(caseFromCaseService.getRegion().substring(0, 1))
-            .postcode(caseFromCaseService.getPostcode())
-            .ceOrgName(caseFromCaseService.getOrganisationName())
-            .uprn(createUprn(caseFromCaseService.getUprn()))
-            .estabUprn(createUprn(caseFromCaseService.getEstabUprn()))
-            .secureEstablishment(caseFromCaseService.isSecureEstablishment())
-            .build();
-    if (caseEvents) {
-      List<CaseEventDTO> expectedCaseEvents =
-          caseFromCaseService
-              .getCaseEvents()
-              .stream()
-              .filter(e -> !e.getDescription().contains("Should be filtered out"))
-              .map(
-                  e ->
-                      CaseEventDTO.builder()
-                          .description(e.getDescription())
-                          .category(e.getEventType())
-                          .createdDateTime(e.getCreatedDateTime())
-                          .build())
-              .collect(Collectors.toList());
-      expectedCaseResult.setCaseEvents(expectedCaseEvents);
-    }
-    return expectedCaseResult;
-  }
-
-  @SneakyThrows
-  private void verifyCase(
-      CaseDTO results, CaseDTO expectedCaseResult, boolean caseEventsExpected, boolean cached) {
-    assertEquals(expectedCaseResult.getId(), results.getId());
-    assertEquals(expectedCaseResult.getCaseRef(), results.getCaseRef());
-    assertEquals(expectedCaseResult.getCaseType(), results.getCaseType());
-    assertEquals(expectedCaseResult.getCeOrgName(), results.getCeOrgName());
-    assertEquals(
-        expectedCaseResult.getAllowedDeliveryChannels(), results.getAllowedDeliveryChannels());
-
-    if (caseEventsExpected && cached) {
-      // Cached case doesn't have any events
-      assertTrue(results.getCaseEvents().isEmpty());
-    } else if (caseEventsExpected) {
-      // Note that the test data contains 3 events, but the 'X11' event is filtered out as it is not
-      // on the whitelist
-      assertEquals(2, results.getCaseEvents().size());
-      CaseEventDTO event = results.getCaseEvents().get(0);
-      assertEquals("Initial creation of case", event.getDescription());
-      assertEquals("CASE_CREATED", event.getCategory());
-      assertEquals(asMillis("2019-05-14T16:11:41.343+01:00"), event.getCreatedDateTime().getTime());
-      event = results.getCaseEvents().get(1);
-      assertEquals("Create Household Visit", event.getDescription());
-      assertEquals("CASE_UPDATED", event.getCategory());
-      assertEquals(asMillis("2019-05-16T12:12:12.343Z"), event.getCreatedDateTime().getTime());
-    } else {
-      assertNull(results.getCaseEvents());
-    }
-
-    assertEquals(expectedCaseResult, results);
-    Mockito.verify(dataRepo, never()).writeCachedCase(any());
-    Mockito.verify(addressSvc, never()).uprnQuery(anyLong());
-    verifyEventNotSent();
   }
 
   private List<CaseContainerDTO> casesFromCaseService() {

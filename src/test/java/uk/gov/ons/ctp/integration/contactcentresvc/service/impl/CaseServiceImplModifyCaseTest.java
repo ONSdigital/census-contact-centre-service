@@ -13,7 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.Before;
@@ -56,6 +57,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Before
   public void setup() {
+    mockCaseEventWhiteList();
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
@@ -85,17 +87,17 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   private void verifyRmCaseCall(int times) {
-    verify(caseServiceClient, times(times)).getCaseById(any(), eq(false));
+    verify(caseServiceClient, times(times)).getCaseById(any(), eq(true));
   }
 
   private void mockRmHasCase() {
-    when(caseServiceClient.getCaseById(eq(UUID_0), eq(false))).thenReturn(caseContainerDTO);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true))).thenReturn(caseContainerDTO);
   }
 
   private void mockRmCannotFindCase() {
     ResponseStatusException rmLookupMockException =
         new ResponseStatusException(HttpStatus.NOT_FOUND);
-    when(caseServiceClient.getCaseById(eq(UUID_0), eq(false))).thenThrow(rmLookupMockException);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true))).thenThrow(rmLookupMockException);
   }
 
   @Test
@@ -409,11 +411,13 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     target.modifyCase(requestDTO);
   }
 
-  private CachedCase createExpectedCachedCaseFromExistingCache(UUID id) {
+  private CachedCase createExpectedCachedCaseFromExistingCache(UUID id, Date createdDateTime) {
+    assertTrue(createdDateTime.after(cachedCase.getCreatedDateTime()));
+
     return CachedCase.builder()
         .id(id.toString())
         .uprn(cachedCase.getUprn())
-        .createdDateTime(cachedCase.getCreatedDateTime())
+        .createdDateTime(createdDateTime)
         .formattedAddress(null)
         .addressLine1(requestDTO.getAddressLine1())
         .addressLine2(requestDTO.getAddressLine2())
@@ -425,15 +429,23 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(cachedCase.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
-        .caseEvents(new ArrayList<CaseEventDTO>())
+        .caseEvents(cachedCase.getCaseEvents())
         .build();
   }
 
-  private CachedCase createExpectedCachedCaseFromExistingRmCase(UUID id) {
+  private Date originalRmCaseCreationDate() {
+    return FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0).getCreatedDateTime();
+  }
+
+  private CachedCase createExpectedCachedCaseFromExistingRmCase(UUID id, Date createdDateTime) {
+    List<CaseEventDTO> expectedCaseEvents = filterEvents(caseContainerDTO);
+
+    assertTrue(createdDateTime.after(originalRmCaseCreationDate()));
+
     return CachedCase.builder()
         .id(id.toString())
         .uprn(caseContainerDTO.getUprn())
-        .createdDateTime(caseContainerDTO.getCreatedDateTime())
+        .createdDateTime(createdDateTime)
         .formattedAddress(null)
         .addressLine1(requestDTO.getAddressLine1())
         .addressLine2(requestDTO.getAddressLine2())
@@ -445,7 +457,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         .estabType(requestDTO.getEstabType().getCode())
         .region(caseContainerDTO.getRegion())
         .ceOrgName(requestDTO.getCeOrgName())
-        .caseEvents(new ArrayList<CaseEventDTO>())
+        .caseEvents(expectedCaseEvents)
         .build();
   }
 
@@ -461,10 +473,12 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     requestDTO.setEstabType(EstabType.HOUSEHOLD);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     mockRmHasCase();
-    target.modifyCase(requestDTO);
+    CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
-    verifySavedCashedCase(createExpectedCachedCaseFromExistingRmCase(caseContainerDTO.getId()));
+    verifySavedCashedCase(
+        createExpectedCachedCaseFromExistingRmCase(
+            caseContainerDTO.getId(), response.getCreatedDateTime()));
   }
 
   @Test
@@ -476,11 +490,12 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     mockRmCannotFindCase();
     when(dataRepo.readCachedCaseById(eq(UUID_0))).thenReturn(Optional.of(cachedCase));
 
-    target.modifyCase(requestDTO);
+    CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
     verifySavedCashedCase(
-        createExpectedCachedCaseFromExistingCache(UUID.fromString(cachedCase.getId())));
+        createExpectedCachedCaseFromExistingCache(
+            UUID.fromString(cachedCase.getId()), response.getCreatedDateTime()));
   }
 
   @Test
@@ -489,10 +504,12 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     requestDTO.setEstabType(EstabType.OTHER);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     mockRmHasCase();
-    target.modifyCase(requestDTO);
+    CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
-    verifySavedCashedCase(createExpectedCachedCaseFromExistingRmCase(caseContainerDTO.getId()));
+    verifySavedCashedCase(
+        createExpectedCachedCaseFromExistingRmCase(
+            caseContainerDTO.getId(), response.getCreatedDateTime()));
   }
 
   @Test
@@ -504,7 +521,9 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
-    verifySavedCashedCase(createExpectedCachedCaseFromExistingRmCase(response.getId()));
+    verifySavedCashedCase(
+        createExpectedCachedCaseFromExistingRmCase(
+            response.getId(), response.getCreatedDateTime()));
   }
 
   @Test
@@ -519,7 +538,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
-    verifySavedCashedCase(createExpectedCachedCaseFromExistingCache(response.getId()));
+    verifySavedCashedCase(
+        createExpectedCachedCaseFromExistingCache(response.getId(), response.getCreatedDateTime()));
   }
 
   @Test
@@ -531,7 +551,9 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     CaseDTO response = target.modifyCase(requestDTO);
 
     verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
-    verifySavedCashedCase(createExpectedCachedCaseFromExistingRmCase(response.getId()));
+    verifySavedCashedCase(
+        createExpectedCachedCaseFromExistingRmCase(
+            response.getId(), response.getCreatedDateTime()));
   }
 
   private String uprnStr(UniquePropertyReferenceNumber uprn) {
@@ -563,6 +585,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     assertEquals(caseContainerDTO.getUprn(), uprnStr(response.getUprn()));
     assertEquals(caseContainerDTO.getEstabUprn(), uprnStr(response.getEstabUprn()));
     assertEquals(ALL_DELIVERY_CHANNELS, response.getAllowedDeliveryChannels());
+    assertTrue(response.getCaseEvents().isEmpty());
   }
 
   @Test

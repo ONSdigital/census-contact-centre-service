@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.List;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Test;
 import uk.gov.ons.ctp.common.FixtureHelper;
@@ -19,6 +20,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 public class CCSvcBeanMapperTest {
 
   private MapperFacade mapperFacade = new CCSvcBeanMapper();
+
+  private void verifyMapping(List<EventDTO> sourceList, List<CaseEventDTO> destinationList) {
+    for (int i = 0; i < sourceList.size(); i++) {
+      EventDTO sourceEvent = sourceList.get(i);
+      CaseEventDTO destinationEvent = destinationList.get(i);
+      assertEquals(sourceEvent.getDescription(), destinationEvent.getDescription());
+      assertEquals(sourceEvent.getEventType(), destinationEvent.getCategory());
+      assertEquals(sourceEvent.getCreatedDateTime(), destinationEvent.getCreatedDateTime());
+    }
+  }
 
   @Test
   public void shouldMapCaseContainerDTO_CaseDTO() {
@@ -40,13 +51,30 @@ public class CCSvcBeanMapperTest {
     assertEquals(source.getEstabUprn(), String.valueOf(destination.getEstabUprn().getValue()));
     assertEquals(source.getCreatedDateTime(), destination.getCreatedDateTime());
     assertEquals(source.getLastUpdated(), destination.getLastUpdated());
-    for (int i = 0; i < source.getCaseEvents().size(); i++) {
-      EventDTO sourceEvent = source.getCaseEvents().get(i);
-      CaseEventDTO destinationEvent = destination.getCaseEvents().get(i);
-      assertEquals(sourceEvent.getDescription(), destinationEvent.getDescription());
-      assertEquals(sourceEvent.getEventType(), destinationEvent.getCategory());
-      assertEquals(sourceEvent.getCreatedDateTime(), destinationEvent.getCreatedDateTime());
-    }
+
+    verifyMapping(source.getCaseEvents(), destination.getCaseEvents());
+  }
+
+  @Test
+  public void shouldMapCaseContainerDtoToCachedCase() {
+    CaseContainerDTO source = FixtureHelper.loadClassFixtures(CaseContainerDTO[].class).get(0);
+    CachedCase destination = mapperFacade.map(source, CachedCase.class);
+
+    assertEquals(source.getId().toString(), destination.getId());
+    assertEquals(source.getUprn(), destination.getUprn());
+    assertEquals(source.getCreatedDateTime(), destination.getCreatedDateTime());
+    assertEquals(source.getAddressLine1(), destination.getAddressLine1());
+    assertEquals(source.getAddressLine2(), destination.getAddressLine2());
+    assertEquals(source.getAddressLine3(), destination.getAddressLine3());
+    assertEquals(source.getTownName(), destination.getTownName());
+    assertEquals(source.getPostcode(), destination.getPostcode());
+    assertEquals(source.getAddressType(), destination.getAddressType());
+    assertEquals(source.getCaseType(), destination.getCaseType().name());
+    assertEquals(source.getEstabType(), destination.getEstabType());
+    assertEquals(source.getRegion(), destination.getRegion());
+    assertEquals(source.getOrganisationName(), destination.getCeOrgName());
+
+    verifyMapping(source.getCaseEvents(), destination.getCaseEvents());
   }
 
   @Test
