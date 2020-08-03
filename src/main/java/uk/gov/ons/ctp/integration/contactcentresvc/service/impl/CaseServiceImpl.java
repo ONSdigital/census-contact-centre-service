@@ -709,7 +709,7 @@ public class CaseServiceImpl implements CaseService {
               uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API,
               uk.gov.ons.ctp.common.domain.Channel.CC,
               caseDetails,
-              requestParamsDTO.getAgentId(),
+              Integer.toString(requestParamsDTO.getAgentId()),
               questionnaireId,
               formType,
               null,
@@ -763,7 +763,7 @@ public class CaseServiceImpl implements CaseService {
     return response;
   }
 
-  private void publishSurveyLaunchedEvent(UUID caseId, String questionnaireId, String agentId) {
+  private void publishSurveyLaunchedEvent(UUID caseId, String questionnaireId, Integer agentId) {
     log.with("questionnaireId", questionnaireId)
         .with("caseId", caseId)
         .with("agentId", agentId)
@@ -773,7 +773,7 @@ public class CaseServiceImpl implements CaseService {
         SurveyLaunchedResponse.builder()
             .questionnaireId(questionnaireId)
             .caseId(caseId)
-            .agentId(agentId)
+            .agentId(Integer.toString(agentId))
             .build();
 
     sendEvent(EventType.SURVEY_LAUNCHED, response, response.getCaseId());
@@ -976,7 +976,7 @@ public class CaseServiceImpl implements CaseService {
     refusal.setType(mapToType(refusalRequest.getReason()));
     CollectionCaseCompact collectionCase = new CollectionCaseCompact(caseId);
     refusal.setCollectionCase(collectionCase);
-    refusal.setAgentId(refusalRequest.getAgentId());
+    refusal.setAgentId(Integer.toString(refusalRequest.getAgentId()));
     refusal.setCallId(refusalRequest.getCallId());
     refusal.setHouseholder(refusalRequest.getIsHouseholder());
 
