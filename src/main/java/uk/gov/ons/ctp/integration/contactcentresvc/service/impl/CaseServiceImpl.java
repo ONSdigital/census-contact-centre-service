@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +51,7 @@ import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
+import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.EventDTO;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
@@ -62,7 +62,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
-import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.InvalidateCaseRequestDTO;
@@ -87,7 +86,7 @@ public class CaseServiceImpl implements CaseService {
   private static final Collection<String> VALID_REGIONS =
       Stream.of(uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.values())
           .map(Enum::name)
-          .collect(Collectors.toList());
+          .collect(toList());
   private static final String NI_LAUNCH_ERR_MSG =
       "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
   private static final String UNIT_LAUNCH_ERR_MSG =
@@ -197,7 +196,6 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     cachedCase.setAddressType(addressType);
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
-    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
 
     dataRepo.writeCachedCase(cachedCase);
 
@@ -210,7 +208,7 @@ public class CaseServiceImpl implements CaseService {
     publishNewAddressReportedEvent(
         newCaseId, caseType, caseRequestDTO.getCeUsualResidents(), address);
 
-    return createNewCachedCaseResponse(cachedCase);
+    return createNewCachedCaseResponse(cachedCase, false);
   }
 
   private void rejectHouseholdIndividual(CaseDTO caseDetails) {
@@ -229,10 +227,7 @@ public class CaseServiceImpl implements CaseService {
     // Get the case details from the case service, or failing that from the cache
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
     CaseDTO caseServiceResponse = getLatestCaseById(caseId, getCaseEvents);
-
     rejectHouseholdIndividual(caseServiceResponse);
-
-    filterCaseEvents(caseServiceResponse, getCaseEvents);
 
     log.with("caseId", caseId).debug("Returning case details for caseId");
 
@@ -260,12 +255,13 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
-
-    List<CaseDTO> cases = new ArrayList<>();
-    CaseContainerDTO caseFromRM = null;
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
 
     try {
-      caseFromRM = getCaseFromRm(caseId, getCaseEvents);
+      CaseContainerDTO caseFromRM = getCaseFromRm(caseId, getCaseEvents);
+      if (caseFromRM != null) {
+        timeOrderedCases.addCase(mapCaseContainerDTO(caseFromRM));
+      }
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
@@ -277,16 +273,11 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    if (caseFromRM != null) {
-      CaseDTO caseDto = mapCaseContainerDTO(caseFromRM);
-      cases.add(caseDto);
-    }
-
     Optional<CaseDTO> cachedCase =
-        dataRepo.readCachedCaseById(caseId).map(this::createNewCachedCaseResponse);
+        dataRepo
+            .readCachedCaseById(caseId)
+            .map(cc -> createNewCachedCaseResponse(cc, getCaseEvents));
 
-    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
-    timeOrderedCases.add(cases);
     if (cachedCase.isPresent()) {
       timeOrderedCases.addCase(cachedCase.get());
     }
@@ -317,7 +308,7 @@ public class CaseServiceImpl implements CaseService {
         dataRepo
             .readCachedCasesByUprn(uprn)
             .stream()
-            .map(this::createNewCachedCaseResponse)
+            .map(cc -> createNewCachedCaseResponse(cc, addCaseEvents))
             .collect(toList());
     log.with("uprn", uprn)
         .with("cases", cachedCases.size())
@@ -332,7 +323,6 @@ public class CaseServiceImpl implements CaseService {
       UniquePropertyReferenceNumber uprn, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
     log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
-
     Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
@@ -344,7 +334,7 @@ public class CaseServiceImpl implements CaseService {
       log.with("uprn", uprn)
           .with("caseId", newcase.getId())
           .debug("Returning new skeleton case for UPRN");
-      response = createNewCachedCaseResponse(newcase);
+      response = createNewCachedCaseResponse(newcase, false);
     }
     return Collections.singletonList(response);
   }
@@ -365,14 +355,9 @@ public class CaseServiceImpl implements CaseService {
 
     // Get the case details from the case service
     Boolean getCaseEvents = requestParamsDTO.getCaseEvents();
-    CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
-
+    CaseContainerDTO caseDetails = getCaseFromRm(caseRef, getCaseEvents);
     CaseDTO caseServiceResponse = mapCaseContainerDTO(caseDetails);
-
     rejectHouseholdIndividual(caseServiceResponse);
-
-    filterCaseEvents(caseServiceResponse, getCaseEvents);
-
     log.with("caseRef", caseRef).debug("Returning case details for case reference");
 
     return caseServiceResponse;
@@ -432,7 +417,6 @@ public class CaseServiceImpl implements CaseService {
     cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
     cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
     cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
-    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
     dataRepo.writeCachedCase(cachedCase);
   }
 
@@ -499,6 +483,7 @@ public class CaseServiceImpl implements CaseService {
     response.setAddressLine3(modifyRequestDTO.getAddressLine3());
     response.setCeOrgName(modifyRequestDTO.getCeOrgName());
     response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    response.setCaseEvents(Collections.emptyList());
   }
 
   @Override
@@ -508,7 +493,8 @@ public class CaseServiceImpl implements CaseService {
     UUID originalCaseId = modifyRequestDTO.getCaseId();
     UUID caseId = originalCaseId;
 
-    CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, false);
+    CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
+    caseDetails.setCreatedDateTime(DateTimeUtil.nowUTC());
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
     CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());
 
@@ -814,22 +800,23 @@ public class CaseServiceImpl implements CaseService {
     sendEvent(EventType.NEW_ADDRESS_REPORTED, payload, payload.getCollectionCase().getId());
   }
 
-  private void filterCaseEvents(CaseDTO caseDTO, Boolean getCaseEvents) {
+  private CaseContainerDTO filterCaseEvents(CaseContainerDTO caseDTO, Boolean getCaseEvents) {
     if (getCaseEvents) {
       // Only return whitelisted events
       Set<String> whitelistedEventCategories =
           appConfig.getCaseServiceSettings().getWhitelistedEventCategories();
-      List<CaseEventDTO> filteredEvents =
+      List<EventDTO> filteredEvents =
           caseDTO
               .getCaseEvents()
               .stream()
-              .filter(e -> whitelistedEventCategories.contains(e.getCategory()))
-              .collect(Collectors.toList());
+              .filter(e -> whitelistedEventCategories.contains(e.getEventType()))
+              .collect(toList());
       caseDTO.setCaseEvents(filteredEvents);
     } else {
       // Caller doesn't want any event data
-      caseDTO.setCaseEvents(null);
+      caseDTO.setCaseEvents(Collections.emptyList());
     }
+    return caseDTO;
   }
 
   private Region convertRegion(CaseContainerDTO caseDetails) {
@@ -956,7 +943,18 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private CaseContainerDTO getCaseFromRm(UUID caseId, boolean getCaseEvents) {
-    return caseServiceClient.getCaseById(caseId, getCaseEvents);
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseById(caseId, getCaseEvents);
+    return filterCaseEvents(caseDetails, getCaseEvents);
+  }
+
+  private CaseContainerDTO getCaseFromRm(long caseRef, boolean getCaseEvents) {
+    CaseContainerDTO caseDetails = caseServiceClient.getCaseByCaseRef(caseRef, getCaseEvents);
+    return filterCaseEvents(caseDetails, getCaseEvents);
+  }
+
+  private List<CaseContainerDTO> getCasesFromRm(long uprn, boolean getCaseEvents) {
+    var caseList = caseServiceClient.getCaseByUprn(uprn, getCaseEvents);
+    return caseList.stream().map(c -> filterCaseEvents(c, getCaseEvents)).collect(toList());
   }
 
   /**
@@ -1028,7 +1026,7 @@ public class CaseServiceImpl implements CaseService {
 
     List<CaseContainerDTO> rmCases = new ArrayList<>();
     try {
-      rmCases = caseServiceClient.getCaseByUprn(uprn, listCaseEvents);
+      rmCases = getCasesFromRm(uprn, listCaseEvents);
     } catch (ResponseStatusException ex) {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with(uprn).info("Case by UPRN Not Found calling Case Service");
@@ -1045,14 +1043,9 @@ public class CaseServiceImpl implements CaseService {
             rmCases
                 .stream()
                 .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
-                .collect(Collectors.toList());
+                .collect(toList());
 
-    // Convert from Case service to Contact Centre DTOs
-    List<CaseDTO> caseServiceResponse = mapCaseContainerDTOList(casesToReturn);
-
-    // Clean up the events before returning them
-    caseServiceResponse.stream().forEach(c -> filterCaseEvents(c, listCaseEvents));
-    return caseServiceResponse;
+    return mapCaseContainerDTOList(casesToReturn);
   }
 
   /**
@@ -1095,7 +1088,6 @@ public class CaseServiceImpl implements CaseService {
     UUID newCaseId = UUID.randomUUID();
     cachedCase.setId(newCaseId.toString());
     cachedCase.setCreatedDateTime(DateTimeUtil.nowUTC());
-    cachedCase.setCaseEvents(new ArrayList<CaseEventDTO>());
 
     publishNewAddressReportedEvent(newCaseId, cachedCase.getCaseType(), 0, address);
 
@@ -1103,13 +1095,17 @@ public class CaseServiceImpl implements CaseService {
     return cachedCase;
   }
 
-  private CaseDTO createNewCachedCaseResponse(CachedCase newCase) {
+  private CaseDTO createNewCachedCaseResponse(CachedCase newCase, boolean caseEvents) {
     CaseDTO response = caseDTOMapper.map(newCase, CaseDTO.class);
     response.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
 
     EstabType estabType = EstabType.forCode(newCase.getEstabType());
     response.setEstabType(estabType);
     response.setSecureEstablishment(estabType.isSecure());
+
+    if (!caseEvents) {
+      response.setCaseEvents(Collections.emptyList());
+    }
     return response;
   }
 

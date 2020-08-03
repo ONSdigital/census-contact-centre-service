@@ -1,7 +1,9 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.cloud;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,5 +45,5 @@ public class CachedCase {
 
   private String ceOrgName;
 
-  private List<CaseEventDTO> caseEvents;
+  @Builder.Default @NotNull private List<CaseEventDTO> caseEvents = new ArrayList<>();
 }
