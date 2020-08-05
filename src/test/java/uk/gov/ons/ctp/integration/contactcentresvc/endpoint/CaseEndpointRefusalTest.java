@@ -264,7 +264,7 @@ public final class CaseEndpointRefusalTest {
 
   @Test
   public void refusalAgentIdTooLong() throws Exception {
-    assertBadRequest(AGENT_ID, "123456");
+    assertBadRequest(AGENT_ID, "9" + Integer.MAX_VALUE);
   }
 
   @Test

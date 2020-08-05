@@ -125,7 +125,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.124</version>
+      <version>0.0.125</version>
     </dependency>
 
     <!--
