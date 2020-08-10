@@ -59,12 +59,6 @@ public final class AddressEndpoint implements CTPEndpoint {
       @Valid PostcodeQueryRequestDTO postcodeQueryRequest) {
     log.with("requestParams", postcodeQueryRequest).info("Entering GET getAddressesByPostcode");
 
-    try {
-      Thread.sleep((5000L));
-    } catch (InterruptedException whatever) {
-      log.info("Happy now, checkstyle?!");
-    }
-
     return addressService.postcodeQuery(postcodeQueryRequest);
   }
 }
