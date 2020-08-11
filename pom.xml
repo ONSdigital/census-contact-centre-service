@@ -10,7 +10,7 @@
   <parent>
     <groupId>uk.gov.ons.ctp.integration</groupId>
     <artifactId>census-int-common-config</artifactId>
-    <version>0.0.15</version>
+    <version>0.0.16-CR-1018-SNAPSHOT</version>
   </parent>
 
   <name>Census Integration ContactCentre Service</name>
@@ -30,17 +30,6 @@
     <tag>HEAD</tag>
   </scm>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.google.cloud</groupId>
-        <artifactId>libraries-bom</artifactId>
-        <version>3.5.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <dependencies>
 
