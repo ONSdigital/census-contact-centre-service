@@ -30,6 +30,15 @@ management:
   endpoint:
     info:
       enabled: true 
+      env:
+        enabled: true 
+      build:
+        enabled: true 
+      git:
+        mode: SIMPLE 
+        enabled: true 
+			defaults:
+				enabled: true
     health:
       enabled: true
   metrics:
