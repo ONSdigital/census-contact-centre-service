@@ -10,7 +10,7 @@
   <parent>
     <groupId>uk.gov.ons.ctp.integration</groupId>
     <artifactId>census-int-common-config</artifactId>
-    <version>0.0.16-CR-1018-SNAPSHOT</version>
+    <version>0.0.16</version>
   </parent>
 
   <name>Census Integration ContactCentre Service</name>
@@ -108,7 +108,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>framework</artifactId>
-      <version>0.0.63</version>
+      <version>0.0.65</version>
     </dependency>
 
     <dependency>
