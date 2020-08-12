@@ -40,6 +40,10 @@ public class TimeOrderedCases {
     caseSet.addAll(cases);
   }
 
+  public void addCase(CaseDTO caseToAdd) {
+    caseSet.add(caseToAdd);
+  }
+
   public Optional<CaseDTO> latest() {
     return caseSet.size() == 0 ? Optional.empty() : Optional.of(caseSet.last());
   }

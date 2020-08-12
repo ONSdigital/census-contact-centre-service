@@ -14,7 +14,18 @@
     "estabType": "Household",
     "region": "E",
     "ceOrgName": "The Cached Case Organisation",
-    "caseEvents": []
+    "caseEvents": [
+      {
+        "category": "CASE_CREATED",
+        "description": "Cache: Initial creation of case",
+        "createdDateTime": "2020-05-14T16:11:41.343+01:00"
+      },
+      {
+        "category": "CASE_UPDATED",
+        "description": "Cache: Create Household Visit",
+        "createdDateTime": "2020-05-16T12:12:12.343Z"
+      }
+    ]
   },
   {
     "id": "c46e5dd4-4b17-45ac-a034-0e514e8592c0",
@@ -26,11 +37,17 @@
     "addressLine3": "",
     "townName": "Exeter",
     "postcode": "EX1 2ET",
-    "addressType": "HH",
+    "addressType": "CE",
     "caseType": "CE",
     "estabType": "Holiday Park",
     "region": "E",
     "ceOrgName": "The Cached Case Organisation",
-    "caseEvents": []
+    "caseEvents": [
+      {
+        "category": "CASE_CREATED",
+        "description": "Cache: Initial creation",
+        "createdDateTime": "2020-06-14T16:11:41.343+01:00"
+      }
+    ]
   }
 ]

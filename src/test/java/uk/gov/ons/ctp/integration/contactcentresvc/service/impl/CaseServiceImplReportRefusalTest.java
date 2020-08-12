@@ -97,7 +97,7 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     RefusalRequestDTO refusalPayload =
         RefusalRequestDTO.builder()
             .caseId(caseId == null ? null : caseId.toString())
-            .agentId("123")
+            .agentId(123)
             .title("Mr")
             .forename("Steve")
             .surname("Jones")

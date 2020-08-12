@@ -103,11 +103,7 @@ public abstract class EndpointSecurityTest {
     UUID caseId = UUID.randomUUID();
     ResponseEntity<String> response =
         restTemplate.getForEntity(
-            base.toString()
-                + "/cases/"
-                + caseId
-                + "/uac?adLocation=12345&individual=false&caseId="
-                + caseId,
+            base.toString() + "/cases/" + caseId + "/uac?adLocationId=12345&individual=false",
             String.class);
     assertEquals(expectedStatus, response.getStatusCode());
   }
@@ -153,7 +149,7 @@ public abstract class EndpointSecurityTest {
     RefusalRequestDTO requestBody = new RefusalRequestDTO();
     requestBody.setCaseId(caseId.toString());
     requestBody.setReason(Reason.HARD);
-    requestBody.setAgentId("12345");
+    requestBody.setAgentId(12345);
     requestBody.setCallId("8989-NOW");
     requestBody.setIsHouseholder(false);
     requestBody.setDateTime(new Date());
