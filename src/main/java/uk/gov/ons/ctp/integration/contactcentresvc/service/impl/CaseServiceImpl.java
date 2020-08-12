@@ -20,6 +20,7 @@ import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.domain.AddressLevel;
 import uk.gov.ons.ctp.common.domain.AddressType;
@@ -611,8 +612,25 @@ public class CaseServiceImpl implements CaseService {
 
     // Get RM to allocate a new questionnaire ID
     log.info("Before new QID");
-    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
-        caseServiceClient.getSingleUseQuestionnaireId(parentCaseId, individual, individualCaseId);
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto;
+    try {
+      newQuestionnaireIdDto =
+          caseServiceClient.getSingleUseQuestionnaireId(parentCaseId, individual, individualCaseId);
+    } catch (ResponseStatusException ex) {
+      if (ex.getCause() != null) {
+        HttpStatusCodeException cause = (HttpStatusCodeException) ex.getCause();
+        log.with("caseid", parentCaseId)
+            .with("status", cause.getStatusCode())
+            .with("message", cause.getMessage())
+            .warn("New QID, UAC Case service request failure.");
+        if (cause.getStatusCode() == HttpStatus.BAD_REQUEST) {
+          throw new CTPException(
+              Fault.BAD_REQUEST, "Invalid request for case %s", parentCaseId.toString());
+        }
+      }
+      throw ex;
+    }
+
     String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
     String formType = newQuestionnaireIdDto.getFormType();
     log.with("newQuestionnaireID", questionnaireId)

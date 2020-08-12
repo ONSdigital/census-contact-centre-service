@@ -25,6 +25,7 @@ import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.FormType;
@@ -143,6 +144,33 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   private void assertThatCeManagerFormFromUnitRegionIsRejected(CaseContainerDTO dto) {
     assertThatInvalidLaunchComboIsRejected(
         dto, "A CE Manager form can only be launched against an establishment address not a UNIT.");
+  }
+
+  @Test
+  public void testLaunch_caseServiceQidRequestResponseStatusExceptionBadRequestCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Bad Request",
+            new HttpClientErrorException(HttpStatus.BAD_REQUEST)),
+        true);
+  }
+
+  @Test
+  public void testLaunch_caseServiceQidRequestResponseStatusExceptionOtherCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Other",
+            new HttpClientErrorException(HttpStatus.I_AM_A_TEAPOT)),
+        false);
+  }
+
+  @Test
+  public void testLaunch_caseServiceQidRequestResponseStatusExceptionNoCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal processing error"),
+        false);
   }
 
   @Test
