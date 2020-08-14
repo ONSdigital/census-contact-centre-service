@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>contactcentresvc</artifactId>
@@ -8,7 +10,7 @@
   <parent>
     <groupId>uk.gov.ons.ctp.integration</groupId>
     <artifactId>census-int-common-config</artifactId>
-    <version>0.0.15</version>
+    <version>0.0.16</version>
   </parent>
 
   <name>Census Integration ContactCentre Service</name>
@@ -28,17 +30,6 @@
     <tag>HEAD</tag>
   </scm>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.google.cloud</groupId>
-        <artifactId>libraries-bom</artifactId>
-        <version>3.5.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-       </dependency>
-     </dependencies>
-  </dependencyManagement>
 
   <dependencies>
 
@@ -94,10 +85,21 @@
     </dependency>
 
     <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest</artifactId>
-        <scope>test</scope>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-stackdriver</artifactId>
+    </dependency>
+
 
     <!-- SPRING END -->
 
@@ -106,7 +108,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>framework</artifactId>
-      <version>0.0.64</version>
+      <version>0.0.65</version>
     </dependency>
 
     <dependency>
@@ -128,12 +130,9 @@
       <version>0.0.125</version>
     </dependency>
 
-    <!--
-      WARNING WARNING WARNING
-      The CCCucmber project has this dependancy also, as it has tests that use
-      the product lib as fixtures. That dependancy must be kept in sync with this one
-      in order for the tests to run successfully
-      -->
+    <!-- WARNING WARNING WARNING The CCCucmber project has this dependancy 
+      also, as it has tests that use the product lib as fixtures. That dependancy 
+      must be kept in sync with this one in order for the tests to run successfully -->
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>product-reference</artifactId>

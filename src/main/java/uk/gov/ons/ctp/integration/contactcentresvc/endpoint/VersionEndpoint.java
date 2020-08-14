@@ -2,6 +2,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc.endpoint;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import io.micrometer.core.annotation.Timed;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -17,6 +18,7 @@ import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.VersionResponseDTO;
 
 /** The REST endpoint controller for ContactCentreSvc Version Details */
+@Timed
 @RestController
 @RequestMapping(value = "/", produces = "application/json")
 public final class VersionEndpoint implements CTPEndpoint {

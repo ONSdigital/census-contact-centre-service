@@ -38,6 +38,5 @@ Is switched off by default for clean deploy. Switch on with;
 
 * mvn dockerfile:build -Dskip.dockerfile=false
 
-    
 ## Copyright
 Copyright (C) 2019 Crown Copyright (Office for National Statistics)
