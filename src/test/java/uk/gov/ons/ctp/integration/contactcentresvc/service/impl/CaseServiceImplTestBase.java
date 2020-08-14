@@ -2,13 +2,17 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
 import java.text.ParseException;
@@ -23,9 +27,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
+import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -42,6 +49,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseEventDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
@@ -188,5 +196,30 @@ public abstract class CaseServiceImplTestBase {
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+  }
+
+  void assertCaseQIDRestClientFailureCaught(Exception ex, boolean caught) {
+    mockGetCaseById("CE", "U", "W");
+    Mockito.doThrow(ex)
+        .when(caseServiceClient)
+        .getSingleUseQuestionnaireId(eq(UUID_0), anyBoolean(), any());
+    UACRequestDTO requestsFromCCSvc =
+        UACRequestDTO.builder().adLocationId(AN_AGENT_ID).individual(true).build();
+    try {
+      target.getUACForCaseId(UUID_0, requestsFromCCSvc);
+      fail();
+    } catch (CTPException badRequest) {
+      if (caught) {
+        assertEquals(Fault.BAD_REQUEST, badRequest.getFault());
+      } else {
+        fail();
+      }
+    } catch (ResponseStatusException other) {
+      if (!caught) {
+        assertSame(ex, other);
+      } else {
+        fail();
+      }
+    }
   }
 }

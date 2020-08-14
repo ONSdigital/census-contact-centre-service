@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.domain.FormType;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -76,7 +77,7 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
   }
 
   @Test(expected = CTPException.class)
-  public void testGetUAC_caseServiceNotFoundException_cachedCase() throws Exception {
+  public void testGetUAC_caseServiceCaseNotFoundException_cachedCase() throws Exception {
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
@@ -85,7 +86,7 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
   }
 
   @Test(expected = ResponseStatusException.class)
-  public void testGetUAC_caseServiceNotFoundException_noCachedCase() throws Exception {
+  public void testGetUAC_caseServiceCaseNotFoundException_noCachedCase() throws Exception {
     Mockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
@@ -94,11 +95,38 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
   }
 
   @Test(expected = ResponseStatusException.class)
-  public void testGetUAC_caseServiceResponseStatusException() throws Exception {
+  public void testGetUAC_caseServiceCaseRequestResponseStatusException() throws Exception {
     Mockito.doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
         .when(caseServiceClient)
         .getCaseById(UUID_0, false);
     target.getUACForCaseId(UUID_0, new UACRequestDTO());
+  }
+
+  @Test
+  public void testGetUAC_caseServiceQidRequestResponseStatusExceptionBadRequestCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Bad Request",
+            new HttpClientErrorException(HttpStatus.BAD_REQUEST)),
+        true);
+  }
+
+  @Test
+  public void testGetUAC_caseServiceQidRequestResponseStatusExceptionOtherCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Other",
+            new HttpClientErrorException(HttpStatus.I_AM_A_TEAPOT)),
+        false);
+  }
+
+  @Test
+  public void testGetUAC_caseServiceQidRequestResponseStatusExceptionNoCause() {
+    assertCaseQIDRestClientFailureCaught(
+        new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal processing error"),
+        false);
   }
 
   @Test
