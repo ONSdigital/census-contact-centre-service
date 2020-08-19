@@ -531,9 +531,8 @@ public class CaseServiceImpl implements CaseService {
         .debug("Processing refusal for case with reported dateTime");
 
     // Create and publish a respondent refusal event
-    UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
     RespondentRefusalDetails refusalPayload =
-        createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
+        createRespondentRefusalPayload(caseId, requestBodyDTO);
 
     sendEvent(EventType.REFUSAL_RECEIVED, refusalPayload, caseId);
 

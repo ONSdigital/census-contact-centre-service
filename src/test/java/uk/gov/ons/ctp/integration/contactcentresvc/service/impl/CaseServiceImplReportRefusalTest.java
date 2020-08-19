@@ -73,19 +73,6 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
         caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
   }
 
-  @Test
-  public void testRespondentRefusal_forUnknownUUID() throws Exception {
-    UUID unknownCaseId = null;
-    UUID expectedEventCaseId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    String expectedResponseCaseId = "unknown";
-    doRespondentRefusalTest(
-        unknownCaseId,
-        expectedEventCaseId,
-        expectedResponseCaseId,
-        new Date(),
-        Reason.EXTRAORDINARY);
-  }
-
   private void doRespondentRefusalTest(
       UUID caseId,
       UUID expectedEventCaseId,
@@ -96,7 +83,7 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(A_UPRN);
     RefusalRequestDTO refusalPayload =
         RefusalRequestDTO.builder()
-            .caseId(caseId == null ? null : caseId.toString())
+            .caseId(caseId)
             .agentId(123)
             .title("Mr")
             .forename("Steve")
