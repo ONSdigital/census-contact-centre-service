@@ -84,11 +84,12 @@ public final class CaseEndpointRefusalTest {
   }
 
   @Test
-  public void refusalGoodBodyCaseIdBothUnknown() throws Exception {
+  public void refusalForUnknownCaseFails() throws Exception {
+    // Refusals no longer supports an 'unknown' case
     ObjectNode json = FixtureHelper.loadClassObjectNode();
     json.put(CASE_ID, "unknown");
     ResultActions actions = mockMvc.perform(postJson("/cases/unknown/refusal", json.toString()));
-    actions.andExpect(status().isOk());
+    actions.andExpect(status().isBadRequest());
   }
 
   @Test

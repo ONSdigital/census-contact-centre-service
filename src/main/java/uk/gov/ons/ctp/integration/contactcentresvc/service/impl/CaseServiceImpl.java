@@ -1,7 +1,6 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static java.util.stream.Collectors.toList;
-import static uk.gov.ons.ctp.integration.contactcentresvc.utility.Constants.UNKNOWN_UUID;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
@@ -531,18 +530,14 @@ public class CaseServiceImpl implements CaseService {
         .debug("Processing refusal for case with reported dateTime");
 
     // Create and publish a respondent refusal event
-    UUID refusalCaseId = caseId == null ? new UUID(0, 0) : caseId;
     RespondentRefusalDetails refusalPayload =
-        createRespondentRefusalPayload(refusalCaseId, requestBodyDTO);
+        createRespondentRefusalPayload(caseId, requestBodyDTO);
 
     sendEvent(EventType.REFUSAL_RECEIVED, refusalPayload, caseId);
 
     // Build response
     ResponseDTO response =
-        ResponseDTO.builder()
-            .id(caseId == null ? UNKNOWN_UUID : caseId.toString())
-            .dateTime(DateTimeUtil.nowUTC())
-            .build();
+        ResponseDTO.builder().id(caseId.toString()).dateTime(DateTimeUtil.nowUTC()).build();
 
     log.with("caseId", caseId).debug("Returning refusal response for case");
 

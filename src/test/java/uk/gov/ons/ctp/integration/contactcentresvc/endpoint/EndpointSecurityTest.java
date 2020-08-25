@@ -147,7 +147,7 @@ public abstract class EndpointSecurityTest {
   void testPostRefusal(HttpStatus expectedStatus) {
     UUID caseId = UUID.randomUUID();
     RefusalRequestDTO requestBody = new RefusalRequestDTO();
-    requestBody.setCaseId(caseId.toString());
+    requestBody.setCaseId(caseId);
     requestBody.setReason(Reason.HARD);
     requestBody.setAgentId(12345);
     requestBody.setCallId("8989-NOW");

@@ -8,7 +8,6 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -211,9 +210,9 @@ public class CaseEndpoint implements CTPEndpoint {
   }
 
   /**
-   * the POST end point to report a refusal - caseId may be "unknown"
+   * the POST end point to report a refusal.
    *
-   * @param caseId is the case to log the refusal against. May contain 'unknown'.
+   * @param caseId is the case to log the refusal against.
    * @param requestBodyDTO the request body.
    * @return response entity
    * @throws CTPException something went wrong
@@ -221,7 +220,7 @@ public class CaseEndpoint implements CTPEndpoint {
   @RequestMapping(value = "/{caseId}/refusal", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public ResponseEntity<ResponseDTO> reportRefusal(
-      @PathVariable(value = "caseId") final String caseId,
+      @PathVariable(value = "caseId") final UUID caseId,
       @Valid @RequestBody RefusalRequestDTO requestBodyDTO)
       throws CTPException {
 
@@ -229,23 +228,13 @@ public class CaseEndpoint implements CTPEndpoint {
         .with("requestBody", requestBodyDTO)
         .info("Entering POST reportRefusal");
 
-    UUID caseIdUUID = null;
-    if (StringUtils.isBlank(caseId)) {
-      log.with("caseId", caseId).warn("reportRefusal caseId must be a valid UUID or \"UNKNOWN\"");
-      throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID or \"UNKNOWN\"");
-    } else if (!caseId.equals(requestBodyDTO.getCaseId())) {
+    if (!caseId.equals(requestBodyDTO.getCaseId())) {
       log.with("caseId", caseId).warn("reportRefusal caseId in path and body must be identical");
       throw new CTPException(
           Fault.BAD_REQUEST, "reportRefusal caseId in path and body must be identical");
-    } else if (!caseId.toUpperCase().equals("UNKNOWN")) {
-      try {
-        caseIdUUID = UUID.fromString(caseId);
-      } catch (IllegalArgumentException e) {
-        log.with("caseId", caseId).warn("reportRefusal caseId must be a valid UUID");
-        throw new CTPException(Fault.BAD_REQUEST, "caseId must be a valid UUID");
-      }
     }
-    ResponseDTO response = caseService.reportRefusal(caseIdUUID, requestBodyDTO);
+
+    ResponseDTO response = caseService.reportRefusal(caseId, requestBodyDTO);
 
     log.with("caseId", caseId).debug("Exiting reportRefusal");
 
