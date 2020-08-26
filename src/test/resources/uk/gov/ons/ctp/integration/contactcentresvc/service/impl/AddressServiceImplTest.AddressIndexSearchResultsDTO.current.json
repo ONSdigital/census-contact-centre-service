@@ -10,9 +10,11 @@
       {
         "uprn": "100041045018",
         "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType": "HH",
-        "censusEstabType": "HOUSEHOLD",
+        "census": {
+          "countryCode": "E",
+          "censusAddressType": "HH",
+          "censusEstabType": "HOUSEHOLD"
+        },
         "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
@@ -32,9 +34,11 @@
       {
         "uprn": "100041045021",
         "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType": "CE",
-        "censusEstabType": "CARE HOME",
+        "census": {
+          "countryCode": "E",
+          "censusAddressType": "CE",
+          "censusEstabType": "CARE HOME"
+        },
         "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressPaf": "",
@@ -54,9 +58,11 @@
       {
         "uprn": "100041045024",
         "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType": "SPG",
-        "censusEstabType": "PRISON",
+        "census": {
+          "countryCode": "E",
+          "censusAddressType": "SPG",
+          "censusEstabType": "PRISON"
+        },
         "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "",
         "formattedAddressPaf": "",
@@ -76,9 +82,11 @@
       {
         "uprn": "100041133344",
         "parentUprn": "0",
-        "countryCode": "E",
-        "censusAddressType": "HH",
-        "censusEstabType": "OLD RAILWAY CARRIAGE",
+        "census": {
+          "countryCode": "E",
+          "censusAddressType": "HH",
+          "censusEstabType": "OLD RAILWAY CARRIAGE"
+        },
         "formattedAddress": "",
         "formattedAddressNag": "",
         "formattedAddressPaf": "",

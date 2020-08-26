@@ -22,9 +22,11 @@
           "northing": 295962
         },
         "classificationCode": "RD02",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 64.8609,
         "underlyingScore": 8.500446319580078
@@ -45,9 +47,11 @@
           "northing": 286912
         },
         "classificationCode": "RD02",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 46.1842,
         "underlyingScore": 8.222030639648438
@@ -68,9 +72,11 @@
           "northing": 285896
         },
         "classificationCode": "RD06",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 41.0834,
         "underlyingScore": 8.146566390991211
@@ -91,9 +97,11 @@
           "northing": 479345
         },
         "classificationCode": "PP",
-        "censusAddressType": "NA",
-        "censusEstabType": "NA",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "8",
         "confidenceScore": 41.0834,
         "underlyingScore": 8.146566390991211
@@ -114,9 +122,11 @@
           "northing": 394833
         },
         "classificationCode": "CE04",
-        "censusAddressType": "NA",
-        "censusEstabType": "NA",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 41.0834,
         "underlyingScore": 8.146566390991211
@@ -137,9 +147,11 @@
           "northing": 479331
         },
         "classificationCode": "CI03",
-        "censusAddressType": "NA",
-        "censusEstabType": "NA",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 41.0834,
         "underlyingScore": 8.146566390991211
@@ -160,9 +172,11 @@
           "northing": 286551
         },
         "classificationCode": "RD02",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 36.2923,
         "underlyingScore": 8.073066711425781
@@ -183,9 +197,11 @@
           "northing": 394183
         },
         "classificationCode": "CT08",
-        "censusAddressType": "NA",
-        "censusEstabType": "NA",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "NA",
+          "censusEstabType": "NA",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "8",
         "confidenceScore": 31.8714,
         "underlyingScore": 8.001455307006836
@@ -206,9 +222,11 @@
           "northing": 742100
         },
         "classificationCode": "RD02",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "S",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "S"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 14.8778,
         "underlyingScore": 7.643546104431152
@@ -229,9 +247,11 @@
           "northing": 493518
         },
         "classificationCode": "RD02",
-        "censusAddressType": "HH",
-        "censusEstabType": "Household",
-        "countryCode": "E",
+        "census": {
+          "censusAddressType": "HH",
+          "censusEstabType": "Household",
+          "countryCode": "E"
+        },
         "lpiLogicalStatus": "1",
         "confidenceScore": 14.8778,
         "underlyingScore": 7.643546104431152
