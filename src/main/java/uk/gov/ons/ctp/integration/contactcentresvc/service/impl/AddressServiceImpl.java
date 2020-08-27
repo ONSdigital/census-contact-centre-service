@@ -110,12 +110,12 @@ public class AddressServiceImpl implements AddressService {
     String addressNag = fullAddress.getFormattedAddressNag();
     String welshAddressPaf = fullAddress.getWelshFormattedAddressPaf();
     String welshAddressNag = fullAddress.getWelshFormattedAddressNag();
-    String estabDescription = fullAddress.getCensus().getCensusEstabType();
+    String estabDescription = fullAddress.getCensus().getEstabType();
 
     AddressDTO addressSummary = new AddressDTO();
     addressSummary.setUprn(fullAddress.getUprn());
     addressSummary.setRegion(fullAddress.getCensus().getCountryCode());
-    addressSummary.setAddressType(fullAddress.getCensus().getCensusAddressType());
+    addressSummary.setAddressType(fullAddress.getCensus().getAddressType());
     addressSummary.setEstabType(EstabType.forCode(estabDescription).name());
     addressSummary.setEstabDescription(estabDescription);
     addressSummary.setFormattedAddress(

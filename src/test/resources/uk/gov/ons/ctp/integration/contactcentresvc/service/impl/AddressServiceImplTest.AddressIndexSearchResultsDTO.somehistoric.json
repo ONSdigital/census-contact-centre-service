@@ -23,8 +23,8 @@
         },
         "classificationCode": "RD02",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -48,8 +48,8 @@
         },
         "classificationCode": "RD02",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -73,8 +73,8 @@
         },
         "classificationCode": "RD06",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -98,8 +98,8 @@
         },
         "classificationCode": "PP",
         "census": {
-          "censusAddressType": "NA",
-          "censusEstabType": "NA",
+          "addressType": "NA",
+          "estabType": "NA",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "8",
@@ -123,8 +123,8 @@
         },
         "classificationCode": "CE04",
         "census": {
-          "censusAddressType": "NA",
-          "censusEstabType": "NA",
+          "addressType": "NA",
+          "estabType": "NA",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -148,8 +148,8 @@
         },
         "classificationCode": "CI03",
         "census": {
-          "censusAddressType": "NA",
-          "censusEstabType": "NA",
+          "addressType": "NA",
+          "estabType": "NA",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -173,8 +173,8 @@
         },
         "classificationCode": "RD02",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
@@ -198,8 +198,8 @@
         },
         "classificationCode": "CT08",
         "census": {
-          "censusAddressType": "NA",
-          "censusEstabType": "NA",
+          "addressType": "NA",
+          "estabType": "NA",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "8",
@@ -223,8 +223,8 @@
         },
         "classificationCode": "RD02",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "S"
         },
         "lpiLogicalStatus": "1",
@@ -248,8 +248,8 @@
         },
         "classificationCode": "RD02",
         "census": {
-          "censusAddressType": "HH",
-          "censusEstabType": "Household",
+          "addressType": "HH",
+          "estabType": "Household",
           "countryCode": "E"
         },
         "lpiLogicalStatus": "1",
