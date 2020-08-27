@@ -12,8 +12,8 @@
         "parentUprn": "0",
         "census": {
           "countryCode": "E",
-          "censusAddressType": "HH",
-          "censusEstabType": "HOUSEHOLD"
+          "addressType": "HH",
+          "estabType": "HOUSEHOLD"
         },
         "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
@@ -36,8 +36,8 @@
         "parentUprn": "0",
         "census": {
           "countryCode": "E",
-          "censusAddressType": "CE",
-          "censusEstabType": "CARE HOME"
+          "addressType": "CE",
+          "estabType": "CARE HOME"
         },
         "formattedAddress": "Unit 14f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 14n, Michael Browning Way, Exeter, EX2 8DD",
@@ -60,8 +60,8 @@
         "parentUprn": "0",
         "census": {
           "countryCode": "E",
-          "censusAddressType": "SPG",
-          "censusEstabType": "PRISON"
+          "addressType": "SPG",
+          "estabType": "PRISON"
         },
         "formattedAddress": "Unit 19f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "",
@@ -84,8 +84,8 @@
         "parentUprn": "0",
         "census": {
           "countryCode": "E",
-          "censusAddressType": "HH",
-          "censusEstabType": "OLD RAILWAY CARRIAGE"
+          "addressType": "HH",
+          "estabType": "OLD RAILWAY CARRIAGE"
         },
         "formattedAddress": "",
         "formattedAddressNag": "",

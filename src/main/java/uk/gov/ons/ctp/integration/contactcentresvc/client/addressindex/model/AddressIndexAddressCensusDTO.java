@@ -8,7 +8,7 @@ import lombok.Data;
 public class AddressIndexAddressCensusDTO {
   private String countryCode;
 
-  private String censusAddressType;
+  private String addressType;
 
-  private String censusEstabType;
+  private String estabType;
 }
