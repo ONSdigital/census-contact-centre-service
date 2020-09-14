@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc;
+package uk.gov.ons.ctp.integration.contactcentresvc.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -12,10 +12,8 @@ import java.util.Collection;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpDecrypt;
-import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 
-public class PgpTest {
+public class PgpEncryptTest {
   private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
   private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
 
@@ -47,7 +45,7 @@ public class PgpTest {
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
-    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
+    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
       assertEquals(TEST_STRING, decrypted);
@@ -61,7 +59,7 @@ public class PgpTest {
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
-    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_2);
+    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE2.toCharArray());
       assertEquals(TEST_STRING, decrypted);
@@ -77,7 +75,7 @@ public class PgpTest {
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
-    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
+    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
       assertEquals(TEST_STRING, decrypted);
@@ -93,7 +91,7 @@ public class PgpTest {
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
-    String privKey2 = PgpTest.readFileIntoString(PRIVATE_KEY_2);
+    String privKey2 = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile2 = new ByteArrayInputStream(privKey2.getBytes())) {
       String decrypted = PgpDecrypt.decrypt(secretKeyFile2, encStr, PASS_PHRASE2.toCharArray());
       assertEquals(TEST_STRING, decrypted);
