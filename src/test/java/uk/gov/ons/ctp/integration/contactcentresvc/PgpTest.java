@@ -12,13 +12,15 @@ import java.util.Collection;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpDecrypt;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 
 public class PgpTest {
-  private static final String PUBLIC_KEY_1 = "pgp/key1.pub";
-  private static final String PUBLIC_KEY_2 = "pgp/key2.pub";
+  private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
+  private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
 
-  private static final String PRIVATE_KEY_1 = "pgp/key1.priv";
-  private static final String PRIVATE_KEY_2 = "pgp/key2.priv";
+  private static final String PRIVATE_KEY_1 = "pgp/priv-key1.asc";
+  private static final String PRIVATE_KEY_2 = "pgp/priv-key2.asc";
 
   static final String PASS_PHRASE = "Good Golly Miss Molly";
   static final String PASS_PHRASE2 = "Bless My Soul";
@@ -43,11 +45,11 @@ public class PgpTest {
     Resource res = new ClassPathResource(PUBLIC_KEY_1);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
-    String encStr = Pgp.encrypt(TEST_STRING, ress);
+    String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
     String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
+      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
       assertEquals(TEST_STRING, decrypted);
     }
   }
@@ -57,11 +59,11 @@ public class PgpTest {
     Resource res = new ClassPathResource(PUBLIC_KEY_2);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
-    String encStr = Pgp.encrypt(TEST_STRING, ress);
+    String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
     String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE2.toCharArray());
+      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE2.toCharArray());
       assertEquals(TEST_STRING, decrypted);
     }
   }
@@ -73,11 +75,11 @@ public class PgpTest {
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res2);
     ress.add(res);
-    String encStr = Pgp.encrypt(TEST_STRING, ress);
+    String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
     String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
+      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
       assertEquals(TEST_STRING, decrypted);
     }
   }
@@ -89,11 +91,11 @@ public class PgpTest {
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res2);
     ress.add(res);
-    String encStr = Pgp.encrypt(TEST_STRING, ress);
+    String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
 
     String privKey2 = PgpTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile2 = new ByteArrayInputStream(privKey2.getBytes())) {
-      String decrypted = Pgp.decrypt(secretKeyFile2, encStr, PASS_PHRASE2.toCharArray());
+      String decrypted = PgpDecrypt.decrypt(secretKeyFile2, encStr, PASS_PHRASE2.toCharArray());
       assertEquals(TEST_STRING, decrypted);
     }
   }

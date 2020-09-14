@@ -31,8 +31,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
   private static final String A_CALL_ID = "8989-NOW";
   private static final String A_UPRN = "1234";
-  private static final String PUBLIC_KEY_1 = "pgp/key1.pub";
-  private static final String PUBLIC_KEY_2 = "pgp/key2.pub";
+  private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
+  private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
 
   @Before
   public void setup() {

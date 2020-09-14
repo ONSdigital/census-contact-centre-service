@@ -59,7 +59,6 @@ import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
-import uk.gov.ons.ctp.integration.contactcentresvc.Pgp;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
@@ -80,6 +79,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
 @Service
@@ -1030,7 +1030,7 @@ public class CaseServiceImpl implements CaseService {
 
   private String encrypt(String clearValue) {
     List<Resource> keys = List.of(appConfig.getPublicPgpKey1(), appConfig.getPublicPgpKey2());
-    String encStr = Pgp.encrypt(clearValue, keys);
+    String encStr = PgpEncrypt.encrypt(clearValue, keys);
     return Base64.getEncoder().encodeToString(encStr.getBytes());
   }
 
