@@ -100,7 +100,6 @@
       <artifactId>micrometer-registry-stackdriver</artifactId>
     </dependency>
 
-
     <!-- SPRING END -->
 
     <!-- ONS libraries -->
@@ -130,8 +129,8 @@
       <version>0.0.126</version>
     </dependency>
 
-    <!-- WARNING WARNING WARNING The CCCucmber project has this dependancy 
-      also, as it has tests that use the product lib as fixtures. That dependancy 
+    <!-- WARNING WARNING WARNING The CCCucmber project has this dependancy
+      also, as it has tests that use the product lib as fixtures. That dependancy
       must be kept in sync with this one in order for the tests to run successfully -->
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
@@ -190,6 +189,12 @@
       <groupId>commons-validator</groupId>
       <artifactId>commons-validator</artifactId>
       <version>1.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpg-jdk15on</artifactId>
+      <version>1.66</version>
     </dependency>
 
     <!-- Testing -->
