@@ -17,18 +17,18 @@ public class PgpEncryptTest {
   private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
   private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
 
-  private static final String PRIVATE_KEY_1 = "pgp/priv-key1.asc";
-  private static final String PRIVATE_KEY_2 = "pgp/priv-key2.asc";
+  static final String PRIVATE_KEY_1 = "pgp/priv-key1.asc";
+  static final String PRIVATE_KEY_2 = "pgp/priv-key2.asc";
 
-  static final String PASS_PHRASE = "Good Golly Miss Molly";
-  static final String PASS_PHRASE2 = "Bless My Soul";
+  public static final String PASS_PHRASE = "Good Golly Miss Molly";
+  public static final String PASS_PHRASE2 = "Bless My Soul";
 
   static final String TEST_STRING =
       "God grant me the serenity to accept the things I cannot change, "
           + "Courage to change the things I can, "
           + "and Wisdom to know the difference.";
 
-  private static String readFileIntoString(String filename) throws Exception {
+  public static String readFileIntoString(String filename) throws Exception {
     try (InputStream is = ClassLoader.getSystemResourceAsStream(filename)) {
       String text = null;
       try (Reader reader = new InputStreamReader(is)) {

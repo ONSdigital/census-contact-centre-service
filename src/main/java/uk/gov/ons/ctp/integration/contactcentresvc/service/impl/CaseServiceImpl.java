@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -1031,7 +1032,7 @@ public class CaseServiceImpl implements CaseService {
   private String encrypt(String clearValue) {
     List<Resource> keys = List.of(appConfig.getPublicPgpKey1(), appConfig.getPublicPgpKey2());
     String encStr = PgpEncrypt.encrypt(clearValue, keys);
-    return Base64.getEncoder().encodeToString(encStr.getBytes());
+    return Base64.getEncoder().encodeToString(encStr.getBytes(StandardCharsets.UTF_8));
   }
 
   private String mapToType(Reason reason) throws CTPException {

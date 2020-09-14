@@ -24,7 +24,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactoryBuilder;
 import org.bouncycastle.util.io.Streams;
 
-/** PGP encryption and decryption methods. */
+/** PGP decryption */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PgpDecrypt {
   private static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();

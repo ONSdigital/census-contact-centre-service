@@ -1,12 +1,14 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.Before;
@@ -25,6 +27,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpDecrypt;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncryptTest;
 
 /** Unit Test {@link CaseService#reportRefusal(UUID, RefusalRequestDTO) reportRefusal}. */
 @RunWith(MockitoJUnitRunner.class)
@@ -33,6 +37,8 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
   private static final String A_UPRN = "1234";
   private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
   private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
+  private static final String PRIVATE_KEY_1 = "pgp/priv-key1.asc";
+  private static final String PRIVATE_KEY_2 = "pgp/priv-key2.asc";
 
   @Before
   public void setup() {
@@ -136,9 +142,27 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
       assertNull(refusal.getContact());
     } else {
       ContactCompact c = refusal.getContact();
-      assertFalse("Mr".equals(c.getTitle()));
-      assertFalse("Steve".equals(c.getForename()));
-      assertFalse("Jones".equals(c.getSurname()));
+      verifyEncryptedField("Mr", c.getTitle());
+      verifyEncryptedField("Steve", c.getForename());
+      verifyEncryptedField("Jones", c.getSurname());
+    }
+  }
+
+  private void verifyEncryptedField(String clear, String sendField) throws Exception {
+    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
+    String pgpField = new String(Base64.getDecoder().decode(sendField), StandardCharsets.UTF_8);
+    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
+      String decrypted =
+          PgpDecrypt.decrypt(secretKeyFile, pgpField, PgpEncryptTest.PASS_PHRASE.toCharArray());
+      assertEquals(clear, decrypted);
+    }
+
+    String privKey2 = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
+    String pgpField2 = new String(Base64.getDecoder().decode(sendField), StandardCharsets.UTF_8);
+    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey2.getBytes())) {
+      String decrypted =
+          PgpDecrypt.decrypt(secretKeyFile, pgpField2, PgpEncryptTest.PASS_PHRASE2.toCharArray());
+      assertEquals(clear, decrypted);
     }
   }
 
