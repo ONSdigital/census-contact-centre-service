@@ -1,6 +1,8 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
@@ -11,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -27,10 +31,17 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
   private static final String A_CALL_ID = "8989-NOW";
   private static final String A_UPRN = "1234";
+  private static final String PUBLIC_KEY_1 = "pgp/key1.pub";
+  private static final String PUBLIC_KEY_2 = "pgp/key2.pub";
 
   @Before
   public void setup() {
     when(appConfig.getChannel()).thenReturn(Channel.CC);
+
+    Resource pubKey1 = new ClassPathResource(PUBLIC_KEY_1);
+    Resource pubKey2 = new ClassPathResource(PUBLIC_KEY_2);
+    when(appConfig.getPublicPgpKey1()).thenReturn(pubKey1);
+    when(appConfig.getPublicPgpKey2()).thenReturn(pubKey2);
   }
 
   @Test
@@ -121,8 +132,14 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
 
     verifyRefusalAddress(refusal);
     assertEquals(reason.name() + "_REFUSAL", refusal.getType());
-    ContactCompact expectedContact = new ContactCompact("Mr", "Steve", "Jones");
-    assertEquals(expectedContact, refusal.getContact());
+    if (Reason.EXTRAORDINARY.equals(reason)) {
+      assertNull(refusal.getContact());
+    } else {
+      ContactCompact c = refusal.getContact();
+      assertFalse("Mr".equals(c.getTitle()));
+      assertFalse("Steve".equals(c.getForename()));
+      assertFalse("Jones".equals(c.getSurname()));
+    }
   }
 
   private void verifyRefusalAddress(RespondentRefusalDetails refusal) {
