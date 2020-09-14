@@ -1,20 +1,24 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.crypto;
+package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.google.common.io.CharStreams;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import com.google.common.io.CharStreams;
-import lombok.SneakyThrows;
 
 public class PgpTest {
+  private static final String PUBLIC_KEY_1 = "pgp/key1.pub";
+  private static final String PUBLIC_KEY_2 = "pgp/key2.pub";
+
+  private static final String PRIVATE_KEY_1 = "pgp/key1.priv";
+  private static final String PRIVATE_KEY_2 = "pgp/key2.priv";
 
   static final String PASS_PHRASE = "Good Golly Miss Molly";
   static final String PASS_PHRASE2 = "Bless My Soul";
@@ -24,8 +28,7 @@ public class PgpTest {
           + "Courage to change the things I can, "
           + "and Wisdom to know the difference.";
 
-  @SneakyThrows
-  public static String readFileIntoString(String filename) {
+  private static String readFileIntoString(String filename) throws Exception {
     try (InputStream is = ClassLoader.getSystemResourceAsStream(filename)) {
       String text = null;
       try (Reader reader = new InputStreamReader(is)) {
@@ -37,109 +40,61 @@ public class PgpTest {
 
   @Test
   public void shouldEncryptThenDecrypt() throws Exception {
-    Resource res = new ClassPathResource("robs.pub");
+    Resource res = new ClassPathResource(PUBLIC_KEY_1);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
     String encStr = Pgp.encrypt(TEST_STRING, ress);
-    System.out.println("---- encrypted ---- ");
-    System.out.println(encStr);
 
-    String base64encStr = Base64.getEncoder().encodeToString(encStr.getBytes());
-    System.out.println("Base64: " + base64encStr);
-
-    // ----
-
-    String privKey = PgpTest.readFileIntoString("robs.priv");
+    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
-
-      System.out.println("---- decrypted -----");
-      System.out.println(decrypted);
       assertEquals(TEST_STRING, decrypted);
     }
   }
 
   @Test
   public void shouldEncryptThenDecryptWithAlternativeKey() throws Exception {
-    Resource res = new ClassPathResource("rob2.pub");
+    Resource res = new ClassPathResource(PUBLIC_KEY_2);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
     String encStr = Pgp.encrypt(TEST_STRING, ress);
-    System.out.println("---- encrypted ---- ");
-    System.out.println(encStr);
 
-    String base64encStr = Base64.getEncoder().encodeToString(encStr.getBytes());
-    System.out.println("Base64: " + base64encStr);
-
-    // ----
-
-    String privKey = PgpTest.readFileIntoString("rob2.priv");
+    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE2.toCharArray());
-
-      System.out.println("---- decrypted -----");
-      System.out.println(decrypted);
       assertEquals(TEST_STRING, decrypted);
     }
   }
 
   @Test
   public void shouldDoubleEncryptThenDecryptWithFirstPrivateKey() throws Exception {
-    Resource res = new ClassPathResource("robs.pub");
-    Resource res2 = new ClassPathResource("rob2.pub");
+    Resource res = new ClassPathResource(PUBLIC_KEY_1);
+    Resource res2 = new ClassPathResource(PUBLIC_KEY_2);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res2);
     ress.add(res);
     String encStr = Pgp.encrypt(TEST_STRING, ress);
-    System.out.println("---- encrypted ---- ");
-    System.out.println(encStr);
 
-    // ----
-
-    String privKey = PgpTest.readFileIntoString("robs.priv");
+    String privKey = PgpTest.readFileIntoString(PRIVATE_KEY_1);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
       String decrypted = Pgp.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
-
-      System.out.println("---- decrypted -----");
-      System.out.println(decrypted);
+      assertEquals(TEST_STRING, decrypted);
     }
   }
 
   @Test
   public void shouldDoubleEncryptThenDecryptWithSecondPrivateKey() throws Exception {
-    Resource res = new ClassPathResource("robs.pub");
-    Resource res2 = new ClassPathResource("rob2.pub");
+    Resource res = new ClassPathResource(PUBLIC_KEY_1);
+    Resource res2 = new ClassPathResource(PUBLIC_KEY_2);
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res2);
     ress.add(res);
-    // ress.add(res2);
     String encStr = Pgp.encrypt(TEST_STRING, ress);
-    System.out.println("---- encrypted ---- ");
-    System.out.println(encStr);
 
-    // ----
-
-    String privKey2 = PgpTest.readFileIntoString("rob2.priv");
+    String privKey2 = PgpTest.readFileIntoString(PRIVATE_KEY_2);
     try (ByteArrayInputStream secretKeyFile2 = new ByteArrayInputStream(privKey2.getBytes())) {
       String decrypted = Pgp.decrypt(secretKeyFile2, encStr, PASS_PHRASE2.toCharArray());
-
-      System.out.println("---- decrypted -----");
-      System.out.println(decrypted);
+      assertEquals(TEST_STRING, decrypted);
     }
   }
-
-
-  @Test
-  public void shouldDoubleEncrypt() throws Exception {
-    Resource res = new ClassPathResource("robs.pub");
-    Resource res2 = new ClassPathResource("ryan.pub");
-    Collection<Resource> ress = new ArrayList<Resource>();
-    ress.add(res2);
-    ress.add(res);
-    // ress.add(res2);
-    String encStr = Pgp.encrypt(TEST_STRING, ress);
-    System.out.println("---- encrypted ---- ");
-    System.out.println(encStr);
-  }
-
 }

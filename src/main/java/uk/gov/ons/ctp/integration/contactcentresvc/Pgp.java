@@ -1,4 +1,4 @@
-package uk.gov.ons.ctp.integration.contactcentresvc.crypto;
+package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
@@ -38,13 +40,8 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
 import org.bouncycastle.util.io.Streams;
 import org.springframework.core.io.Resource;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
-/**
- * PGP encryption and decryption methods.
- *
- */
+/** PGP encryption and decryption methods. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Pgp {
   private static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();
@@ -62,27 +59,30 @@ public final class Pgp {
   }
 
   private static byte[] encrypt(Collection<PGPPublicKey> publicPgpKeys, String clearMsg)
-    throws IOException, PGPException {
+      throws IOException, PGPException {
     final byte[] compressedContents = compress(clearMsg);
-    final PGPEncryptedDataGenerator generator = new PGPEncryptedDataGenerator(
-        new JcePGPDataEncryptorBuilder(SymmetricKeyAlgorithmTags.AES_256)
-            .setWithIntegrityPacket(true).setSecureRandom(new SecureRandom())
-            .setProvider(PROVIDER));
+    final PGPEncryptedDataGenerator generator =
+        new PGPEncryptedDataGenerator(
+            new JcePGPDataEncryptorBuilder(SymmetricKeyAlgorithmTags.AES_256)
+                .setWithIntegrityPacket(true)
+                .setSecureRandom(new SecureRandom())
+                .setProvider(PROVIDER));
 
     for (PGPPublicKey publicKey : publicPgpKeys) {
-      generator
-          .addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(publicKey).setProvider(PROVIDER));
+      generator.addMethod(
+          new JcePublicKeyKeyEncryptionMethodGenerator(publicKey).setProvider(PROVIDER));
     }
     final ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();
     try (OutputStream armoredOutputStream = new ArmoredOutputStream(encryptedBytes);
-        OutputStream encryptedOut = generator.open(armoredOutputStream, compressedContents.length)) {
+        OutputStream encryptedOut =
+            generator.open(armoredOutputStream, compressedContents.length)) {
       encryptedOut.write(compressedContents);
     }
     return encryptedBytes.toByteArray();
   }
 
-  private static Collection<PGPPublicKey> getPublicKeys(
-      Collection<Resource> publicKeyResources) throws IOException, PGPException {
+  private static Collection<PGPPublicKey> getPublicKeys(Collection<Resource> publicKeyResources)
+      throws IOException, PGPException {
     var publicKeys = new ArrayList<PGPPublicKey>();
     for (Resource resource : publicKeyResources) {
       PGPPublicKey publicPgpKey = getPublicKey(resource);
@@ -102,8 +102,8 @@ public final class Pgp {
     PGPPublicKey masterKey = null;
     Iterator<PGPPublicKeyRing> keyRings = pgpPublicKeyRingCollection.getKeyRings();
     while (key == null && keyRings.hasNext()) {
-      PGPPublicKeyRing kRing = keyRings.next();
-      Iterator<PGPPublicKey> publicKeys = kRing.getPublicKeys();
+      PGPPublicKeyRing nextKeyRing = keyRings.next();
+      Iterator<PGPPublicKey> publicKeys = nextKeyRing.getPublicKeys();
       while (key == null && publicKeys.hasNext()) {
         PGPPublicKey k = publicKeys.next();
         if (k.isEncryptionKey() && !k.isMasterKey()) {
@@ -125,8 +125,13 @@ public final class Pgp {
       final PGPCompressedDataGenerator compressedDataGenerator =
           new PGPCompressedDataGenerator(CompressionAlgorithmTags.ZIP);
       final PGPLiteralDataGenerator literal = new PGPLiteralDataGenerator();
-      final OutputStream outputStream = literal.open(compressedDataGenerator.open(byteOutputStream),
-          PGPLiteralData.BINARY, "filename", inputStream.available(), new Date());
+      final OutputStream outputStream =
+          literal.open(
+              compressedDataGenerator.open(byteOutputStream),
+              PGPLiteralData.BINARY,
+              "filename",
+              inputStream.available(),
+              new Date());
       Streams.pipeAll(inputStream, outputStream);
       compressedDataGenerator.close();
       return byteOutputStream.toByteArray();
@@ -146,8 +151,11 @@ public final class Pgp {
       while (encryptedObjects.hasNext()) {
         encryptedData = (PGPPublicKeyEncryptedData) encryptedObjects.next();
         try {
-          decryptedData = encryptedData.getDataStream(
-              new JcePublicKeyDataDecryptorFactoryBuilder().setProvider(PROVIDER).build(secretKey));
+          decryptedData =
+              encryptedData.getDataStream(
+                  new JcePublicKeyDataDecryptorFactoryBuilder()
+                      .setProvider(PROVIDER)
+                      .build(secretKey));
         } catch (PGPException e) {
           // try another public provider.
           continue;
@@ -172,8 +180,9 @@ public final class Pgp {
     while (key == null && secretKeys.hasNext()) {
       PGPSecretKey k = secretKeys.next();
       if (!k.isMasterKey() && !k.isPrivateKeyEmpty()) {
-        key = k.extractPrivateKey(
-            new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER).build(password));
+        key =
+            k.extractPrivateKey(
+                new JcePBESecretKeyDecryptorBuilder().setProvider(PROVIDER).build(password));
       }
     }
     return key;
@@ -182,7 +191,8 @@ public final class Pgp {
   private static Iterator<PGPEncryptedData> getEncryptedObjects(final byte[] message)
       throws IOException {
     final PGPObjectFactory factory =
-        new PGPObjectFactory(PGPUtil.getDecoderStream(new ByteArrayInputStream(message)),
+        new PGPObjectFactory(
+            PGPUtil.getDecoderStream(new ByteArrayInputStream(message)),
             new JcaKeyFingerprintCalculator());
     final Object first = factory.nextObject();
     final Object list = (first instanceof PGPEncryptedDataList) ? first : factory.nextObject();
@@ -200,8 +210,9 @@ public final class Pgp {
           new PGPObjectFactory(cData.getDataStream(), new JcaKeyFingerprintCalculator());
       // Find the first PGPLiteralData object
       Object object = null;
-      for (int safety = 0; (safety++ < 1000) && !(object instanceof PGPLiteralData); object =
-          pgpFact.nextObject()) {
+      for (int safety = 0;
+          (safety++ < 1000) && !(object instanceof PGPLiteralData);
+          object = pgpFact.nextObject()) {
         // ignore
       }
       return (PGPLiteralData) object;
