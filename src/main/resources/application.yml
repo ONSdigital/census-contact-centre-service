@@ -19,6 +19,8 @@ logging:
 
 surveyName: CENSUS
 collectionExerciseId : 34d7f3bb-91c9-45d0-bb2d-90afce4fc790
+public-pgp-key-1 : classpath:pgp/key1.asc
+public-pgp-key-2 : classpath:pgp/key2.asc
 
 management:
   endpoints:

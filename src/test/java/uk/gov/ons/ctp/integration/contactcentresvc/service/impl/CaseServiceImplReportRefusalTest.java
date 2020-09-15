@@ -1,16 +1,22 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
@@ -21,16 +27,27 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.Reason;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.RefusalRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpDecrypt;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncryptTest;
 
 /** Unit Test {@link CaseService#reportRefusal(UUID, RefusalRequestDTO) reportRefusal}. */
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
   private static final String A_CALL_ID = "8989-NOW";
   private static final String A_UPRN = "1234";
+  private static final String PUBLIC_KEY_1 = "pgp/key1.asc";
+  private static final String PUBLIC_KEY_2 = "pgp/key2.asc";
+  private static final String PRIVATE_KEY_1 = "pgp/priv-key1.asc";
+  private static final String PRIVATE_KEY_2 = "pgp/priv-key2.asc";
 
   @Before
   public void setup() {
     when(appConfig.getChannel()).thenReturn(Channel.CC);
+
+    Resource pubKey1 = new ClassPathResource(PUBLIC_KEY_1);
+    Resource pubKey2 = new ClassPathResource(PUBLIC_KEY_2);
+    when(appConfig.getPublicPgpKey1()).thenReturn(pubKey1);
+    when(appConfig.getPublicPgpKey2()).thenReturn(pubKey2);
   }
 
   @Test
@@ -121,8 +138,32 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
 
     verifyRefusalAddress(refusal);
     assertEquals(reason.name() + "_REFUSAL", refusal.getType());
-    ContactCompact expectedContact = new ContactCompact("Mr", "Steve", "Jones");
-    assertEquals(expectedContact, refusal.getContact());
+    if (Reason.EXTRAORDINARY.equals(reason)) {
+      assertNull(refusal.getContact());
+    } else {
+      ContactCompact c = refusal.getContact();
+      verifyEncryptedField("Mr", c.getTitle());
+      verifyEncryptedField("Steve", c.getForename());
+      verifyEncryptedField("Jones", c.getSurname());
+    }
+  }
+
+  private void verifyEncryptedField(String clear, String sendField) throws Exception {
+    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
+    String pgpField = new String(Base64.getDecoder().decode(sendField), StandardCharsets.UTF_8);
+    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
+      String decrypted =
+          PgpDecrypt.decrypt(secretKeyFile, pgpField, PgpEncryptTest.PASS_PHRASE.toCharArray());
+      assertEquals(clear, decrypted);
+    }
+
+    String privKey2 = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
+    String pgpField2 = new String(Base64.getDecoder().decode(sendField), StandardCharsets.UTF_8);
+    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey2.getBytes())) {
+      String decrypted =
+          PgpDecrypt.decrypt(secretKeyFile, pgpField2, PgpEncryptTest.PASS_PHRASE2.toCharArray());
+      assertEquals(clear, decrypted);
+    }
   }
 
   private void verifyRefusalAddress(RespondentRefusalDetails refusal) {

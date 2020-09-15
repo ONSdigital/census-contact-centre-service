@@ -4,8 +4,10 @@ import static java.util.stream.Collectors.toList;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +19,7 @@ import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -77,6 +80,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
 @Service
@@ -992,10 +996,7 @@ public class CaseServiceImpl implements CaseService {
     refusal.setHouseholder(refusalRequest.getIsHouseholder());
 
     // Populate contact
-    ContactCompact contact = new ContactCompact();
-    contact.setTitle(refusalRequest.getTitle());
-    contact.setForename(refusalRequest.getForename());
-    contact.setSurname(refusalRequest.getSurname());
+    ContactCompact contact = createRefusalContact(refusalRequest);
     refusal.setContact(contact);
 
     // Populate address
@@ -1014,6 +1015,24 @@ public class CaseServiceImpl implements CaseService {
     refusal.setAddress(address);
 
     return refusal;
+  }
+
+  private ContactCompact createRefusalContact(RefusalRequestDTO refusalRequest) {
+    ContactCompact contact = null;
+
+    if (refusalRequest.getReason() == Reason.HARD) {
+      contact = new ContactCompact();
+      contact.setTitle(encrypt(refusalRequest.getTitle()));
+      contact.setForename(encrypt(refusalRequest.getForename()));
+      contact.setSurname(encrypt(refusalRequest.getSurname()));
+    }
+    return contact;
+  }
+
+  private String encrypt(String clearValue) {
+    List<Resource> keys = List.of(appConfig.getPublicPgpKey1(), appConfig.getPublicPgpKey2());
+    String encStr = PgpEncrypt.encrypt(clearValue, keys);
+    return Base64.getEncoder().encodeToString(encStr.getBytes(StandardCharsets.UTF_8));
   }
 
   private String mapToType(Reason reason) throws CTPException {
