@@ -7,7 +7,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -44,12 +46,7 @@ public class PgpEncryptTest {
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
-
-    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
-    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
-      assertEquals(TEST_STRING, decrypted);
-    }
+    verifyDecrypt(TEST_STRING, encStr, PASS_PHRASE, PRIVATE_KEY_1);
   }
 
   @Test
@@ -58,12 +55,7 @@ public class PgpEncryptTest {
     Collection<Resource> ress = new ArrayList<Resource>();
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
-
-    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
-    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE2.toCharArray());
-      assertEquals(TEST_STRING, decrypted);
-    }
+    verifyDecrypt(TEST_STRING, encStr, PASS_PHRASE2, PRIVATE_KEY_2);
   }
 
   @Test
@@ -74,12 +66,7 @@ public class PgpEncryptTest {
     ress.add(res2);
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
-
-    String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
-    try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
-      String decrypted = PgpDecrypt.decrypt(secretKeyFile, encStr, PASS_PHRASE.toCharArray());
-      assertEquals(TEST_STRING, decrypted);
-    }
+    verifyDecrypt(TEST_STRING, encStr, PASS_PHRASE, PRIVATE_KEY_1);
   }
 
   @Test
@@ -90,11 +77,59 @@ public class PgpEncryptTest {
     ress.add(res2);
     ress.add(res);
     String encStr = PgpEncrypt.encrypt(TEST_STRING, ress);
+    verifyDecrypt(TEST_STRING, encStr, PASS_PHRASE2, PRIVATE_KEY_2);
+  }
 
-    String privKey2 = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_2);
-    try (ByteArrayInputStream secretKeyFile2 = new ByteArrayInputStream(privKey2.getBytes())) {
-      String decrypted = PgpDecrypt.decrypt(secretKeyFile2, encStr, PASS_PHRASE2.toCharArray());
-      assertEquals(TEST_STRING, decrypted);
+  private void verifyEncryptWithBase64(String clearText) throws Exception {
+    Resource res = new ClassPathResource(PUBLIC_KEY_1);
+    Resource res2 = new ClassPathResource(PUBLIC_KEY_2);
+    Collection<Resource> ress = new ArrayList<Resource>();
+    ress.add(res2);
+    ress.add(res);
+    String encStr = PgpEncrypt.encrypt(clearText, ress);
+    String base64str = Base64.getEncoder().encodeToString(encStr.getBytes(StandardCharsets.UTF_8));
+    String pgpField = new String(Base64.getDecoder().decode(base64str), StandardCharsets.UTF_8);
+    verifyDecrypt(clearText, pgpField, PASS_PHRASE2, PRIVATE_KEY_2);
+  }
+
+  @Test
+  public void shouldBase64AndPgpEncryptAndDecryptNamesWithAlternateCharacters() throws Exception {
+    String[] names = {
+      "Zoë",
+      "Renée",
+      "Noël",
+      "Sørina",
+      "Sévērus",
+      "Adrián",
+      "François",
+      "Mary-Jo",
+      "Peggy-Sue",
+      "Mónica",
+      "Seán",
+      "Ruairí",
+      "Mátyás",
+      "Jokūbas",
+      "Siân",
+      "Agnès",
+      "KŠthe",
+      "Øyvind",
+      "Fañch",
+      "Nuñez",
+      "Mæve",
+      "Jœ"
+    };
+
+    for (String n : names) {
+      verifyEncryptWithBase64(n);
+    }
+  }
+
+  private void verifyDecrypt(
+      String clearText, String encrypted, String passPhrase, String privateKey) throws Exception {
+    String privKey = PgpEncryptTest.readFileIntoString(privateKey);
+    try (ByteArrayInputStream is = new ByteArrayInputStream(privKey.getBytes())) {
+      String decrypted = PgpDecrypt.decrypt(is, encrypted, passPhrase.toCharArray());
+      assertEquals(clearText, decrypted, "Failed to decrypt: " + clearText);
     }
   }
 }
