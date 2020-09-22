@@ -137,7 +137,7 @@ public abstract class EndpointSecurityTest {
     requestBody.setTownName("Coronaville");
     requestBody.setPostcode("SO22 4HJ");
     requestBody.setRegion(Region.E);
-    requestBody.setEstabType(EstabType.GATED_APARTMENTS);
+    requestBody.setEstabType(EstabType.RESIDENTIAL_BOAT);
 
     ResponseEntity<String> response =
         restTemplate.postForEntity(base.toString() + "/cases", requestBody, String.class);
