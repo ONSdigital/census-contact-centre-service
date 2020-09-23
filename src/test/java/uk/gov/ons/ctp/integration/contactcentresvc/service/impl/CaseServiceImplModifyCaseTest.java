@@ -205,7 +205,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestHH_ExistingCastleHH() throws Exception {
+  public void shouldModifyAddress_RequestHH_ExistingResidentialBoatHH() throws Exception {
     verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, EstabType.RESIDENTIAL_BOAT.getCode());
   }
 
@@ -225,7 +225,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestSPG_ExistingCastleHH() throws Exception {
+  public void shouldModifyAddress_RequestSPG_ExistingMilitarySfaHH() throws Exception {
     verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.MILITARY_SFA.getCode());
   }
 
