@@ -1190,7 +1190,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void validatePostcode(String postcode) throws CTPException {
-    if (!postcode.equals("G12AA")) {
+    if (!appConfig.getCcsPostcodes().isInCCSPostcodes(postcode)) {
       log.with(postcode).info("Check failed for postcode");
       throw new CTPException(
           Fault.BAD_REQUEST, "The requested postcode is not within the CCS sample");

@@ -159,3 +159,14 @@ cloud-storage:
     multiplier: 2
     max: 3500
     max-attempts: 3
+    
+ccs-postcodes:
+  ccs-postcodes-to-check:
+      - HP224HU
+      - HP224JS
+      - HP224LG
+      - HP224NH
+      - HP224PL
+      - HP224PS
+      - GW12AAA
+      - GW12AAB

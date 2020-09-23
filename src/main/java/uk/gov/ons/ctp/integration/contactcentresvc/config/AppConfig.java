@@ -25,6 +25,7 @@ public class AppConfig {
   private Channel channel;
   private Resource publicPgpKey1;
   private Resource publicPgpKey2;
+  private CCSPostcodes ccsPostcodes;
 
   public void setChannel(Channel channel) {
     if (channel.equals(Channel.CC) || channel.equals(Channel.AD)) {
