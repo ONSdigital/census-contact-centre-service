@@ -343,6 +343,20 @@ public class CaseServiceImpl implements CaseService {
     return Collections.singletonList(response);
   }
 
+  @Override
+  public List<CaseDTO> getCCSCaseByPostcode(String postcode) throws CTPException {
+    log.with("postcode", postcode).debug("Fetching ccs case details by postcode");
+
+    List<CaseContainerDTO> ccsCaseContainersList = getCcsCasesFromRm(postcode);
+
+    List<CaseDTO> ccsCases = new ArrayList<CaseDTO>();
+    for (CaseContainerDTO ccsCaseDetails : ccsCaseContainersList) {
+      ccsCases.add(caseDTOMapper.map(ccsCaseDetails, CaseDTO.class));
+    }
+
+    return ccsCases;
+  }
+
   private void validateCaseRef(long caseRef) throws CTPException {
     if (!luhnChecker.isValid(Long.toString(caseRef))) {
       log.with(caseRef).info("Luhn check failed for case Reference");
@@ -972,6 +986,11 @@ public class CaseServiceImpl implements CaseService {
   private List<CaseContainerDTO> getCasesFromRm(long uprn, boolean getCaseEvents) {
     var caseList = caseServiceClient.getCaseByUprn(uprn, getCaseEvents);
     return caseList.stream().map(c -> filterCaseEvents(c, getCaseEvents)).collect(toList());
+  }
+
+  private List<CaseContainerDTO> getCcsCasesFromRm(String postcode) {
+    List<CaseContainerDTO> caseList = caseServiceClient.getCcsCaseByPostcode(postcode);
+    return caseList;
   }
 
   /**

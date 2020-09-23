@@ -308,14 +308,8 @@ public class CaseEndpoint implements CTPEndpoint {
     return ResponseEntity.ok(response);
   }
 
-  // ---------------------------------------------------------------
-  // DUMMY ENDPOINTS FROM HERE
-  // ---------------------------------------------------------------
-
   /**
-   * DUMMY ENDPOINT FOR CC
-   *
-   * <p>the GET end point to request a CCS case by postcode
+   * the GET end point to request a CCS case by postcode
    *
    * @param postcode postcode
    * @return response entity
@@ -330,9 +324,14 @@ public class CaseEndpoint implements CTPEndpoint {
 
     log.with("pathParam", postcode).info("Entering GET getCCSCaseByPostcode");
 
-    CaseDTO response = new CaseDTO();
-    return ResponseEntity.ok(response);
+    List<CaseDTO> ccsCases = caseService.getCCSCaseByPostcode(postcode);
+    //    CaseDTO response = new CaseDTO();
+    return ResponseEntity.ok(ccsCases.get(0));
   }
+
+  // ---------------------------------------------------------------
+  // DUMMY ENDPOINTS FROM HERE
+  // ---------------------------------------------------------------
 
   private void validateMatchingCaseId(UUID caseId, UUID dtoCaseId) throws CTPException {
     if (!caseId.equals(dtoCaseId)) {

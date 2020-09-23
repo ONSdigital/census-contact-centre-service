@@ -58,4 +58,6 @@ public interface CaseService {
 
   ResponseDTO reportRefusal(UUID caseId, @Valid RefusalRequestDTO requestBodyDTO)
       throws CTPException;
+
+  List<CaseDTO> getCCSCaseByPostcode(final String postcode) throws CTPException;
 }
