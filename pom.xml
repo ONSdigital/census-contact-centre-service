@@ -126,7 +126,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.126</version>
+      <version>0.0.127</version>
     </dependency>
 
     <!-- WARNING WARNING WARNING The CCCucmber project has this dependancy
