@@ -346,6 +346,7 @@ public class CaseServiceImpl implements CaseService {
   @Override
   public List<CaseDTO> getCCSCaseByPostcode(String postcode) throws CTPException {
     log.with("postcode", postcode).debug("Fetching ccs case details by postcode");
+    validatePostcode(postcode);
 
     List<CaseContainerDTO> ccsCaseContainersList = getCcsCasesFromRm(postcode);
 
@@ -1186,5 +1187,13 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("transactionId", transactionId)
         .debug("{} event published", eventType);
+  }
+
+  private void validatePostcode(String postcode) throws CTPException {
+    if (!postcode.equals("G12AA")) {
+      log.with(postcode).info("Check failed for postcode");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The requested postcode is not within the CCS sample");
+    }
   }
 }
