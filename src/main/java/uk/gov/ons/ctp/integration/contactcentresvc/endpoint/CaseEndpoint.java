@@ -317,16 +317,15 @@ public class CaseEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "/ccs/postcode/{postcode}", method = RequestMethod.GET)
   @ResponseStatus(value = HttpStatus.OK)
-  public ResponseEntity<CaseDTO> getCCSCaseByPostcode(
+  public ResponseEntity<List<CaseDTO>> getCCSCaseByPostcode(
       @PathVariable(value = "postcode") @NotBlank @Pattern(regexp = Constants.POSTCODE_RE)
           final String postcode)
       throws CTPException {
 
     log.with("pathParam", postcode).info("Entering GET getCCSCaseByPostcode");
 
-    List<CaseDTO> ccsCases = caseService.getCCSCaseByPostcode(postcode);
-    //    CaseDTO response = new CaseDTO();
-    return ResponseEntity.ok(ccsCases.get(0));
+    List<CaseDTO> response = caseService.getCCSCaseByPostcode(postcode);
+    return ResponseEntity.ok(response);
   }
 
   // ---------------------------------------------------------------
