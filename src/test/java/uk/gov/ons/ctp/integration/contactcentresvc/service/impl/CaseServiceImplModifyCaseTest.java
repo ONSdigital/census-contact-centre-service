@@ -75,7 +75,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldRejectIncompatibleCaseTypeAndEstabType() {
     verifyRejectIncompatible(EstabType.APPROVED_PREMISES, CaseType.HH);
-    verifyRejectIncompatible(EstabType.FOREIGN_OFFICES, CaseType.CE);
+    verifyRejectIncompatible(EstabType.RESIDENTIAL_BOAT, CaseType.CE);
     verifyRmCaseCall(0);
   }
 
@@ -104,7 +104,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   public void shouldAcceptCompatibleCaseTypeAndEstabType() throws Exception {
     mockRmHasCase();
     verifyAcceptCompatible(EstabType.APPROVED_PREMISES, CaseType.CE);
-    verifyAcceptCompatible(EstabType.FOREIGN_OFFICES, CaseType.HH);
+    verifyAcceptCompatible(EstabType.RESIDENTIAL_BOAT, CaseType.HH);
     verifyRmCaseCall(2);
   }
 
@@ -205,8 +205,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestHH_ExistingCastleHH() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, EstabType.CASTLES.getCode());
+  public void shouldModifyAddress_RequestHH_ExistingResidentialBoatHH() throws Exception {
+    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, EstabType.RESIDENTIAL_BOAT.getCode());
   }
 
   @Test
@@ -225,8 +225,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestSPG_ExistingCastleHH() throws Exception {
-    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.CASTLES.getCode());
+  public void shouldModifyAddress_RequestSPG_ExistingMilitarySfaHH() throws Exception {
+    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.MILITARY_SFA.getCode());
   }
 
   @Test
@@ -241,7 +241,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldModifyAddress_RequestCE_ExistingPrisonCE() throws Exception {
-    verifyModifyAddress(CaseType.CE, EstabType.HOLIDAY_PARK, "prison");
+    verifyModifyAddress(CaseType.CE, EstabType.CARE_HOME, "prison");
   }
 
   @Test
@@ -331,13 +331,13 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingHousehold() throws Exception {
     verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.HOUSEHOLD.getCode(), CaseType.HH);
+        CaseType.CE, EstabType.CARE_HOME, EstabType.HOUSEHOLD.getCode(), CaseType.HH);
   }
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingEmbassySPG() throws Exception {
     verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.EMBASSY.getCode(), CaseType.SPG);
+        CaseType.CE, EstabType.CARE_HOME, EstabType.EMBASSY.getCode(), CaseType.SPG);
   }
 
   @Test
@@ -347,14 +347,13 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingOtherSPG() throws Exception {
-    verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, "Oblivion Sky Tower", CaseType.SPG);
+    verifyAddressTypeChanged(CaseType.CE, EstabType.CARE_HOME, "Oblivion Sky Tower", CaseType.SPG);
   }
 
   @Test
   public void shouldRejectNorthernIrelandChangeFromHouseholdToCE() {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     caseContainerDTO.setCaseType(CaseType.HH.name());
     caseContainerDTO.setRegion(Region.N.name());
@@ -369,7 +368,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldNotRejectNorthernIrelandChangeWhenNotInNorthernIreland() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     caseContainerDTO.setCaseType(CaseType.HH.name());
     caseContainerDTO.setRegion(Region.E.name());
@@ -403,7 +402,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldNotRejectNorthernIrelandChangeWhenNotExistingHouseHold() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     caseContainerDTO.setCaseType(CaseType.SPG.name());
     caseContainerDTO.setRegion(Region.N.name());
@@ -515,7 +514,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldSaveCachedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     mockRmHasCase();
     CaseDTO response = target.modifyCase(requestDTO);
@@ -529,7 +528,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldUpdateCachedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
 
     mockRmCannotFindCase();
@@ -613,7 +612,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldReturnModifiedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     mockRmHasCase();
     CaseDTO response = target.modifyCase(requestDTO);
