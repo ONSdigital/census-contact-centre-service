@@ -388,9 +388,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private boolean isCaseTypeChange(CaseType requestedCaseType, CaseType existingCaseType) {
-    boolean requestCE = CaseType.CE == requestedCaseType;
-    boolean existingCE = CaseType.CE == existingCaseType;
-    return requestCE ^ existingCE;
+    return requestedCaseType != existingCaseType;
   }
 
   private void rejectNorthernIrelandHouseholdToCE(
