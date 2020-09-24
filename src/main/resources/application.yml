@@ -162,12 +162,12 @@ cloud-storage:
     
 ccs-postcodes:
   ccs-postcodes-to-check:
-      - HP224HU
-      - HP224JS
-      - HP224LG
-      - HP224NH
-      - HP224PL
-      - HP224PS
-      - GW12AAA
-      - GW12AAB
+      - HP22 4HU
+      - HP22 4JS
+      - HP22 4LG
+      - HP22 4NH
+      - HP22 4PL
+      - HP22 4PS
+      - GW12 AAA
+      - GW12 AAB
   ccs-postcode-path: /etc/config/ccs-postcodes
