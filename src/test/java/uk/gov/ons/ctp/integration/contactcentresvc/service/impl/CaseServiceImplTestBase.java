@@ -44,6 +44,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerD
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.CCSPostcodes;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -196,6 +197,13 @@ public abstract class CaseServiceImplTestBase {
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+  }
+
+  void mockCcsPostcodes() {
+    CCSPostcodes ccsPostcodes = new CCSPostcodes();
+    Set<String> ccsPostcodesSet = Set.of("GW12AAA", "GW12AAB", "HP224HU");
+    ccsPostcodes.setCcsPostcodesToCheck(ccsPostcodesSet);
+    when(appConfig.getCcsPostcodes()).thenReturn(ccsPostcodes);
   }
 
   void assertCaseQIDRestClientFailureCaught(Exception ex, boolean caught) {
