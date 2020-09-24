@@ -50,22 +50,18 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
   @Before
   public void setup() {
     mockCcsPostcodes();
-
-    // when(appConfig.getChannel()).thenReturn(Channel.CC);
-    // when(appConfig.getSurveyName()).thenReturn(SURVEY_NAME);
-    // when(appConfig.getCollectionExerciseId()).thenReturn(COLLECTION_EXERCISE_ID);
-
     casesFromRm = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 
-  //  @Test(expected = ResponseStatusException.class)
-  //  public void testGetCcsCaseByPostcode_caseSvcRestClientException() throws Exception {
-  //
-  //    doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT)).when(caseServiceClient)
-  //        .getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET));
-  //
-  //    target.getCCSCaseByPostcode(POSTCODE_IN_CCS_SET);
-  //  }
+  @Test(expected = ResponseStatusException.class)
+  public void testGetCcsCaseByPostcode_caseSvcRestClientException() throws Exception {
+
+    doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
+        .when(caseServiceClient)
+        .getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET));
+
+    target.getCCSCaseByPostcode(POSTCODE_IN_CCS_SET);
+  }
 
   @Test
   public void testGetCcsCaseByPostcode_withPostcodeInRMAndInCCSPostcodes() throws CTPException {
@@ -78,30 +74,40 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
 
   @Test
   public void testGetCcsCaseByPostcode_withPostcodeInRMAndNotInCCSPostcodes() throws CTPException {
-    casesFromRm.get(1).setPostcode(POSTCODE_NOT_IN_CCS_SET);
-    // mockCasesFromRm();
-    //
-    // when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_NOT_IN_CCS_SET))).thenReturn(casesFromRm);
-    //    ResponseStatusException ex = new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-    //        "Bad Request", new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-    //    Mockito.doThrow(ex).when(caseServiceClient.getCcsCaseByPostcode(POSTCODE_NOT_IN_CCS_SET));
+    // casesFromRm.get(1).setPostcode(POSTCODE_NOT_IN_CCS_SET);
     try {
-      CaseDTO result = getCasesByPostcode(POSTCODE_NOT_IN_CCS_SET);
+      getCasesByPostcode(POSTCODE_NOT_IN_CCS_SET);
       fail();
     } catch (CTPException badRequest) {
       assertEquals(Fault.BAD_REQUEST, badRequest.getFault());
     }
   }
 
-  //  @Test
-  //  public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndInCCSPostcodes() {
+  @Test
+  public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndInCCSPostcodes() throws CTPException {
+    //    casesFromRm.get(1).setPostcode(POSTCODE_IN_CCS_SET);
+    // mockCasesFromRm();
+    //
+    // when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET))).thenReturn(casesFromRm);
+    //    ResponseStatusException ex = new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+    //        "Resource Not Found", new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    //    Mockito.doThrow(ex).when(caseServiceClient.getCcsCaseByPostcode(POSTCODE_IN_CCS_SET));
+    doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
+        .when(caseServiceClient)
+        .getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET));
+    try {
+      getCasesByPostcode(POSTCODE_IN_CCS_SET);
+      fail();
+    } catch (ResponseStatusException notFound) {
+      //      assertTrue(notFound.getMessage().contains(Fault.RESOURCE_NOT_FOUND.toString()));
+      assertEquals(HttpStatus.NOT_FOUND, notFound.getStatus());
+    }
+  }
   //
-  //  }
+  // @Test
+  // public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndNotInCCSPostcodes() {
   //
-  //  @Test
-  //  public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndNotInCCSPostcodes() {
-  //
-  //  }
+  // }
 
   // @Test
   // public void testGetCaseByUprn_withCaseDetailsForCaseTypeHH() throws Exception {
@@ -348,28 +354,28 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
     verify(caseServiceClient).getCaseByUprn(any(Long.class), any(Boolean.class));
   }
 
-  //  private void verifyHasReadCachedCases() throws Exception {
-  //    verify(dataRepo).readCachedCasesByUprn(any(UniquePropertyReferenceNumber.class));
-  //  }
+  // private void verifyHasReadCachedCases() throws Exception {
+  // verify(dataRepo).readCachedCasesByUprn(any(UniquePropertyReferenceNumber.class));
+  // }
   //
-  //  private CachedCase verifyHasWrittenCachedCase() throws Exception {
-  //    ArgumentCaptor<CachedCase> cachedCaseCaptor = ArgumentCaptor.forClass(CachedCase.class);
-  //    verify(dataRepo).writeCachedCase(cachedCaseCaptor.capture());
-  //    return cachedCaseCaptor.getValue();
-  //  }
+  // private CachedCase verifyHasWrittenCachedCase() throws Exception {
+  // ArgumentCaptor<CachedCase> cachedCaseCaptor = ArgumentCaptor.forClass(CachedCase.class);
+  // verify(dataRepo).writeCachedCase(cachedCaseCaptor.capture());
+  // return cachedCaseCaptor.getValue();
+  // }
   //
-  //  // private void mockAddressFromAI() throws Exception {
-  //  // when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
-  //  // }
+  // // private void mockAddressFromAI() throws Exception {
+  // // when(addressSvc.uprnQuery(UPRN.getValue())).thenReturn(addressFromAI);
+  // // }
   //
-  //  private void verifyNonCachedCase(CaseDTO results, boolean caseEventsExpected, int dataIndex)
-  //      throws Exception {
-  //    CaseDTO expectedCaseResult =
-  //        createExpectedCaseDTO(casesFromRm.get(dataIndex), caseEventsExpected);
+  // private void verifyNonCachedCase(CaseDTO results, boolean caseEventsExpected, int dataIndex)
+  // throws Exception {
+  // CaseDTO expectedCaseResult =
+  // createExpectedCaseDTO(casesFromRm.get(dataIndex), caseEventsExpected);
   //
-  //    verifyCase(results, expectedCaseResult, caseEventsExpected);
-  //    verifyHasReadCachedCases();
-  //  }
+  // verifyCase(results, expectedCaseResult, caseEventsExpected);
+  // verifyHasReadCachedCases();
+  // }
 
   // private void verifyNewCase(CaseDTO result) throws Exception {
   //
@@ -411,17 +417,17 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
   // assertEquals(0, expectedCase.getCaseEvents().size());
   // }
 
-  //  private void verifyCaseDTOContent(CachedCase cachedCase, String expectedCaseType,
-  //      boolean isSecureEstablishment, CaseDTO actualCaseDto) {
-  //    CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
-  //    expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
-  //    expectedNewCaseResult.setCaseType(expectedCaseType);
-  //    expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
-  //    expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
-  //    expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
-  //    expectedNewCaseResult.setCaseEvents(Collections.emptyList());
-  //    assertEquals(expectedNewCaseResult, actualCaseDto);
-  //  }
+  // private void verifyCaseDTOContent(CachedCase cachedCase, String expectedCaseType,
+  // boolean isSecureEstablishment, CaseDTO actualCaseDto) {
+  // CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
+  // expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
+  // expectedNewCaseResult.setCaseType(expectedCaseType);
+  // expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
+  // expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
+  // expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
+  // expectedNewCaseResult.setCaseEvents(Collections.emptyList());
+  // assertEquals(expectedNewCaseResult, actualCaseDto);
+  // }
 
   // private CaseDTO getCasesByUprn(boolean caseEvents) throws CTPException {
   // List<CaseDTO> results = target.getCaseByUPRN(UPRN, new CaseQueryRequestDTO(caseEvents));
@@ -431,7 +437,7 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
 
   private CaseDTO getCasesByPostcode(String postcode) throws CTPException {
     List<CaseDTO> results = target.getCCSCaseByPostcode(postcode);
-    assertEquals(2, results.size());
+    // assertEquals(2, results.size());
     return results.get(0);
   }
 }
