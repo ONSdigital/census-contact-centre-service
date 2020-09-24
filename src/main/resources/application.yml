@@ -170,3 +170,4 @@ ccs-postcodes:
       - HP224PS
       - GW12AAA
       - GW12AAB
+  ccs-postcode-path: /etc/config/ccs-postcodes

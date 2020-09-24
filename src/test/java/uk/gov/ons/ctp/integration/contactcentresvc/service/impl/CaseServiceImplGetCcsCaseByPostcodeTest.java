@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
   List<CaseContainerDTO> casesFromRm;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     mockCcsPostcodes();
     casesFromRm = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }

@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -199,7 +200,7 @@ public abstract class CaseServiceImplTestBase {
     when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
   }
 
-  void mockCcsPostcodes() {
+  void mockCcsPostcodes() throws IOException {
     CCSPostcodes ccsPostcodes = new CCSPostcodes();
     Set<String> ccsPostcodesSet = Set.of("GW12AAA", "GW12AAB", "HP224HU");
     ccsPostcodes.setCcsPostcodesToCheck(ccsPostcodesSet);
