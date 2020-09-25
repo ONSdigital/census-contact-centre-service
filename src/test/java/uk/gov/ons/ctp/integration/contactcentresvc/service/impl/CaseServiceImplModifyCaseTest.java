@@ -228,11 +228,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestHH_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
-  }
-
-  @Test
   public void shouldModifyAddress_RequestSPG_ExistingHouseHold() throws Exception {
     verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.HOUSEHOLD.getCode());
   }
@@ -245,11 +240,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldModifyAddress_RequestSPG_ExistingEmbassySPG() throws Exception {
     verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.EMBASSY.getCode());
-  }
-
-  @Test
-  public void shouldModifyAddress_RequestSPG_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower", CaseType.HH);
   }
 
   @Test
@@ -361,6 +351,16 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingOtherSPG() throws Exception {
     verifyAddressTypeChanged(CaseType.CE, EstabType.CARE_HOME, "Oblivion Sky Tower", CaseType.SPG);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestSPG_ExistingOtherNull() throws Exception {
+    verifyAddressTypeChanged(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower", CaseType.HH);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestHH_ExistingOtherNull() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
   }
 
   @Test
