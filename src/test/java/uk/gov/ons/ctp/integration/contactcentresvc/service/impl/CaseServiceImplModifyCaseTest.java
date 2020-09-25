@@ -51,6 +51,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   private ModifyCaseRequestDTO requestDTO;
   private CaseContainerDTO caseContainerDTO;
+  private CaseContainerDTO ccsSurveyTypeCaseContainerDTO;
   private CachedCase cachedCase;
 
   @Captor private ArgumentCaptor<CachedCase> cachedCaseCaptor;
@@ -60,6 +61,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     mockCaseEventWhiteList();
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
+    ccsSurveyTypeCaseContainerDTO =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(1);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
   }
@@ -98,6 +101,16 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     ResponseStatusException rmLookupMockException =
         new ResponseStatusException(HttpStatus.NOT_FOUND);
     when(caseServiceClient.getCaseById(eq(UUID_0), eq(true))).thenThrow(rmLookupMockException);
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenCCSSurveyTypeExists() throws Exception {
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(ccsSurveyTypeCaseContainerDTO);
+    CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
+    assertEquals(Fault.BAD_REQUEST, e.getFault());
+    assertEquals("Operation not permissible for a CCS Case", e.getMessage());
+    verifyRmCaseCall(1);
   }
 
   @Test
