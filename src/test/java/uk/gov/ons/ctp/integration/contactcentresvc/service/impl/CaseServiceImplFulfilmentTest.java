@@ -49,6 +49,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   @Before
   public void setup() {
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    Mockito.when(appConfig.getSurveyName()).thenReturn("CENSUS");
   }
 
   @Test

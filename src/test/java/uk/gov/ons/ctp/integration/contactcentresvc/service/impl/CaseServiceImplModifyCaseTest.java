@@ -65,6 +65,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
         FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(1);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
+    when(appConfig.getSurveyName()).thenReturn("CENSUS");
   }
 
   private void verifyRejectIncompatible(EstabType estabType, CaseType caseType) {
