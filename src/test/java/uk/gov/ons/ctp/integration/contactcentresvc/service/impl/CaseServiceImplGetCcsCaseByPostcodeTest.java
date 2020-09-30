@@ -32,8 +32,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTestBase {
 
   private static final UUID CASE_ID = UUID.fromString("b7565b5e-1396-4965-91a2-918c0d3642ed");
-  private static final String POSTCODE_IN_CCS_SET = "GW12AAA";
-  private static final String POSTCODE_NOT_IN_CCS_SET = "GW12AAC";
+  private static final String POSTCODE_IN_CCS_SET = "GW12 AAA";
+  private static final String POSTCODE_NOT_IN_CCS_SET = "GW12 AAC";
   List<CaseContainerDTO> casesFromRm;
 
   @Before

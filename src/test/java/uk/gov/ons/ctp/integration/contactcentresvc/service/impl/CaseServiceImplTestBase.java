@@ -74,6 +74,8 @@ public abstract class CaseServiceImplTestBase {
 
   @Mock AddressService addressSvc;
 
+  @Mock CCSPostcodes ccsPostcodes = new CCSPostcodes();
+
   static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
 
@@ -202,7 +204,7 @@ public abstract class CaseServiceImplTestBase {
 
   void mockCcsPostcodes() throws IOException {
     CCSPostcodes ccsPostcodes = new CCSPostcodes();
-    Set<String> ccsPostcodesSet = Set.of("GW12AAA", "GW12AAB", "HP224HU");
+    Set<String> ccsPostcodesSet = Set.of("GW12 AAA", "GW12 AAB", "HP22 4HU");
     ccsPostcodes.setCcsPostcodesToCheck(ccsPostcodesSet);
     when(appConfig.getCcsPostcodes()).thenReturn(ccsPostcodes);
   }
