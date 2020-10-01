@@ -44,7 +44,7 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
 
   @Test(expected = ResponseStatusException.class)
   public void testGetCcsCaseByPostcode_caseSvcRestClientException() throws Exception {
-
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
     doThrow(new ResponseStatusException(HttpStatus.I_AM_A_TEAPOT))
         .when(caseServiceClient)
         .getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET));
@@ -56,12 +56,14 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
   public void testGetCcsCaseByPostcode_withPostcodeInRMAndInCCSPostcodes() throws CTPException {
     casesFromRm.get(1).setPostcode(POSTCODE_IN_CCS_SET);
     when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET))).thenReturn(casesFromRm);
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
     CaseDTO result = getCasesByPostcode(POSTCODE_IN_CCS_SET);
     assertEquals(CASE_ID, result.getId());
   }
 
   @Test
   public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndInCCSPostcodes() throws CTPException {
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
         .when(caseServiceClient)
         .getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET));

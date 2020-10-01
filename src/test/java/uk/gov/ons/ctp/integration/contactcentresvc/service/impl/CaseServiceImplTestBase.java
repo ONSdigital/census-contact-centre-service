@@ -28,6 +28,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -43,6 +44,7 @@ import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
+import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CCSPostcodes;
@@ -73,6 +75,8 @@ public abstract class CaseServiceImplTestBase {
   @Mock CaseDataRepository dataRepo;
 
   @Mock AddressService addressSvc;
+  
+  @Mock CCSPostcodesBean ccsPostcodesBean;
 
   static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
@@ -205,7 +209,6 @@ public abstract class CaseServiceImplTestBase {
     Set<String> ccsPostcodesSet = Set.of("GW12 AAA", "GW12 AAB", "HP22 4HU");
     ccsPostcodes.setCcsDefaultPostcodes(ccsPostcodesSet);
     ccsPostcodes.setCcsPostcodePath("/etc/config/ccs-postcodes");
-    when(appConfig.getCcsPostcodes()).thenReturn(ccsPostcodes);
   }
 
   void assertCaseQIDRestClientFailureCaught(Exception ex, boolean caught) {

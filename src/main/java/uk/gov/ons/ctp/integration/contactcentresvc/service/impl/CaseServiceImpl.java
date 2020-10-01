@@ -64,6 +64,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuest
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
+import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
@@ -120,6 +121,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private AddressService addressSvc;
 
   @Autowired private EventPublisher eventPublisher;
+  
+  @Autowired private CCSPostcodesBean ccsPostcodesBean;
 
   private LuhnCheckDigit luhnChecker = new LuhnCheckDigit();
 
@@ -1194,35 +1197,10 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void validatePostcode(String postcode) throws CTPException {
-    Set<String> ccsPostcodes = getPostcodes();
-
-    if (!ccsPostcodes.contains(postcode)) {
+    if (!ccsPostcodesBean.isInCCSPostcodes(postcode)) {
       log.with(postcode).info("Check failed for postcode");
       throw new CTPException(
           Fault.BAD_REQUEST, "The requested postcode is not within the CCS sample");
     }
-  }
-
-  private Set<String> getPostcodes() {
-    Set<String> ccsPostcodes = new HashSet<>();
-    String strPostcodePath = appConfig.getCcsPostcodes().getCcsPostcodePath();
-
-    Path postcodeFilePath = Paths.get(strPostcodePath);
-    List<String> postcodes;
-    try {
-      postcodes = Files.readAllLines(postcodeFilePath);
-      for (String postcode : postcodes) {
-        postcode = postcode.trim();
-        ccsPostcodes.add(postcode);
-      }
-    } catch (IOException e) {
-      log.with(strPostcodePath)
-          .warn(
-              "IOException caught as unable to read in postcodes from file."
-                  + " Using postcodes from application.yml instead.",
-              e);
-      ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
-    }
-    return ccsPostcodes;
   }
 }
