@@ -3,11 +3,13 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
+import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_1;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +49,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   @Before
   public void setup() {
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    Mockito.when(appConfig.getSurveyName()).thenReturn("CENSUS");
   }
 
   @Test
@@ -163,6 +166,33 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   @Test
   public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_cachedCase() throws Exception {
     doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true, true);
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMS_caseSvcResponseCaseWithSurveyTypeCCS()
+      throws CTPException {
+    CaseContainerDTO caseData = casesFromCaseService().get(1);
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_1), any())).thenReturn(caseData);
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+    CTPException e =
+        assertThrows(
+            CTPException.class, () -> target.fulfilmentRequestBySMS(requestBodyDTOFixture));
+    assertEquals(CTPException.Fault.BAD_REQUEST, e.getFault());
+    assertEquals("Operation not permissible for a CCS Case", e.getMessage());
+  }
+
+  @Test
+  public void testFulfilmentRequestByPost_caseSvcResponseCaseWithSurveyTypeCCS()
+      throws CTPException {
+    CaseContainerDTO caseData = casesFromCaseService().get(1);
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_1), any())).thenReturn(caseData);
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(UUID_1, "Mr", "Mickey", "Mouse");
+    CTPException e =
+        assertThrows(
+            CTPException.class, () -> target.fulfilmentRequestByPost(requestBodyDTOFixture));
+    assertEquals(CTPException.Fault.BAD_REQUEST, e.getFault());
+    assertEquals("Operation not permissible for a CCS Case", e.getMessage());
   }
 
   @Test

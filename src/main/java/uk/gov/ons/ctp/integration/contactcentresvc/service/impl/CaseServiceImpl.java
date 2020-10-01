@@ -95,6 +95,7 @@ public class CaseServiceImpl implements CaseService {
       "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
   private static final String UNIT_LAUNCH_ERR_MSG =
       "A CE Manager form can only be launched against an establishment address not a UNIT.";
+  private static final String CCS_CASE_ERROR_MSG = "Operation not permissible for a CCS Case";
   private static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
 
@@ -496,6 +497,7 @@ public class CaseServiceImpl implements CaseService {
     UUID caseId = originalCaseId;
 
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
+    validateSurveyType(caseDetails);
     caseDetails.setCreatedDateTime(DateTimeUtil.nowUTC());
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
     CaseType existingCaseType = CaseType.valueOf(caseDetails.getCaseType());
@@ -518,6 +520,12 @@ public class CaseServiceImpl implements CaseService {
     updateOrCreateCachedCase(caseId, caseDetails, modifyRequestDTO);
     prepareModificationResponse(response, modifyRequestDTO, caseId, caseRef);
     return response;
+  }
+
+  private void validateSurveyType(CaseContainerDTO caseDetails) throws CTPException {
+    if (!appConfig.getSurveyName().equalsIgnoreCase(caseDetails.getSurveyType())) {
+      throw new CTPException(Fault.BAD_REQUEST, CCS_CASE_ERROR_MSG);
+    }
   }
 
   @Override
@@ -854,7 +862,7 @@ public class CaseServiceImpl implements CaseService {
         .debug("Entering createFulfilmentEvent method in class CaseServiceImpl");
 
     CaseContainerDTO caze = getCaseFromRmOrCache(caseId, false);
-
+    validateSurveyType(caze);
     Product product = findProduct(fulfilmentCode, deliveryChannel, convertRegion(caze));
 
     if (deliveryChannel == Product.DeliveryChannel.POST) {
@@ -942,6 +950,7 @@ public class CaseServiceImpl implements CaseService {
         if (cachedCase.isPresent()) {
           log.with("caseId", caseId).info("Using stored case details");
           caze = caseDTOMapper.map(cachedCase.get(), CaseContainerDTO.class);
+          caze.setSurveyType(appConfig.getSurveyName());
         } else {
           log.with("caseId", caseId).warn("Request for case Not Found");
           throw new CTPException(
