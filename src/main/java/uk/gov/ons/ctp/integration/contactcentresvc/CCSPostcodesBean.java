@@ -2,12 +2,10 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +29,10 @@ public class CCSPostcodesBean {
     this.ccsPostcodes = new HashSet<>();
     String strPostcodePath = appConfig.getCcsPostcodes().getCcsPostcodePath();
 
-    Path postcodeFilePath = Paths.get(strPostcodePath);
-    List<String> postcodes;
-    try {
-      postcodes = Files.readAllLines(postcodeFilePath);
-      for (String postcode : postcodes) {
-        postcode = postcode.trim();
-        ccsPostcodes.add(postcode);
+    try (BufferedReader br = new BufferedReader(new FileReader(strPostcodePath))) {
+      String postcode;
+      while ((postcode = br.readLine()) != null) {
+        ccsPostcodes.add(postcode.trim());
       }
     } catch (IOException e) {
       log.with(strPostcodePath)
