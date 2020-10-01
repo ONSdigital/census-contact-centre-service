@@ -161,6 +161,7 @@ cloud-storage:
     max-attempts: 3
     
 ccs-postcodes:
+  ccs-postcode-path: /etc/config/ccs-postcodes
   ccs-postcodes-to-check:
       - HP22 4HU
       - HP22 4JS
@@ -170,4 +171,4 @@ ccs-postcodes:
       - HP22 4PS
       - GW12 AAA
       - GW12 AAB
-  ccs-postcode-path: /etc/config/ccs-postcodes
+  

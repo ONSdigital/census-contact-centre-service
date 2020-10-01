@@ -4,12 +4,17 @@ import static java.util.stream.Collectors.toList;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -82,6 +87,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
+
+// import java.util.List;
 
 @Service
 public class CaseServiceImpl implements CaseService {
@@ -1190,10 +1197,36 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void validatePostcode(String postcode) throws CTPException {
-    if (!appConfig.getCcsPostcodes().isInCCSPostcodes(postcode)) {
+    Set<String> ccsPostcodes = getPostcodes();
+
+    if (!ccsPostcodes.contains(postcode)) {
       log.with(postcode).info("Check failed for postcode");
       throw new CTPException(
           Fault.BAD_REQUEST, "The requested postcode is not within the CCS sample");
     }
+  }
+
+  private Set<String> getPostcodes() {
+    Set<String> ccsPostcodes = new HashSet<>();
+    String strPostcodePath = appConfig.getCcsPostcodes().getCcsPostcodePath();
+    List<String> postcodes;
+    Path postcodeFilePath;
+    postcodeFilePath = Paths.get(strPostcodePath);
+
+    try {
+      postcodes = Files.readAllLines(postcodeFilePath);
+      for (String postcode : postcodes) {
+        postcode = postcode.trim();
+        ccsPostcodes.add(postcode);
+      }
+    } catch (IOException e) {
+      log.with(strPostcodePath)
+          .warn(
+              "IOException caught as unable to read in postcodes from file."
+                  + " Using postcodes from application.yml instead.",
+              e);
+      ccsPostcodes = appConfig.getCcsPostcodes().getCcsPostcodesToCheck();
+    }
+    return ccsPostcodes;
   }
 }
