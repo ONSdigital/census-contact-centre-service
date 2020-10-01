@@ -162,7 +162,7 @@ cloud-storage:
     
 ccs-postcodes:
   ccs-postcode-path: /etc/config/ccs-postcodes
-  ccs-postcodes-to-check:
+  ccs-default-postcodes:
       - HP22 4HU
       - HP22 4JS
       - HP22 4LG

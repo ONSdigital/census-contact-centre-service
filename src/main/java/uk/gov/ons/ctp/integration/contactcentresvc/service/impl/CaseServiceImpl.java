@@ -88,8 +88,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
-// import java.util.List;
-
 @Service
 public class CaseServiceImpl implements CaseService {
 
@@ -1186,7 +1184,6 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void sendEvent(EventType eventType, EventPayload payload, Object caseId) {
-
     String transactionId =
         eventPublisher.sendEvent(
             eventType, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
@@ -1209,10 +1206,9 @@ public class CaseServiceImpl implements CaseService {
   private Set<String> getPostcodes() {
     Set<String> ccsPostcodes = new HashSet<>();
     String strPostcodePath = appConfig.getCcsPostcodes().getCcsPostcodePath();
-    List<String> postcodes;
-    Path postcodeFilePath;
-    postcodeFilePath = Paths.get(strPostcodePath);
 
+    Path postcodeFilePath = Paths.get(strPostcodePath);
+    List<String> postcodes;
     try {
       postcodes = Files.readAllLines(postcodeFilePath);
       for (String postcode : postcodes) {
@@ -1225,7 +1221,7 @@ public class CaseServiceImpl implements CaseService {
               "IOException caught as unable to read in postcodes from file."
                   + " Using postcodes from application.yml instead.",
               e);
-      ccsPostcodes = appConfig.getCcsPostcodes().getCcsPostcodesToCheck();
+      ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
     }
     return ccsPostcodes;
   }

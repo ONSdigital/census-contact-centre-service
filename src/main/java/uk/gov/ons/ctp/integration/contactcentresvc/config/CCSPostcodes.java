@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class CCSPostcodes {
   private String ccsPostcodePath;
-  private Set<String> ccsPostcodesToCheck;
+  private Set<String> ccsDefaultPostcodes;
 }
