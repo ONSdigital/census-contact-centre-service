@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,16 +12,13 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 
 @Component
 public class CCSPostcodesBean {
   private static final Logger log = LoggerFactory.getLogger(CCSPostcodesBean.class);
 
-  @Autowired
-  private AppConfig appConfig;
+  @Autowired private AppConfig appConfig;
 
   private Set<String> ccsPostcodes;
 
@@ -41,8 +40,11 @@ public class CCSPostcodesBean {
         ccsPostcodes.add(postcode);
       }
     } catch (IOException e) {
-      log.with(strPostcodePath).error("APPLICATION IS MISCONFIGURED - unable to read in postcodes from file."
-          + " Using postcodes from application.yml instead.", e);
+      log.with(strPostcodePath)
+          .error(
+              "APPLICATION IS MISCONFIGURED - unable to read in postcodes from file."
+                  + " Using postcodes from application.yml instead.",
+              e);
       ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
     }
   }

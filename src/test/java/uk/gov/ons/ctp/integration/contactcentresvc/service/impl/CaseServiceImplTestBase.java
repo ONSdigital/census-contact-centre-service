@@ -28,7 +28,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.EstabType;
@@ -75,7 +74,7 @@ public abstract class CaseServiceImplTestBase {
   @Mock CaseDataRepository dataRepo;
 
   @Mock AddressService addressSvc;
-  
+
   @Mock CCSPostcodesBean ccsPostcodesBean;
 
   static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
