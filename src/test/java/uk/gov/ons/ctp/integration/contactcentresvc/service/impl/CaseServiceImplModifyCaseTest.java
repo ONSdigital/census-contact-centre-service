@@ -51,6 +51,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   private ModifyCaseRequestDTO requestDTO;
   private CaseContainerDTO caseContainerDTO;
+  private CaseContainerDTO ccsSurveyTypeCaseContainerDTO;
   private CachedCase cachedCase;
 
   @Captor private ArgumentCaptor<CachedCase> cachedCaseCaptor;
@@ -60,8 +61,11 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     mockCaseEventWhiteList();
     requestDTO = FixtureHelper.loadClassFixtures(ModifyCaseRequestDTO[].class).get(0);
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
+    ccsSurveyTypeCaseContainerDTO =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(1);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
+    when(appConfig.getSurveyName()).thenReturn("CENSUS");
   }
 
   private void verifyRejectIncompatible(EstabType estabType, CaseType caseType) {
@@ -75,7 +79,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldRejectIncompatibleCaseTypeAndEstabType() {
     verifyRejectIncompatible(EstabType.APPROVED_PREMISES, CaseType.HH);
-    verifyRejectIncompatible(EstabType.FOREIGN_OFFICES, CaseType.CE);
+    verifyRejectIncompatible(EstabType.RESIDENTIAL_BOAT, CaseType.CE);
     verifyRmCaseCall(0);
   }
 
@@ -101,10 +105,20 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldReturnBadRequestWhenCCSSurveyTypeExists() throws Exception {
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(ccsSurveyTypeCaseContainerDTO);
+    CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
+    assertEquals(Fault.BAD_REQUEST, e.getFault());
+    assertEquals("Operation not permissible for a CCS Case", e.getMessage());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
   public void shouldAcceptCompatibleCaseTypeAndEstabType() throws Exception {
     mockRmHasCase();
     verifyAcceptCompatible(EstabType.APPROVED_PREMISES, CaseType.CE);
-    verifyAcceptCompatible(EstabType.FOREIGN_OFFICES, CaseType.HH);
+    verifyAcceptCompatible(EstabType.RESIDENTIAL_BOAT, CaseType.HH);
     verifyRmCaseCall(2);
   }
 
@@ -205,8 +219,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestHH_ExistingCastleHH() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, EstabType.CASTLES.getCode());
+  public void shouldModifyAddress_RequestHH_ExistingResidentialBoatHH() throws Exception {
+    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, EstabType.RESIDENTIAL_BOAT.getCode());
   }
 
   @Test
@@ -215,18 +229,13 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestHH_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
-  }
-
-  @Test
   public void shouldModifyAddress_RequestSPG_ExistingHouseHold() throws Exception {
     verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.HOUSEHOLD.getCode());
   }
 
   @Test
-  public void shouldModifyAddress_RequestSPG_ExistingCastleHH() throws Exception {
-    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.CASTLES.getCode());
+  public void shouldModifyAddress_RequestSPG_ExistingMilitarySfaHH() throws Exception {
+    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, EstabType.MILITARY_SFA.getCode());
   }
 
   @Test
@@ -235,13 +244,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldModifyAddress_RequestSPG_ExistingOtherNull() throws Exception {
-    verifyModifyAddress(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower", CaseType.HH);
-  }
-
-  @Test
   public void shouldModifyAddress_RequestCE_ExistingPrisonCE() throws Exception {
-    verifyModifyAddress(CaseType.CE, EstabType.HOLIDAY_PARK, "prison");
+    verifyModifyAddress(CaseType.CE, EstabType.CARE_HOME, "prison");
   }
 
   @Test
@@ -331,13 +335,13 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingHousehold() throws Exception {
     verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.HOUSEHOLD.getCode(), CaseType.HH);
+        CaseType.CE, EstabType.CARE_HOME, EstabType.HOUSEHOLD.getCode(), CaseType.HH);
   }
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingEmbassySPG() throws Exception {
     verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, EstabType.EMBASSY.getCode(), CaseType.SPG);
+        CaseType.CE, EstabType.CARE_HOME, EstabType.EMBASSY.getCode(), CaseType.SPG);
   }
 
   @Test
@@ -347,14 +351,23 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
 
   @Test
   public void shouldChangeAddressType_RequestCE_ExistingOtherSPG() throws Exception {
-    verifyAddressTypeChanged(
-        CaseType.CE, EstabType.HOLIDAY_PARK, "Oblivion Sky Tower", CaseType.SPG);
+    verifyAddressTypeChanged(CaseType.CE, EstabType.CARE_HOME, "Oblivion Sky Tower", CaseType.SPG);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestSPG_ExistingOtherNull() throws Exception {
+    verifyAddressTypeChanged(CaseType.SPG, EstabType.EMBASSY, "Oblivion Sky Tower", CaseType.HH);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestHH_ExistingOtherNull() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
   }
 
   @Test
   public void shouldRejectNorthernIrelandChangeFromHouseholdToCE() {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     caseContainerDTO.setCaseType(CaseType.HH.name());
     caseContainerDTO.setRegion(Region.N.name());
@@ -369,7 +382,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldNotRejectNorthernIrelandChangeWhenNotInNorthernIreland() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     caseContainerDTO.setCaseType(CaseType.HH.name());
     caseContainerDTO.setRegion(Region.E.name());
@@ -403,7 +416,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldNotRejectNorthernIrelandChangeWhenNotExistingHouseHold() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     caseContainerDTO.setCaseType(CaseType.SPG.name());
     caseContainerDTO.setRegion(Region.N.name());
@@ -515,7 +528,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldSaveCachedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     mockRmHasCase();
     CaseDTO response = target.modifyCase(requestDTO);
@@ -529,7 +542,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldUpdateCachedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
 
     mockRmCannotFindCase();
@@ -613,7 +626,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   @Test
   public void shouldReturnModifiedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.HOLIDAY_PARK);
+    requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     mockRmHasCase();
     CaseDTO response = target.modifyCase(requestDTO);

@@ -229,7 +229,7 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
 
       // We need to account for the mapping from a CachedCase to a CaseDTO missing a few fields:
       expectedCaseResult.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-      expectedCaseResult.setEstabType(EstabType.HOLIDAY_PARK);
+      expectedCaseResult.setEstabType(EstabType.CARE_HOME);
       if (!caseEvents) {
         expectedCaseResult.setCaseEvents(Collections.emptyList());
       }
