@@ -59,6 +59,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuest
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
+import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
@@ -116,6 +117,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private AddressService addressSvc;
 
   @Autowired private EventPublisher eventPublisher;
+
+  @Autowired private CCSPostcodesBean ccsPostcodesBean;
 
   private LuhnCheckDigit luhnChecker = new LuhnCheckDigit();
 
@@ -216,14 +219,6 @@ public class CaseServiceImpl implements CaseService {
     return createNewCachedCaseResponse(cachedCase, false);
   }
 
-  private void rejectHouseholdIndividual(CaseDTO caseDetails) {
-    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
-      log.with(caseDetails.getId())
-          .info("Case is not suitable as it is a household individual case");
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
-    }
-  }
-
   @Override
   public CaseDTO getCaseById(final UUID caseId, CaseQueryRequestDTO requestParamsDTO)
       throws CTPException {
@@ -237,90 +232,6 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId).debug("Returning case details for caseId");
 
     return caseServiceResponse;
-  }
-
-  private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
-    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-    caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
-
-    return caseServiceResponse;
-  }
-
-  private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
-    List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
-
-    for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-      caseServiceResponse.setEstabType(
-          EstabType.forCode(caseServiceResponse.getEstabDescription()));
-    }
-
-    return caseServiceListResponse;
-  }
-
-  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
-    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
-
-    try {
-      CaseContainerDTO caseFromRM = getCaseFromRm(caseId, getCaseEvents);
-      if (caseFromRM != null) {
-        timeOrderedCases.addCase(mapCaseContainerDTO(caseFromRM));
-      }
-    } catch (ResponseStatusException ex) {
-      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
-        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
-      } else {
-        log.with("caseId", caseId)
-            .with("status", ex.getStatus())
-            .error("Error calling Case Service");
-        throw ex;
-      }
-    }
-
-    Optional<CaseDTO> cachedCase =
-        dataRepo
-            .readCachedCaseById(caseId)
-            .map(cc -> createNewCachedCaseResponse(cc, getCaseEvents));
-
-    if (cachedCase.isPresent()) {
-      timeOrderedCases.addCase(cachedCase.get());
-    }
-    Optional<CaseDTO> latest = timeOrderedCases.latest();
-
-    CaseDTO latestCaseDto = null;
-    if (latest.isPresent()) {
-      latestCaseDto = latest.get();
-    } else {
-      log.with("caseId", caseId).warn("Request for case Not Found");
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
-    }
-
-    return latestCaseDto;
-  }
-
-  private Optional<CaseDTO> getLatestCaseByUprn(
-      UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
-    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
-
-    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
-    log.with("uprn", uprn)
-        .with("cases", rmCases.size())
-        .debug("Found {} case details in RM for UPRN", rmCases.size());
-    timeOrderedCases.add(rmCases);
-
-    List<CaseDTO> cachedCases =
-        dataRepo
-            .readCachedCasesByUprn(uprn)
-            .stream()
-            .map(cc -> createNewCachedCaseResponse(cc, addCaseEvents))
-            .collect(toList());
-    log.with("uprn", uprn)
-        .with("cases", cachedCases.size())
-        .debug("Found {} case details in Cache for UPRN", cachedCases.size());
-    timeOrderedCases.add(cachedCases);
-
-    return timeOrderedCases.latest();
   }
 
   @Override
@@ -344,11 +255,19 @@ public class CaseServiceImpl implements CaseService {
     return Collections.singletonList(response);
   }
 
-  private void validateCaseRef(long caseRef) throws CTPException {
-    if (!luhnChecker.isValid(Long.toString(caseRef))) {
-      log.with(caseRef).info("Luhn check failed for case Reference");
-      throw new CTPException(Fault.BAD_REQUEST, "Invalid Case Reference");
+  @Override
+  public List<CaseDTO> getCCSCaseByPostcode(String postcode) throws CTPException {
+    log.with("postcode", postcode).debug("Fetching ccs case details by postcode");
+    validatePostcode(postcode);
+
+    List<CaseContainerDTO> ccsCaseContainersList = getCcsCasesFromRm(postcode);
+
+    List<CaseDTO> ccsCases = new ArrayList<CaseDTO>();
+    for (CaseContainerDTO ccsCaseDetails : ccsCaseContainersList) {
+      ccsCases.add(caseDTOMapper.map(ccsCaseDetails, CaseDTO.class));
     }
+
+    return ccsCases;
   }
 
   @Override
@@ -366,127 +285,6 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseRef", caseRef).debug("Returning case details for case reference");
 
     return caseServiceResponse;
-  }
-
-  private void validateCompatibleEstabAndCaseType(CaseType caseType, EstabType estabType)
-      throws CTPException {
-    Optional<AddressType> addrType = estabType.getAddressType();
-    if (addrType.isPresent() && (caseType != CaseType.valueOf(addrType.get().name()))) {
-      log.with("caseType", caseType)
-          .with("estabType", estabType)
-          .info("Mismatching caseType and estabType");
-      String msg =
-          "Derived address type of '"
-              + addrType.get()
-              + "', from establishment type '"
-              + estabType
-              + "', "
-              + "is not compatible with caseType of '"
-              + caseType
-              + "'";
-      throw new CTPException(Fault.BAD_REQUEST, msg);
-    }
-  }
-
-  private boolean isCaseTypeChange(CaseType requestedCaseType, CaseType existingCaseType) {
-    return requestedCaseType != existingCaseType;
-  }
-
-  private void rejectNorthernIrelandHouseholdToCE(
-      CaseType requestedCaseType, CaseContainerDTO caseDetails) throws CTPException {
-    Region region = convertRegion(caseDetails);
-    if (region == Region.N && requestedCaseType == CaseType.CE) {
-      AddressType addrType = AddressType.valueOf(caseDetails.getCaseType());
-      if (addrType == AddressType.HH) {
-        String msg =
-            "All queries relating to Communal Establishments in Northern Ireland "
-                + "should be escalated to NISRA HQ";
-        log.with("caseType", requestedCaseType).with("caseDetails", caseDetails).info(msg);
-        throw new CTPException(Fault.BAD_REQUEST, msg);
-      }
-    }
-  }
-
-  private void updateOrCreateCachedCase(
-      UUID caseId, CaseContainerDTO caseDetails, ModifyCaseRequestDTO modifyRequestDTO)
-      throws CTPException {
-    CachedCase cachedCase = caseDTOMapper.map(caseDetails, CachedCase.class);
-    cachedCase.setId(caseId.toString());
-    CaseType caseType = modifyRequestDTO.getCaseType();
-    cachedCase.setCaseType(caseType);
-    cachedCase.setEstabType(modifyRequestDTO.getEstabType().getCode());
-    cachedCase.setAddressType(caseType.name());
-    cachedCase.setAddressLine1(modifyRequestDTO.getAddressLine1());
-    cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
-    cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
-    cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
-    dataRepo.writeCachedCase(cachedCase);
-  }
-
-  private void sendAddressModifiedEvent(
-      UUID caseId, ModifyCaseRequestDTO modifyRequestDTO, CaseContainerDTO caseDetails) {
-    CollectionCaseCompact collectionCase =
-        CollectionCaseCompact.builder()
-            .id(caseId)
-            .caseType(modifyRequestDTO.getCaseType().name())
-            .ceExpectedCapacity(modifyRequestDTO.getCeUsualResidents())
-            .build();
-    AddressCompact originalAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
-    AddressCompact newAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
-
-    newAddress.setAddressLine1(modifyRequestDTO.getAddressLine1());
-    newAddress.setAddressLine2(modifyRequestDTO.getAddressLine2());
-    newAddress.setAddressLine3(modifyRequestDTO.getAddressLine3());
-    newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
-    newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
-
-    AddressModification payload =
-        AddressModification.builder()
-            .collectionCase(collectionCase)
-            .originalAddress(originalAddress)
-            .newAddress(newAddress)
-            .build();
-    sendEvent(EventType.ADDRESS_MODIFIED, payload, caseId);
-  }
-
-  private void sendAddressTypeChangedEvent(
-      UUID newCaseId, UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO) {
-    CollectionCase collectionCase = new CollectionCase();
-    collectionCase.setId(originalCaseId.toString());
-    collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
-    collectionCase.setContact(null);
-
-    Address address = new Address();
-    address.setAddressLine1(modifyRequestDTO.getAddressLine1());
-    address.setAddressLine2(modifyRequestDTO.getAddressLine2());
-    address.setAddressLine3(modifyRequestDTO.getAddressLine3());
-    address.setEstabType(modifyRequestDTO.getEstabType().getCode());
-    address.setOrganisationName(modifyRequestDTO.getCeOrgName());
-    address.setAddressType(modifyRequestDTO.getCaseType().name());
-
-    collectionCase.setAddress(address);
-
-    AddressTypeChanged payload =
-        AddressTypeChanged.builder().newCaseId(newCaseId).collectionCase(collectionCase).build();
-    sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, newCaseId);
-  }
-
-  private void prepareModificationResponse(
-      CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO, UUID caseId, String caseRef) {
-    CaseType caseType = modifyRequestDTO.getCaseType();
-    response.setId(caseId);
-    response.setCaseRef(caseRef);
-    response.setCaseType(caseType.name());
-    response.setAddressType(caseType.name());
-    EstabType estabType = modifyRequestDTO.getEstabType();
-    response.setEstabType(estabType);
-    response.setEstabDescription(estabType.getCode());
-    response.setAddressLine1(modifyRequestDTO.getAddressLine1());
-    response.setAddressLine2(modifyRequestDTO.getAddressLine2());
-    response.setAddressLine3(modifyRequestDTO.getAddressLine3());
-    response.setCeOrgName(modifyRequestDTO.getCeOrgName());
-    response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-    response.setCaseEvents(Collections.emptyList());
   }
 
   @Override
@@ -520,12 +318,6 @@ public class CaseServiceImpl implements CaseService {
     updateOrCreateCachedCase(caseId, caseDetails, modifyRequestDTO);
     prepareModificationResponse(response, modifyRequestDTO, caseId, caseRef);
     return response;
-  }
-
-  private void validateSurveyType(CaseContainerDTO caseDetails) throws CTPException {
-    if (!appConfig.getSurveyName().equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.BAD_REQUEST, CCS_CASE_ERROR_MSG);
-    }
   }
 
   @Override
@@ -591,151 +383,6 @@ public class CaseServiceImpl implements CaseService {
         .uac(newQuestionnaireIdDto.getUac())
         .dateTime(DateTimeUtil.nowUTC())
         .build();
-  }
-
-  /**
-   * Request a new questionnaire Id for a Case
-   *
-   * @param caseDetails of case for which to get questionnaire Id
-   * @param individual whether request for individual questionnaire
-   * @return
-   */
-  private SingleUseQuestionnaireIdDTO getNewQidForCase(
-      CaseContainerDTO caseDetails, boolean individual) throws CTPException {
-
-    CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
-    if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
-      throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
-    }
-
-    UUID parentCaseId = caseDetails.getId();
-    UUID individualCaseId = null;
-    if (caseType == CaseType.HH && individual) {
-      caseDetails = createIndividualCase(caseDetails);
-      individualCaseId = caseDetails.getId();
-    }
-
-    // Get RM to allocate a new questionnaire ID
-    log.info("Before new QID");
-    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto;
-    try {
-      newQuestionnaireIdDto =
-          caseServiceClient.getSingleUseQuestionnaireId(parentCaseId, individual, individualCaseId);
-    } catch (ResponseStatusException ex) {
-      if (ex.getCause() != null) {
-        HttpStatusCodeException cause = (HttpStatusCodeException) ex.getCause();
-        log.with("caseid", parentCaseId)
-            .with("status", cause.getStatusCode())
-            .with("message", cause.getMessage())
-            .warn("New QID, UAC Case service request failure.");
-        if (cause.getStatusCode() == HttpStatus.BAD_REQUEST) {
-          throw new CTPException(
-              Fault.BAD_REQUEST, "Invalid request for case %s", parentCaseId.toString());
-        }
-      }
-      throw ex;
-    }
-
-    String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
-    String formType = newQuestionnaireIdDto.getFormType();
-    log.with("newQuestionnaireID", questionnaireId)
-        .with("formType", formType)
-        .info("Have generated new questionnaireId");
-
-    if (caseType == CaseType.CE && !individual && FormType.C.name().equals(formType)) {
-      rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
-    }
-
-    return newQuestionnaireIdDto;
-  }
-
-  /**
-   * Get the Case for which the client has requested a launch URL/UAC
-   *
-   * @param caseId of case to get
-   * @return CaseContainerDTO for case requested
-   * @throws CTPException if case not available to call (not in case service), but new skeleton case
-   *     details available
-   */
-  private CaseContainerDTO getLaunchCase(UUID caseId) throws CTPException {
-    try {
-      CaseContainerDTO caseDetails = getCaseFromRm(caseId, false);
-      return caseDetails;
-    } catch (ResponseStatusException ex) {
-      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
-        Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
-        if (cachedCase.isPresent()) {
-          log.with("caseid", caseId)
-              .with("status", ex.getStatus())
-              .with("message", ex.getMessage())
-              .warn("New skeleton case created but not yet available.");
-          throw new CTPException(
-              Fault.ACCEPTED_UNABLE_TO_PROCESS,
-              "Unable to provide launch URL/UAC at present, please try again later.");
-        }
-      }
-      log.with("caseid", caseId)
-          .with("status", ex.getStatus())
-          .with("message", ex.getMessage())
-          .error("Unable to provide launch URL/UAC, failed to call case service");
-      throw ex;
-    }
-  }
-
-  private void rejectInvalidLaunchCombinations(String region, String addressLevel)
-      throws CTPException {
-    if ("E".equals(addressLevel)) {
-      if ("N".equals(region)) {
-        throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
-      }
-    } else if ("U".equals(addressLevel)) {
-      if (VALID_REGIONS.contains(region)) {
-        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
-      }
-    }
-  }
-
-  // Create a new case for a HH individual
-  private CaseContainerDTO createIndividualCase(CaseContainerDTO caseDetails) {
-    UUID individualCaseId = UUID.randomUUID();
-    caseDetails.setId(individualCaseId);
-    caseDetails.setCaseType(CaseType.HI.name());
-    log.with("individualCaseId", individualCaseId).info("Creating new HI case");
-    return caseDetails;
-  }
-
-  private String createLaunchUrl(
-      String formType,
-      CaseContainerDTO caseDetails,
-      LaunchRequestDTO requestParamsDTO,
-      String questionnaireId)
-      throws CTPException {
-    String encryptedPayload = "";
-    try {
-      encryptedPayload =
-          eqLaunchService.getEqLaunchJwe(
-              Language.ENGLISH,
-              uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API,
-              uk.gov.ons.ctp.common.domain.Channel.CC,
-              caseDetails,
-              Integer.toString(requestParamsDTO.getAgentId()),
-              questionnaireId,
-              formType,
-              null,
-              null,
-              appConfig.getKeystore());
-    } catch (CTPException e) {
-      log.with(e).error("Failed to create JWE payload for eq launch");
-      throw e;
-    }
-    String eqUrl =
-        appConfig.getEq().getProtocol()
-            + "://"
-            + appConfig.getEq().getHost()
-            + appConfig.getEq().getPath()
-            + encryptedPayload;
-    log.with("launchURL", eqUrl).debug("Have created launch URL");
-    return eqUrl;
   }
 
   @Override
@@ -981,6 +628,11 @@ public class CaseServiceImpl implements CaseService {
     return caseList.stream().map(c -> filterCaseEvents(c, getCaseEvents)).collect(toList());
   }
 
+  private List<CaseContainerDTO> getCcsCasesFromRm(String postcode) {
+    List<CaseContainerDTO> caseList = caseServiceClient.getCcsCaseByPostcode(postcode);
+    return caseList;
+  }
+
   /**
    * Create a case refusal event.
    *
@@ -1166,7 +818,6 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private void sendEvent(EventType eventType, EventPayload payload, Object caseId) {
-
     String transactionId =
         eventPublisher.sendEvent(
             eventType, Source.CONTACT_CENTRE_API, appConfig.getChannel(), payload);
@@ -1174,5 +825,384 @@ public class CaseServiceImpl implements CaseService {
     log.with("caseId", caseId)
         .with("transactionId", transactionId)
         .debug("{} event published", eventType);
+  }
+
+  private void validatePostcode(String postcode) throws CTPException {
+    if (!ccsPostcodesBean.isInCCSPostcodes(postcode)) {
+      log.with(postcode).info("Check failed for postcode");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "The requested postcode is not within the CCS sample");
+    }
+  }
+
+  private void rejectHouseholdIndividual(CaseDTO caseDetails) {
+    if (caseDetails.getCaseType().equals(CaseType.HI.name())) {
+      log.with(caseDetails.getId())
+          .info("Case is not suitable as it is a household individual case");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Case is not suitable");
+    }
+  }
+
+  private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
+    CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
+    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
+
+    return caseServiceResponse;
+  }
+
+  private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
+    List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
+
+    for (CaseDTO caseServiceResponse : caseServiceListResponse) {
+      caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+      caseServiceResponse.setEstabType(
+          EstabType.forCode(caseServiceResponse.getEstabDescription()));
+    }
+
+    return caseServiceListResponse;
+  }
+
+  private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+
+    try {
+      CaseContainerDTO caseFromRM = getCaseFromRm(caseId, getCaseEvents);
+      if (caseFromRM != null) {
+        timeOrderedCases.addCase(mapCaseContainerDTO(caseFromRM));
+      }
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
+      } else {
+        log.with("caseId", caseId)
+            .with("status", ex.getStatus())
+            .error("Error calling Case Service");
+        throw ex;
+      }
+    }
+
+    Optional<CaseDTO> cachedCase =
+        dataRepo
+            .readCachedCaseById(caseId)
+            .map(cc -> createNewCachedCaseResponse(cc, getCaseEvents));
+
+    if (cachedCase.isPresent()) {
+      timeOrderedCases.addCase(cachedCase.get());
+    }
+    Optional<CaseDTO> latest = timeOrderedCases.latest();
+
+    CaseDTO latestCaseDto = null;
+    if (latest.isPresent()) {
+      latestCaseDto = latest.get();
+    } else {
+      log.with("caseId", caseId).warn("Request for case Not Found");
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
+    }
+
+    return latestCaseDto;
+  }
+
+  private Optional<CaseDTO> getLatestCaseByUprn(
+      UniquePropertyReferenceNumber uprn, boolean addCaseEvents) throws CTPException {
+    TimeOrderedCases timeOrderedCases = new TimeOrderedCases();
+
+    List<CaseDTO> rmCases = callCaseSvcByUPRN(uprn.getValue(), addCaseEvents);
+    log.with("uprn", uprn)
+        .with("cases", rmCases.size())
+        .debug("Found {} case details in RM for UPRN", rmCases.size());
+    timeOrderedCases.add(rmCases);
+
+    List<CaseDTO> cachedCases =
+        dataRepo
+            .readCachedCasesByUprn(uprn)
+            .stream()
+            .map(cc -> createNewCachedCaseResponse(cc, addCaseEvents))
+            .collect(toList());
+    log.with("uprn", uprn)
+        .with("cases", cachedCases.size())
+        .debug("Found {} case details in Cache for UPRN", cachedCases.size());
+    timeOrderedCases.add(cachedCases);
+
+    return timeOrderedCases.latest();
+  }
+
+  private void validateCaseRef(long caseRef) throws CTPException {
+    if (!luhnChecker.isValid(Long.toString(caseRef))) {
+      log.with(caseRef).info("Luhn check failed for case Reference");
+      throw new CTPException(Fault.BAD_REQUEST, "Invalid Case Reference");
+    }
+  }
+
+  private void validateCompatibleEstabAndCaseType(CaseType caseType, EstabType estabType)
+      throws CTPException {
+    Optional<AddressType> addrType = estabType.getAddressType();
+    if (addrType.isPresent() && (caseType != CaseType.valueOf(addrType.get().name()))) {
+      log.with("caseType", caseType)
+          .with("estabType", estabType)
+          .info("Mismatching caseType and estabType");
+      String msg =
+          "Derived address type of '"
+              + addrType.get()
+              + "', from establishment type '"
+              + estabType
+              + "', "
+              + "is not compatible with caseType of '"
+              + caseType
+              + "'";
+      throw new CTPException(Fault.BAD_REQUEST, msg);
+    }
+  }
+
+  private boolean isCaseTypeChange(CaseType requestedCaseType, CaseType existingCaseType) {
+    return requestedCaseType != existingCaseType;
+  }
+
+  private void rejectNorthernIrelandHouseholdToCE(
+      CaseType requestedCaseType, CaseContainerDTO caseDetails) throws CTPException {
+    Region region = convertRegion(caseDetails);
+    if (region == Region.N && requestedCaseType == CaseType.CE) {
+      AddressType addrType = AddressType.valueOf(caseDetails.getCaseType());
+      if (addrType == AddressType.HH) {
+        String msg =
+            "All queries relating to Communal Establishments in Northern Ireland "
+                + "should be escalated to NISRA HQ";
+        log.with("caseType", requestedCaseType).with("caseDetails", caseDetails).info(msg);
+        throw new CTPException(Fault.BAD_REQUEST, msg);
+      }
+    }
+  }
+
+  private void updateOrCreateCachedCase(
+      UUID caseId, CaseContainerDTO caseDetails, ModifyCaseRequestDTO modifyRequestDTO)
+      throws CTPException {
+    CachedCase cachedCase = caseDTOMapper.map(caseDetails, CachedCase.class);
+    cachedCase.setId(caseId.toString());
+    CaseType caseType = modifyRequestDTO.getCaseType();
+    cachedCase.setCaseType(caseType);
+    cachedCase.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    cachedCase.setAddressType(caseType.name());
+    cachedCase.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    cachedCase.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    cachedCase.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    cachedCase.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    dataRepo.writeCachedCase(cachedCase);
+  }
+
+  private void sendAddressModifiedEvent(
+      UUID caseId, ModifyCaseRequestDTO modifyRequestDTO, CaseContainerDTO caseDetails) {
+    CollectionCaseCompact collectionCase =
+        CollectionCaseCompact.builder()
+            .id(caseId)
+            .caseType(modifyRequestDTO.getCaseType().name())
+            .ceExpectedCapacity(modifyRequestDTO.getCeUsualResidents())
+            .build();
+    AddressCompact originalAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
+    AddressCompact newAddress = caseDTOMapper.map(caseDetails, AddressCompact.class);
+
+    newAddress.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    newAddress.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    newAddress.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    newAddress.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    newAddress.setOrganisationName(modifyRequestDTO.getCeOrgName());
+
+    AddressModification payload =
+        AddressModification.builder()
+            .collectionCase(collectionCase)
+            .originalAddress(originalAddress)
+            .newAddress(newAddress)
+            .build();
+    sendEvent(EventType.ADDRESS_MODIFIED, payload, caseId);
+  }
+
+  private void sendAddressTypeChangedEvent(
+      UUID newCaseId, UUID originalCaseId, ModifyCaseRequestDTO modifyRequestDTO) {
+    CollectionCase collectionCase = new CollectionCase();
+    collectionCase.setId(originalCaseId.toString());
+    collectionCase.setCeExpectedCapacity(modifyRequestDTO.getCeUsualResidents());
+    collectionCase.setContact(null);
+
+    Address address = new Address();
+    address.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    address.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    address.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    address.setEstabType(modifyRequestDTO.getEstabType().getCode());
+    address.setOrganisationName(modifyRequestDTO.getCeOrgName());
+    address.setAddressType(modifyRequestDTO.getCaseType().name());
+
+    collectionCase.setAddress(address);
+
+    AddressTypeChanged payload =
+        AddressTypeChanged.builder().newCaseId(newCaseId).collectionCase(collectionCase).build();
+    sendEvent(EventType.ADDRESS_TYPE_CHANGED, payload, newCaseId);
+  }
+
+  private void prepareModificationResponse(
+      CaseDTO response, ModifyCaseRequestDTO modifyRequestDTO, UUID caseId, String caseRef) {
+    CaseType caseType = modifyRequestDTO.getCaseType();
+    response.setId(caseId);
+    response.setCaseRef(caseRef);
+    response.setCaseType(caseType.name());
+    response.setAddressType(caseType.name());
+    EstabType estabType = modifyRequestDTO.getEstabType();
+    response.setEstabType(estabType);
+    response.setEstabDescription(estabType.getCode());
+    response.setAddressLine1(modifyRequestDTO.getAddressLine1());
+    response.setAddressLine2(modifyRequestDTO.getAddressLine2());
+    response.setAddressLine3(modifyRequestDTO.getAddressLine3());
+    response.setCeOrgName(modifyRequestDTO.getCeOrgName());
+    response.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    response.setCaseEvents(Collections.emptyList());
+  }
+
+  private void validateSurveyType(CaseContainerDTO caseDetails) throws CTPException {
+    if (!appConfig.getSurveyName().equalsIgnoreCase(caseDetails.getSurveyType())) {
+      throw new CTPException(Fault.BAD_REQUEST, CCS_CASE_ERROR_MSG);
+    }
+  }
+
+  /**
+   * Request a new questionnaire Id for a Case
+   *
+   * @param caseDetails of case for which to get questionnaire Id
+   * @param individual whether request for individual questionnaire
+   * @return
+   */
+  private SingleUseQuestionnaireIdDTO getNewQidForCase(
+      CaseContainerDTO caseDetails, boolean individual) throws CTPException {
+
+    CaseType caseType = CaseType.valueOf(caseDetails.getCaseType());
+    if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
+      throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
+    }
+
+    UUID parentCaseId = caseDetails.getId();
+    UUID individualCaseId = null;
+    if (caseType == CaseType.HH && individual) {
+      caseDetails = createIndividualCase(caseDetails);
+      individualCaseId = caseDetails.getId();
+    }
+
+    // Get RM to allocate a new questionnaire ID
+    log.info("Before new QID");
+    SingleUseQuestionnaireIdDTO newQuestionnaireIdDto;
+    try {
+      newQuestionnaireIdDto =
+          caseServiceClient.getSingleUseQuestionnaireId(parentCaseId, individual, individualCaseId);
+    } catch (ResponseStatusException ex) {
+      if (ex.getCause() != null) {
+        HttpStatusCodeException cause = (HttpStatusCodeException) ex.getCause();
+        log.with("caseid", parentCaseId)
+            .with("status", cause.getStatusCode())
+            .with("message", cause.getMessage())
+            .warn("New QID, UAC Case service request failure.");
+        if (cause.getStatusCode() == HttpStatus.BAD_REQUEST) {
+          throw new CTPException(
+              Fault.BAD_REQUEST, "Invalid request for case %s", parentCaseId.toString());
+        }
+      }
+      throw ex;
+    }
+
+    String questionnaireId = newQuestionnaireIdDto.getQuestionnaireId();
+    String formType = newQuestionnaireIdDto.getFormType();
+    log.with("newQuestionnaireID", questionnaireId)
+        .with("formType", formType)
+        .info("Have generated new questionnaireId");
+
+    if (caseType == CaseType.CE && !individual && FormType.C.name().equals(formType)) {
+      rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
+    }
+
+    return newQuestionnaireIdDto;
+  }
+
+  /**
+   * Get the Case for which the client has requested a launch URL/UAC
+   *
+   * @param caseId of case to get
+   * @return CaseContainerDTO for case requested
+   * @throws CTPException if case not available to call (not in case service), but new skeleton case
+   *     details available
+   */
+  private CaseContainerDTO getLaunchCase(UUID caseId) throws CTPException {
+    try {
+      CaseContainerDTO caseDetails = getCaseFromRm(caseId, false);
+      return caseDetails;
+    } catch (ResponseStatusException ex) {
+      if (ex.getStatus() == HttpStatus.NOT_FOUND) {
+        Optional<CachedCase> cachedCase = dataRepo.readCachedCaseById(caseId);
+        if (cachedCase.isPresent()) {
+          log.with("caseid", caseId)
+              .with("status", ex.getStatus())
+              .with("message", ex.getMessage())
+              .warn("New skeleton case created but not yet available.");
+          throw new CTPException(
+              Fault.ACCEPTED_UNABLE_TO_PROCESS,
+              "Unable to provide launch URL/UAC at present, please try again later.");
+        }
+      }
+      log.with("caseid", caseId)
+          .with("status", ex.getStatus())
+          .with("message", ex.getMessage())
+          .error("Unable to provide launch URL/UAC, failed to call case service");
+      throw ex;
+    }
+  }
+
+  private void rejectInvalidLaunchCombinations(String region, String addressLevel)
+      throws CTPException {
+    if ("E".equals(addressLevel)) {
+      if ("N".equals(region)) {
+        throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
+      }
+    } else if ("U".equals(addressLevel)) {
+      if (VALID_REGIONS.contains(region)) {
+        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
+      }
+    }
+  }
+
+  // Create a new case for a HH individual
+  private CaseContainerDTO createIndividualCase(CaseContainerDTO caseDetails) {
+    UUID individualCaseId = UUID.randomUUID();
+    caseDetails.setId(individualCaseId);
+    caseDetails.setCaseType(CaseType.HI.name());
+    log.with("individualCaseId", individualCaseId).info("Creating new HI case");
+    return caseDetails;
+  }
+
+  private String createLaunchUrl(
+      String formType,
+      CaseContainerDTO caseDetails,
+      LaunchRequestDTO requestParamsDTO,
+      String questionnaireId)
+      throws CTPException {
+    String encryptedPayload = "";
+    try {
+      encryptedPayload =
+          eqLaunchService.getEqLaunchJwe(
+              Language.ENGLISH,
+              uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API,
+              uk.gov.ons.ctp.common.domain.Channel.CC,
+              caseDetails,
+              Integer.toString(requestParamsDTO.getAgentId()),
+              questionnaireId,
+              formType,
+              null,
+              null,
+              appConfig.getKeystore());
+    } catch (CTPException e) {
+      log.with(e).error("Failed to create JWE payload for eq launch");
+      throw e;
+    }
+    String eqUrl =
+        appConfig.getEq().getProtocol()
+            + "://"
+            + appConfig.getEq().getHost()
+            + appConfig.getEq().getPath()
+            + encryptedPayload;
+    log.with("launchURL", eqUrl).debug("Have created launch URL");
+    return eqUrl;
   }
 }

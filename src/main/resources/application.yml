@@ -153,3 +153,18 @@ cloud-storage:
     multiplier: 2
     max: 3500
     max-attempts: 3
+    
+ccs-postcodes:
+# The ccs-postcode-path will be provided within GCP k8s as an environment variable, the contents of that file will be a volume mounted configmap property. 
+# See census-int-terraform/kubernetes/contact-centre-service/contact-centre-service-deployment.yml
+  ccs-postcode-path: /etc/config/ccs-postcodes
+  ccs-default-postcodes:
+      - HP22 4HU
+      - HP22 4JS
+      - HP22 4LG
+      - HP22 4NH
+      - HP22 4PL
+      - HP22 4PS
+      - GW12 AAA
+      - GW12 AAB
+  
