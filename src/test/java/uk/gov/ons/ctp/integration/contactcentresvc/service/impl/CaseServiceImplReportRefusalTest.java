@@ -53,70 +53,76 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
   @Test
   public void testRespondentRefusal_withExtraordinaryReason() throws Exception {
     Date dateTime = new Date();
-    UUID caseId = UUID.randomUUID();
-    UUID expectedEventCaseId = caseId;
-    String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(
-        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
+    doRespondentRefusalTest(dateTime, Reason.EXTRAORDINARY, createContact());
   }
 
   @Test
   public void testRespondentRefusal_withHardReason() throws Exception {
     Date dateTime = new Date();
-    UUID caseId = UUID.randomUUID();
-    UUID expectedEventCaseId = caseId;
-    String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(
-        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.HARD);
+    doRespondentRefusalTest(dateTime, Reason.HARD, createContact());
+  }
+
+  @Test
+  public void testRespondentRefusal_withEmptyContactFields() throws Exception {
+    Date dateTime = new Date();
+    ContactCompact c = new ContactCompact("", "", "");
+    doRespondentRefusalTest(dateTime, Reason.HARD, c);
+  }
+
+  @Test
+  public void testRespondentRefusal_withNullContactFields() throws Exception {
+    Date dateTime = new Date();
+    ContactCompact c = new ContactCompact();
+    doRespondentRefusalTest(dateTime, Reason.HARD, c);
   }
 
   @Test
   public void testRespondentRefusal_withUUID() throws Exception {
     Date dateTime = new Date();
-    UUID caseId = UUID.randomUUID();
-    UUID expectedEventCaseId = caseId;
-    String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(
-        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
+    doRespondentRefusalTest(dateTime, Reason.EXTRAORDINARY, createContact());
   }
 
   @Test
   public void testRespondentRefusal_withoutDateTime() throws Exception {
     Date dateTime = null;
+    doRespondentRefusalTest(dateTime, Reason.EXTRAORDINARY, createContact());
+  }
+
+  private ContactCompact createContact() {
+    ContactCompact c = new ContactCompact("Mr", "Steve", "Jones");
+    return c;
+  }
+
+  private RefusalRequestDTO createRefusalDto(
+      UUID caseId, Date dateTime, Reason reason, ContactCompact contact) {
+    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(A_UPRN);
+    return RefusalRequestDTO.builder()
+        .caseId(caseId)
+        .agentId(123)
+        .title(contact.getTitle())
+        .forename(contact.getForename())
+        .surname(contact.getSurname())
+        .addressLine1("1 High Street")
+        .addressLine2("Delph")
+        .addressLine3("Oldham")
+        .townName("Manchester")
+        .postcode("OL3 5DJ")
+        .uprn(uprn)
+        .region(A_REGION)
+        .reason(reason)
+        .isHouseholder(true)
+        .dateTime(dateTime)
+        .callId(A_CALL_ID)
+        .build();
+  }
+
+  private void doRespondentRefusalTest(Date dateTime, Reason reason, ContactCompact contact)
+      throws Exception {
     UUID caseId = UUID.randomUUID();
     UUID expectedEventCaseId = caseId;
     String expectedResponseCaseId = caseId.toString();
-    doRespondentRefusalTest(
-        caseId, expectedEventCaseId, expectedResponseCaseId, dateTime, Reason.EXTRAORDINARY);
-  }
-
-  private void doRespondentRefusalTest(
-      UUID caseId,
-      UUID expectedEventCaseId,
-      String expectedResponseCaseId,
-      Date dateTime,
-      Reason reason)
-      throws Exception {
-    UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(A_UPRN);
     RefusalRequestDTO refusalPayload =
-        RefusalRequestDTO.builder()
-            .caseId(caseId)
-            .agentId(123)
-            .title("Mr")
-            .forename("Steve")
-            .surname("Jones")
-            .addressLine1("1 High Street")
-            .addressLine2("Delph")
-            .addressLine3("Oldham")
-            .townName("Manchester")
-            .postcode("OL3 5DJ")
-            .uprn(uprn)
-            .region(A_REGION)
-            .reason(reason)
-            .isHouseholder(true)
-            .dateTime(dateTime)
-            .callId(A_CALL_ID)
-            .build();
+        createRefusalDto(expectedEventCaseId, dateTime, reason, contact);
 
     // report the refusal
     long timeBeforeInvocation = System.currentTimeMillis();
@@ -142,13 +148,17 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
       assertNull(refusal.getContact());
     } else {
       ContactCompact c = refusal.getContact();
-      verifyEncryptedField("Mr", c.getTitle());
-      verifyEncryptedField("Steve", c.getForename());
-      verifyEncryptedField("Jones", c.getSurname());
+      verifyEncryptedField(contact.getTitle(), c.getTitle());
+      verifyEncryptedField(contact.getForename(), c.getForename());
+      verifyEncryptedField(contact.getSurname(), c.getSurname());
     }
   }
 
   private void verifyEncryptedField(String clear, String sendField) throws Exception {
+    if (clear == null) {
+      assertNull(sendField);
+      return;
+    }
     String privKey = PgpEncryptTest.readFileIntoString(PRIVATE_KEY_1);
     String pgpField = new String(Base64.getDecoder().decode(sendField), StandardCharsets.UTF_8);
     try (ByteArrayInputStream secretKeyFile = new ByteArrayInputStream(privKey.getBytes())) {
