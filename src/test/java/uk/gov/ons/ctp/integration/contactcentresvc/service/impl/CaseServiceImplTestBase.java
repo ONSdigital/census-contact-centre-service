@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -42,8 +43,10 @@ import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
+import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.CCSPostcodes;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.CaseServiceSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
@@ -71,6 +74,8 @@ public abstract class CaseServiceImplTestBase {
   @Mock CaseDataRepository dataRepo;
 
   @Mock AddressService addressSvc;
+
+  @Mock CCSPostcodesBean ccsPostcodesBean;
 
   static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
@@ -196,6 +201,13 @@ public abstract class CaseServiceImplTestBase {
     Set<String> whitelistedSet = Set.of("CASE_CREATED", "CASE_UPDATED");
     caseServiceSettings.setWhitelistedEventCategories(whitelistedSet);
     when(appConfig.getCaseServiceSettings()).thenReturn(caseServiceSettings);
+  }
+
+  void mockCcsPostcodes() throws IOException {
+    CCSPostcodes ccsPostcodes = new CCSPostcodes();
+    Set<String> ccsPostcodesSet = Set.of("GW12 AAA", "GW12 AAB", "HP22 4HU");
+    ccsPostcodes.setCcsDefaultPostcodes(ccsPostcodesSet);
+    ccsPostcodes.setCcsPostcodePath("/etc/config/ccs-postcodes");
   }
 
   void assertCaseQIDRestClientFailureCaught(Exception ex, boolean caught) {
