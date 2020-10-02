@@ -112,8 +112,8 @@ case-service-settings:
       - SAMPLE_UNIT_VALIDATED
 
 rabbitmq:
-  username: fart
-  password: fart
+  username: ccuser
+  password: ccpass
   host: localhost
   port: 35672
   virtual-host: /
