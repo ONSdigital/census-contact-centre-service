@@ -112,8 +112,8 @@ case-service-settings:
       - SAMPLE_UNIT_VALIDATED
 
 rabbitmq:
-  username: ccuser
-  password: ccpass
+  username: guest
+  password: guest
   host: localhost
   port: 35672
   virtual-host: /
