@@ -38,8 +38,7 @@ public class CCSPostcodesBean {
       log.with(strPostcodePath)
           .error(
               "APPLICATION IS MISCONFIGURED - unable to read in postcodes from file."
-                  + " Using postcodes from application.yml instead.",
-              e);
+                  + " Using postcodes from application.yml instead.");
       ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
     }
   }
