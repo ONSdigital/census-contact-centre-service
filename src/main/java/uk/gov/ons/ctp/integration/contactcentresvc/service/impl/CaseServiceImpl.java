@@ -1194,7 +1194,8 @@ public class CaseServiceImpl implements CaseService {
               formType,
               null,
               null,
-              appConfig.getKeystore());
+              appConfig.getKeystore(),
+              appConfig.getPassPhrase());
     } catch (CTPException e) {
       log.with(e).error("Failed to create JWE payload for eq launch");
       throw e;

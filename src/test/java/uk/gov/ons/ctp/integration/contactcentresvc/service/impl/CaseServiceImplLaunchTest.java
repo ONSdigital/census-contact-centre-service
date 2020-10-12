@@ -61,6 +61,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     appConfig.setEq(eqConfig);
 
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
+    Mockito.when(appConfig.getPassPhrase()).thenReturn("CENSUS");
   }
 
   @Test
@@ -212,7 +213,8 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
                 any(),
                 any(),
                 any(),
-                isNull())) // keystore
+                isNull(),
+                any())) // keystore
         .thenReturn("simulated-encrypted-payload");
   }
 
@@ -230,6 +232,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
             eq(formType.name()),
             isNull(), // accountServiceUrl
             isNull(),
+            any(),
             any()); // keystore
 
     CaseContainerDTO capturedCase = caseCaptor.getValue();
