@@ -1,6 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import com.godaddy.logging.LoggingConfigs;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.config.MeterFilterReply;
@@ -18,6 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
@@ -34,6 +42,7 @@ import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.CustomCircuitBreakerConfig;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 
@@ -44,6 +53,7 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 @ImportResource("springintegration/main.xml")
 @EnableCaching
 public class ContactCentreSvcApplication {
+  private static final Logger log = LoggerFactory.getLogger(ContactCentreSvcApplication.class);
 
   private AppConfig appConfig;
 
@@ -143,14 +153,49 @@ public class ContactCentreSvcApplication {
    */
   @Bean
   public EventPublisher eventPublisher(
-      final ConnectionFactory connectionFactory, final FirestoreEventPersistence eventPersistence) {
+      final ConnectionFactory connectionFactory,
+      final FirestoreEventPersistence eventPersistence,
+      final Resilience4JCircuitBreakerFactory circuitBreakerFactory) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
     template.setChannelTransacted(true);
 
     EventSender sender = new SpringRabbitEventSender(template);
-    return EventPublisher.createWithEventPersistence(sender, eventPersistence);
+    CircuitBreaker circuitBreaker = circuitBreakerFactory.create("eventSendCircuitBreaker");
+    return EventPublisher.createWithEventPersistence(sender, eventPersistence, circuitBreaker);
+  }
+
+  @Bean
+  public Customizer<Resilience4JCircuitBreakerFactory> defaultCircuitBreakerCustomiser() {
+    CustomCircuitBreakerConfig config = appConfig.getCircuitBreaker();
+    log.info("Circuit breaker configuration: {}", config);
+    TimeLimiterConfig timeLimiterConfig =
+        TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(config.getTimeout())).build();
+    CircuitBreakerConfig cbConfig =
+        CircuitBreakerConfig.custom()
+            .minimumNumberOfCalls(config.getMinNumberOfCalls())
+            .slidingWindowSize(config.getSlidingWindowSize())
+            .failureRateThreshold(config.getFailureRateThreshold())
+            .slowCallRateThreshold(config.getSlowCallRateThreshold())
+            .writableStackTraceEnabled(config.isWritableStackTraceEnabled())
+            .waitDurationInOpenState(Duration.ofSeconds(config.getWaitDurationSecondsInOpenState()))
+            .slowCallDurationThreshold(
+                Duration.ofSeconds(config.getSlowCallDurationSecondsThreshold()))
+            .permittedNumberOfCallsInHalfOpenState(
+                config.getPermittedNumberOfCallsInHalfOpenState())
+            .slidingWindowType(config.getSlidingWindowType())
+            .automaticTransitionFromOpenToHalfOpenEnabled(
+                config.isAutomaticTransitionFromOpenToHalfOpenEnabled())
+            .build();
+
+    return factory ->
+        factory.configureDefault(
+            id ->
+                new Resilience4JConfigBuilder(id)
+                    .timeLimiterConfig(timeLimiterConfig)
+                    .circuitBreakerConfig(cbConfig)
+                    .build());
   }
 
   /**

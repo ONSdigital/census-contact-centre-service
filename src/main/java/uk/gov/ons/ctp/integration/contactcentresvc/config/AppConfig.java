@@ -26,6 +26,7 @@ public class AppConfig {
   private Resource publicPgpKey1;
   private Resource publicPgpKey2;
   private CCSPostcodes ccsPostcodes;
+  private CustomCircuitBreakerConfig circuitBreaker;
 
   public void setChannel(Channel channel) {
     if (channel.equals(Channel.CC) || channel.equals(Channel.AD)) {
