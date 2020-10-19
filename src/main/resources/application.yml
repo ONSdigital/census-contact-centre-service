@@ -141,6 +141,7 @@ eq:
   protocol: https
   host: www.google.com
   path: /en/start/launch-eq/?token=
+  response-id-salt: CENSUS
   
 report-settings:
   cron-expression: "0 * * * * *"
