@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.FormType;
-import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
@@ -41,6 +41,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
+import uk.gov.ons.ctp.integration.eqlaunch.crypto.KeyStore;
+import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchData;
 
 /**
  * Unit Test {@link CaseService#getLaunchURLForCaseId(UUID, LaunchRequestDTO)
@@ -50,7 +52,8 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Captor private ArgumentCaptor<UUID> individualCaseIdCaptor;
-  @Captor private ArgumentCaptor<CaseContainerDTO> caseCaptor;
+  @Captor private ArgumentCaptor<EqLaunchData> eqLaunchDataCaptor;
+  @Mock private KeyStore keyStoreEncryption;
 
   @Before
   public void setup() {
@@ -58,10 +61,11 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     eqConfig.setProtocol("https");
     eqConfig.setHost("localhost");
     eqConfig.setPath("/en/start/launch-eq/?token=");
+    eqConfig.setResponseIdSalt("CENSUS");
     appConfig.setEq(eqConfig);
 
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
-    Mockito.when(appConfig.getPassPhrase()).thenReturn("CENSUS");
+    Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
   }
 
   @Test
@@ -200,47 +204,15 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
   }
 
-  private void mockEqLaunchJwe() throws Exception {
-    // Mock out building of launch payload
-    Mockito.when(
-            eqLaunchService.getEqLaunchJwe(
-                eq(Language.ENGLISH),
-                eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
-                eq(uk.gov.ons.ctp.common.domain.Channel.CC),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                isNull(),
-                any())) // keystore
-        .thenReturn("simulated-encrypted-payload");
-  }
+  private void verifyEqLaunchJwe(boolean individual, String caseType) throws Exception {
+    Mockito.verify(eqLaunchService).getEqLaunchJwe(eqLaunchDataCaptor.capture());
 
-  private void verifyEqLaunchJwe(
-      String questionnaireId, boolean individual, String caseType, FormType formType)
-      throws Exception {
-    Mockito.verify(eqLaunchService)
-        .getEqLaunchJwe(
-            eq(Language.ENGLISH),
-            eq(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API),
-            eq(uk.gov.ons.ctp.common.domain.Channel.CC),
-            caseCaptor.capture(),
-            eq(AN_AGENT_ID), // agent
-            eq(questionnaireId),
-            eq(formType.name()),
-            isNull(), // accountServiceUrl
-            isNull(),
-            any(),
-            any()); // keystore
-
-    CaseContainerDTO capturedCase = caseCaptor.getValue();
+    EqLaunchData eqLaunchData = eqLaunchDataCaptor.getValue();
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
-      assertNotEquals(UUID_0, capturedCase.getId());
+      assertNotEquals(UUID_0, eqLaunchData.getCaseContainer().getId());
     } else {
-      assertEquals(UUID_0, capturedCase.getId());
+      assertEquals(UUID_0, eqLaunchData.getCaseContainer().getId());
     }
   }
 
@@ -270,6 +242,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private void doLaunchTest(String caseType, boolean individual) throws Exception {
+    when(appConfig.getKeystore()).thenReturn(keyStoreEncryption);
     CaseContainerDTO caseFromCaseService = mockGetCaseById(caseType, "U", A_REGION.name());
     doLaunchTest(individual, caseFromCaseService, FormType.H);
   }
@@ -286,7 +259,9 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     Mockito.when(caseServiceClient.getSingleUseQuestionnaireId(eq(UUID_0), eq(individual), any()))
         .thenReturn(newQuestionnaireIdDto);
 
-    mockEqLaunchJwe();
+    // Mock out building of launch payload
+    Mockito.when(eqLaunchService.getEqLaunchJwe(any(EqLaunchData.class)))
+        .thenReturn("simulated-encrypted-payload");
 
     List<LaunchRequestDTO> requestsFromCCSvc =
         FixtureHelper.loadClassFixtures(LaunchRequestDTO[].class);
@@ -304,7 +279,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
-    verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
+    verifyEqLaunchJwe(individual, caseType);
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
   }
 }

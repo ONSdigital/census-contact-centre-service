@@ -147,7 +147,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration.common</groupId>
       <artifactId>eq-launcher</artifactId>
-      <version>0.0.29-SNAPSHOT</version>
+      <version>0.0.30</version>
     </dependency>
 
     <!-- ONS END -->
