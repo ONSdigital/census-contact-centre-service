@@ -30,6 +30,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.domain.FormType;
+import uk.gov.ons.ctp.common.domain.Language;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
@@ -204,10 +205,20 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.");
   }
 
-  private void verifyEqLaunchJwe(boolean individual, String caseType) throws Exception {
+  private void verifyEqLaunchJwe(
+      String questionnaireId, boolean individual, String caseType, FormType formType)
+      throws Exception {
     Mockito.verify(eqLaunchService).getEqLaunchJwe(eqLaunchDataCaptor.capture());
-
     EqLaunchData eqLaunchData = eqLaunchDataCaptor.getValue();
+
+    assertEquals(Language.ENGLISH, eqLaunchData.getLanguage());
+    assertEquals(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API, eqLaunchData.getSource());
+    assertEquals(uk.gov.ons.ctp.common.domain.Channel.CC, eqLaunchData.getChannel());
+    assertEquals(AN_AGENT_ID, eqLaunchData.getUserId());
+    assertEquals(questionnaireId, eqLaunchData.getQuestionnaireId());
+    assertEquals(formType.name(), eqLaunchData.getFormType());
+    assertNull(eqLaunchData.getAccountServiceLogoutUrl());
+    assertNull(eqLaunchData.getAccountServiceUrl());
     if (caseType.equals("HH") && individual) {
       // Should have used a new caseId, ie, not the uuid that we started with
       assertNotEquals(UUID_0, eqLaunchData.getCaseContainer().getId());
@@ -279,7 +290,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         launchUrl);
 
     verifyCorrectIndividualCaseId(caseType, individual);
-    verifyEqLaunchJwe(individual, caseType);
+    verifyEqLaunchJwe(A_QUESTIONNAIRE_ID, individual, caseType, formType);
     verifySurveyLaunchedEventPublished(caseType, individual, UUID_0, A_QUESTIONNAIRE_ID);
   }
 }
