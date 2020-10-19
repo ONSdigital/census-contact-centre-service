@@ -152,10 +152,7 @@ public class AddressServiceImpl implements AddressService {
   private AddressQueryResponseDTO convertAddressIndexResultsToSummarisedAdresses(
       AddressIndexSearchResultsDTO addressIndexResponse) {
     List<AddressDTO> summarisedAddresses =
-        addressIndexResponse
-            .getResponse()
-            .getAddresses()
-            .stream()
+        addressIndexResponse.getResponse().getAddresses().stream()
             .filter(a -> !isHistorical(a))
             .map(this::convertToSummarised)
             .collect(toList());

@@ -477,9 +477,7 @@ public class CaseServiceImpl implements CaseService {
       Set<String> whitelistedEventCategories =
           appConfig.getCaseServiceSettings().getWhitelistedEventCategories();
       List<EventDTO> filteredEvents =
-          caseDTO
-              .getCaseEvents()
-              .stream()
+          caseDTO.getCaseEvents().stream()
               .filter(e -> whitelistedEventCategories.contains(e.getEventType()))
               .collect(toList());
       caseDTO.setCaseEvents(filteredEvents);
@@ -735,8 +733,7 @@ public class CaseServiceImpl implements CaseService {
     // Only return cases that are not of caseType = HI
     List<CaseContainerDTO> casesToReturn =
         (List<CaseContainerDTO>)
-            rmCases
-                .stream()
+            rmCases.stream()
                 .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
                 .collect(toList());
 
@@ -918,9 +915,7 @@ public class CaseServiceImpl implements CaseService {
     timeOrderedCases.add(rmCases);
 
     List<CaseDTO> cachedCases =
-        dataRepo
-            .readCachedCasesByUprn(uprn)
-            .stream()
+        dataRepo.readCachedCasesByUprn(uprn).stream()
             .map(cc -> createNewCachedCaseResponse(cc, addCaseEvents))
             .collect(toList());
     log.with("uprn", uprn)
