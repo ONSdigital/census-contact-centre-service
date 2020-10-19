@@ -122,6 +122,9 @@ queueconfig:
   event-exchange: events
   dead-letter-exchange: events.deadletter.exchange
   
+circuit-breaker:
+  timeout: 4
+  
 keystore: '{
   "keys": {
     "1fd9125153420767a7259ee3dada222e74812f82": {

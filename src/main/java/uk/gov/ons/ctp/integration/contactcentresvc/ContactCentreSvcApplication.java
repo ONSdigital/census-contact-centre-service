@@ -1,5 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc;
 
+import com.godaddy.logging.Logger;
+import com.godaddy.logging.LoggerFactory;
 import com.godaddy.logging.LoggingConfigs;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
@@ -18,6 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
@@ -25,6 +30,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.ons.ctp.common.config.CustomCircuitBreakerConfig;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
 import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
@@ -44,6 +50,7 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 @ImportResource("springintegration/main.xml")
 @EnableCaching
 public class ContactCentreSvcApplication {
+  private static final Logger log = LoggerFactory.getLogger(ContactCentreSvcApplication.class);
 
   private AppConfig appConfig;
 
@@ -143,14 +150,24 @@ public class ContactCentreSvcApplication {
    */
   @Bean
   public EventPublisher eventPublisher(
-      final ConnectionFactory connectionFactory, final FirestoreEventPersistence eventPersistence) {
+      final ConnectionFactory connectionFactory,
+      final FirestoreEventPersistence eventPersistence,
+      final Resilience4JCircuitBreakerFactory circuitBreakerFactory) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
     template.setChannelTransacted(true);
 
     EventSender sender = new SpringRabbitEventSender(template);
-    return EventPublisher.createWithEventPersistence(sender, eventPersistence);
+    CircuitBreaker circuitBreaker = circuitBreakerFactory.create("eventSendCircuitBreaker");
+    return EventPublisher.createWithEventPersistence(sender, eventPersistence, circuitBreaker);
+  }
+
+  @Bean
+  public Customizer<Resilience4JCircuitBreakerFactory> defaultCircuitBreakerCustomiser() {
+    CustomCircuitBreakerConfig config = appConfig.getCircuitBreaker();
+    log.info("Circuit breaker configuration: {}", config);
+    return config.defaultCircuitBreakerCustomiser();
   }
 
   /**
