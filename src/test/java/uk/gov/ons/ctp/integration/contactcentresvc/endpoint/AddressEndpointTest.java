@@ -166,9 +166,9 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithOffsetAboveMax() throws Exception {
     mockMvc
-        .perform(get("/addresses/postcode?postcode=EX24LU").param("offset", "251"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("offset", "5001"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
-        .andExpect(content().string(containsString("must be less than or equal to 250")));
+        .andExpect(content().string(containsString("must be less than or equal to 5000")));
   }
 
   @Test
@@ -189,9 +189,9 @@ public final class AddressEndpointTest {
   @Test
   public void rejectPostcodeQueryWithLimitAboveMax() throws Exception {
     mockMvc
-        .perform(get("/addresses/postcode?postcode=EX24LU").param("limit", "101"))
+        .perform(get("/addresses/postcode?postcode=EX24LU").param("limit", "5001"))
         .andExpect(content().string(containsString("on field 'limit': rejected value")))
-        .andExpect(content().string(containsString("must be less than or equal to 100")));
+        .andExpect(content().string(containsString("must be less than or equal to 5000")));
   }
 
   @Test
