@@ -127,6 +127,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
     casesFromRm.get(0).setCaseType("HI");
     casesFromRm.get(1).setCaseType("HI");
+    casesFromRm.get(2).setCaseType("HI");
 
     mockCasesFromRm();
     mockNothingInTheCache();
