@@ -168,9 +168,7 @@ public abstract class CaseServiceImplTestBase {
   }
 
   List<CaseEventDTO> filterEvents(CaseContainerDTO caseFromCaseService) {
-    return caseFromCaseService
-        .getCaseEvents()
-        .stream()
+    return caseFromCaseService.getCaseEvents().stream()
         .filter(e -> !e.getDescription().contains("Should be filtered out"))
         .map(
             e ->

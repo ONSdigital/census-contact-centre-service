@@ -8,4 +8,5 @@ public class EqConfig {
   @NotBlank private String protocol;
   @NotBlank private String host;
   @NotBlank private String path;
+  @NotBlank private String responseIdSalt;
 }

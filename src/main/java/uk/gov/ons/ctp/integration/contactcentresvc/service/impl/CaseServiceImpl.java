@@ -82,6 +82,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACResponseDTO
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.contactcentresvc.util.PgpEncrypt;
+import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchData;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 
 @Service
@@ -483,9 +484,7 @@ public class CaseServiceImpl implements CaseService {
       Set<String> whitelistedEventCategories =
           appConfig.getCaseServiceSettings().getWhitelistedEventCategories();
       List<EventDTO> filteredEvents =
-          caseDTO
-              .getCaseEvents()
-              .stream()
+          caseDTO.getCaseEvents().stream()
               .filter(e -> whitelistedEventCategories.contains(e.getEventType()))
               .collect(toList());
       caseDTO.setCaseEvents(filteredEvents);
@@ -741,8 +740,7 @@ public class CaseServiceImpl implements CaseService {
     // Only return cases that are not of caseType = HI
     List<CaseContainerDTO> casesToReturn =
         (List<CaseContainerDTO>)
-            rmCases
-                .stream()
+            rmCases.stream()
                 .filter(c -> !(c.getCaseType().equals(CaseType.HI.name())))
                 .collect(toList());
 
@@ -924,9 +922,7 @@ public class CaseServiceImpl implements CaseService {
     timeOrderedCases.add(rmCases);
 
     List<CaseDTO> cachedCases =
-        dataRepo
-            .readCachedCasesByUprn(uprn)
-            .stream()
+        dataRepo.readCachedCasesByUprn(uprn).stream()
             .map(cc -> createNewCachedCaseResponse(cc, addCaseEvents))
             .collect(toList());
     log.with("uprn", uprn)
@@ -1190,18 +1186,22 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     String encryptedPayload = "";
     try {
-      encryptedPayload =
-          eqLaunchService.getEqLaunchJwe(
-              Language.ENGLISH,
-              uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API,
-              uk.gov.ons.ctp.common.domain.Channel.CC,
-              caseDetails,
-              Integer.toString(requestParamsDTO.getAgentId()),
-              questionnaireId,
-              formType,
-              null,
-              null,
-              appConfig.getKeystore());
+      EqLaunchData eqLuanchCoreDate =
+          EqLaunchData.builder()
+              .language(Language.ENGLISH)
+              .source(uk.gov.ons.ctp.common.domain.Source.CONTACT_CENTRE_API)
+              .channel(uk.gov.ons.ctp.common.domain.Channel.CC)
+              .questionnaireId(questionnaireId)
+              .formType(formType)
+              .keyStore(appConfig.getKeystore())
+              .salt(appConfig.getEq().getResponseIdSalt())
+              .caseContainer(caseDetails)
+              .userId(Integer.toString(requestParamsDTO.getAgentId()))
+              .accountServiceUrl(null)
+              .accountServiceLogoutUrl(null)
+              .build();
+      encryptedPayload = eqLaunchService.getEqLaunchJwe(eqLuanchCoreDate);
+
     } catch (CTPException e) {
       log.with(e).error("Failed to create JWE payload for eq launch");
       throw e;
