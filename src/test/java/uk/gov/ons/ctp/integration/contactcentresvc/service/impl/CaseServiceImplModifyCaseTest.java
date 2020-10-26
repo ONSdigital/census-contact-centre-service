@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -118,13 +119,37 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldReturnBadRequestWhenModifyHouseholdEstabTypeToOthers() throws Exception {
+  public void shouldReturnBadRequestWhenModifyHouseholdEstabTypeToOther() throws Exception {
     when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
         .thenReturn(householdEstabTypeTypeCaseContainerDTO);
     requestDTO.setEstabType(EstabType.OTHER);
     CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
     assertEquals(Fault.BAD_REQUEST, e.getFault());
     assertEquals("The pre-existing Establishment Type cannot be changed to OTHER", e.getMessage());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
+  public void shouldModifyNonExistEstabTypeToOther() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType("floating palace");
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.OTHER, response.getEstabType());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
+  public void shouldModifyOtherEstabTypeToOther() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType(EstabType.OTHER.name());
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.OTHER, response.getEstabType());
     verifyRmCaseCall(1);
   }
 
@@ -313,6 +338,16 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     verifyAddressForTypeChange(address);
 
     verifyEventNotSent(EventType.ADDRESS_MODIFIED);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestOther_NonExistingOtherCE() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, "Oblivion Sky Tower", CaseType.CE);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestOther_OtherCE() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, EstabType.OTHER.name(), CaseType.CE);
   }
 
   @Test

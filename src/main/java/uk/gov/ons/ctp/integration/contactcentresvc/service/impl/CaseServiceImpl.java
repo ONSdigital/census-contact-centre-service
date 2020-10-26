@@ -300,9 +300,10 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
 
     if (modifyRequestDTO.getEstabType() == EstabType.OTHER
-        && !EstabType.OTHER.name().equalsIgnoreCase(caseDetails.getEstabType())) {
+        && EstabType.forCode(caseDetails.getEstabType()) != EstabType.OTHER) {
       throw new CTPException(Fault.BAD_REQUEST, ESTA_TYPE_OTHER_ERROR_MSG);
     }
+
     validateSurveyType(caseDetails);
     caseDetails.setCreatedDateTime(DateTimeUtil.nowUTC());
     CaseType requestedCaseType = modifyRequestDTO.getCaseType();
