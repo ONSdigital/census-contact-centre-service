@@ -42,6 +42,7 @@ public class AddressServiceClientServiceImpl {
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
     queryParams.add("historical", "false");
+    queryParams.add("includeauxiliarysearch", "true");
     addEpoch(queryParams);
 
     // Ask Address Index to do an address search
@@ -67,6 +68,7 @@ public class AddressServiceClientServiceImpl {
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add("offset", Integer.toString(offset));
     queryParams.add("limit", Integer.toString(limit));
+    queryParams.add("includeauxiliarysearch", "true");
     addEpoch(queryParams);
 
     // Ask Address Index to do postcode search
