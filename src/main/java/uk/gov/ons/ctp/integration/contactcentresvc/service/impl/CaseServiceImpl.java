@@ -98,7 +98,7 @@ public class CaseServiceImpl implements CaseService {
   private static final String UNIT_LAUNCH_ERR_MSG =
       "A CE Manager form can only be launched against an establishment address not a UNIT.";
   private static final String CCS_CASE_ERROR_MSG = "Operation not permissible for a CCS Case";
-  private static final String ESTA_TYPE_OTHER_ERROR_MSG =
+  private static final String ESTAB_TYPE_OTHER_ERROR_MSG =
       "The pre-existing Establishment Type cannot be changed to OTHER";
   private static final List<DeliveryChannel> ALL_DELIVERY_CHANNELS =
       List.of(DeliveryChannel.POST, DeliveryChannel.SMS);
@@ -301,7 +301,7 @@ public class CaseServiceImpl implements CaseService {
 
     if (modifyRequestDTO.getEstabType() == EstabType.OTHER
         && EstabType.forCode(caseDetails.getEstabType()) != EstabType.OTHER) {
-      throw new CTPException(Fault.BAD_REQUEST, ESTA_TYPE_OTHER_ERROR_MSG);
+      throw new CTPException(Fault.BAD_REQUEST, ESTAB_TYPE_OTHER_ERROR_MSG);
     }
 
     validateSurveyType(caseDetails);
