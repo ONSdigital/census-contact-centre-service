@@ -92,6 +92,35 @@
     }
   ],
   "surveyType": "CCS"
+},
+{
+  "id": "7f03921a-7294-4a5a-8390-c4fc0516da1a",
+  "estabType": "Household",
+  "estabUprn": "344111441111",
+  "uprn": "344999999991",
+  "caseRef": "113400000000001",
+  "caseType": "CE",
+  "createdDateTime": "2019-05-15T18:09:41.343+01:00",
+  "lastUpdated": "2019-05-14T16:15:32.221+01:00",
+  "addressLine1": "3 High Street",
+  "addressLine2": "Burnsby",
+  "addressLine3": "Bigtown",
+  "townName": "Glumby",
+  "postcode": "G1 6AA",
+  "organisationName": "OX",
+  "addressLevel": "E",
+  "abpCode": "XX",
+  "region": "E",
+  "latitude": "5.40338",
+  "longitude": "6.17403",
+  "oa": "EE2",
+  "lsoa": "xlsoa",
+  "msoa": "xmsoa",
+  "lad": "H2",
+  "secureEstablishment": true,
+  "caseEvents": [
+  ],
+  "surveyType": "CENSUS"
 }
 ]
 

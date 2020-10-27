@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +53,7 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   private ModifyCaseRequestDTO requestDTO;
   private CaseContainerDTO caseContainerDTO;
   private CaseContainerDTO ccsSurveyTypeCaseContainerDTO;
+  private CaseContainerDTO householdEstabTypeTypeCaseContainerDTO;
   private CachedCase cachedCase;
 
   @Captor private ArgumentCaptor<CachedCase> cachedCaseCaptor;
@@ -63,6 +65,8 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     caseContainerDTO = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(0);
     ccsSurveyTypeCaseContainerDTO =
         FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(1);
+    householdEstabTypeTypeCaseContainerDTO =
+        FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class).get(2);
     cachedCase = FixtureHelper.loadPackageFixtures(CachedCase[].class).get(0);
     when(appConfig.getChannel()).thenReturn(Channel.CC);
     when(appConfig.getSurveyName()).thenReturn("CENSUS");
@@ -115,20 +119,46 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldReturnBadRequestWhenModifyHouseholdEstabTypeToOther() throws Exception {
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
+    assertEquals(Fault.BAD_REQUEST, e.getFault());
+    assertEquals("The pre-existing Establishment Type cannot be changed to OTHER", e.getMessage());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
+  public void shouldModifyNonExistEstabTypeToOther() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType("floating palace");
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.OTHER, response.getEstabType());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
+  public void shouldModifyOtherEstabTypeToOther() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType(EstabType.OTHER.name());
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.OTHER, response.getEstabType());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
   public void shouldAcceptCompatibleCaseTypeAndEstabType() throws Exception {
     mockRmHasCase();
     verifyAcceptCompatible(EstabType.APPROVED_PREMISES, CaseType.CE);
     verifyAcceptCompatible(EstabType.RESIDENTIAL_BOAT, CaseType.HH);
     verifyRmCaseCall(2);
-  }
-
-  @Test
-  public void shouldAcceptAnyRelevantCaseTypeWithEstabTypeOTHER() throws Exception {
-    mockRmHasCase();
-    verifyAcceptCompatible(EstabType.OTHER, CaseType.CE);
-    verifyAcceptCompatible(EstabType.OTHER, CaseType.HH);
-    verifyAcceptCompatible(EstabType.OTHER, CaseType.SPG);
-    verifyRmCaseCall(3);
   }
 
   @Test
@@ -248,11 +278,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     verifyModifyAddress(CaseType.CE, EstabType.CARE_HOME, "prison");
   }
 
-  @Test
-  public void shouldModifyAddress_RequestHH_EstabTypeOTHER() throws Exception {
-    verifyModifyAddress(CaseType.HH, EstabType.OTHER, EstabType.HOUSEHOLD.getCode());
-  }
-
   // these fields are not needed for addressTypeChanged event
   private void verifyNullFields(CollectionCase collectionCase) {
     assertNull(collectionCase.getCaseType());
@@ -316,6 +341,16 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldChangeAddressType_RequestOther_NonExistingOtherCE() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, "Oblivion Sky Tower", CaseType.CE);
+  }
+
+  @Test
+  public void shouldChangeAddressType_RequestOther_OtherCE() throws Exception {
+    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, EstabType.OTHER.name(), CaseType.CE);
+  }
+
+  @Test
   public void shouldChangeAddressType_RequestHH_ExistingOtherCE() throws Exception {
     verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.CE);
   }
@@ -342,11 +377,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   public void shouldChangeAddressType_RequestCE_ExistingEmbassySPG() throws Exception {
     verifyAddressTypeChanged(
         CaseType.CE, EstabType.CARE_HOME, EstabType.EMBASSY.getCode(), CaseType.SPG);
-  }
-
-  @Test
-  public void shouldChangeAddressType_RequestHH_WithEstabTypeOTHER() throws Exception {
-    verifyAddressTypeChanged(CaseType.HH, EstabType.OTHER, EstabType.PRISON.getCode(), CaseType.CE);
   }
 
   @Test
@@ -512,20 +542,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldSaveCachedCaseWhenAddressModifiedToEstabTypeOTHER() throws Exception {
-    requestDTO.setCaseType(CaseType.HH);
-    requestDTO.setEstabType(EstabType.OTHER);
-    caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
-    mockRmHasCase();
-    CaseDTO response = target.modifyCase(requestDTO);
-
-    verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
-    verifySavedCashedCase(
-        createExpectedCachedCaseFromExistingRmCase(
-            caseContainerDTO.getId(), response.getCreatedDateTime()));
-  }
-
-  @Test
   public void shouldSaveCachedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
     requestDTO.setEstabType(EstabType.CARE_HOME);
@@ -553,20 +569,6 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
     verifySavedCashedCase(
         createExpectedCachedCaseFromExistingCache(response.getId(), response.getCreatedDateTime()));
-  }
-
-  @Test
-  public void shouldSaveCachedCaseWhenAddressTypeChangedToEstabTypeOTHER() throws Exception {
-    requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.OTHER);
-    caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
-    mockRmHasCase();
-    CaseDTO response = target.modifyCase(requestDTO);
-
-    verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
-    verifySavedCashedCase(
-        createExpectedCachedCaseFromExistingRmCase(
-            response.getId(), response.getCreatedDateTime()));
   }
 
   private String uprnStr(UniquePropertyReferenceNumber uprn) {
@@ -613,31 +615,9 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
-  public void shouldReturnModifiedCaseWhenAddressModifiedToEstabTypeOTHER() throws Exception {
-    requestDTO.setCaseType(CaseType.HH);
-    requestDTO.setEstabType(EstabType.OTHER);
-    caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
-    mockRmHasCase();
-    CaseDTO response = target.modifyCase(requestDTO);
-    verifyCaseResponse(response, false);
-    verifyEventSent(EventType.ADDRESS_MODIFIED, AddressModification.class);
-  }
-
-  @Test
   public void shouldReturnModifiedCaseWhenAddressTypeChanged() throws Exception {
     requestDTO.setCaseType(CaseType.CE);
     requestDTO.setEstabType(EstabType.CARE_HOME);
-    caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
-    mockRmHasCase();
-    CaseDTO response = target.modifyCase(requestDTO);
-    verifyCaseResponse(response, true);
-    verifyEventSent(EventType.ADDRESS_TYPE_CHANGED, AddressTypeChanged.class);
-  }
-
-  @Test
-  public void shouldReturnModifiedCaseWhenAddressTypeChangedToEstabTypeOTHER() throws Exception {
-    requestDTO.setCaseType(CaseType.CE);
-    requestDTO.setEstabType(EstabType.OTHER);
     caseContainerDTO.setEstabType(EstabType.EMBASSY.getCode());
     mockRmHasCase();
     CaseDTO response = target.modifyCase(requestDTO);
