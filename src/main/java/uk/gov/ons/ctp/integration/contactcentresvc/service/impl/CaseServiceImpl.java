@@ -521,15 +521,14 @@ public class CaseServiceImpl implements CaseService {
 
     if (deliveryChannel == Product.DeliveryChannel.POST) {
       if (product.getIndividual()) {
-        if (StringUtils.isBlank(contact.getTitle())
-            || StringUtils.isBlank(contact.getForename())
+        if (StringUtils.isBlank(contact.getForename())
             || StringUtils.isBlank(contact.getSurname())) {
 
           log.warn("Individual fields are required for the requested fulfilment");
           throw new CTPException(
               Fault.BAD_REQUEST,
               "The fulfilment is for an individual so none of the following fields can be empty: "
-                  + "'title', 'forename' and 'surname'");
+                  + "'forename' or 'surname'");
         }
       }
     }

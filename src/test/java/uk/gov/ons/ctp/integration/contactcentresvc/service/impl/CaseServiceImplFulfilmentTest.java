@@ -56,17 +56,11 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   public void testFulfilmentRequestByPost_individualFailsWithNullContactDetails() throws Exception {
     // All of the following fail validation because one of the contact detail fields is always null
     // or empty
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Product.CaseType.HH, null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", null, true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", "", true);
 
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Product.CaseType.CE, null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "John", null, true);
