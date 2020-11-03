@@ -68,6 +68,16 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void testFulfilmentRequestByPost_individualAllowsNullTitle() throws Exception {
+    // Test that individual cases allow null/empty contact details
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, "Bill", "Bloggs", true, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "Bill", "Bloggs", true, false);
+
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, "Bill", "Bloggs", true, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "Bill", "Bloggs", true, false);
+  }
+
+  @Test
   public void testFulfilmentRequestByPost_nonIndividualAllowsNullContactDetails() throws Exception {
     // Test that non-individual cases allow null/empty contact details
     doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, null, null, false, false);
@@ -332,6 +342,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     Mockito.clearInvocations(eventPublisher);
 
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setCaseType(caseType.name());
     CachedCase cachedCase = caseFromRepository();
 
     if (cached) {
