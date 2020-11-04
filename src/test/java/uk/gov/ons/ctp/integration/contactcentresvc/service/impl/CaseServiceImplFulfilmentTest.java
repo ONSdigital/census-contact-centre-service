@@ -56,21 +56,25 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   public void testFulfilmentRequestByPost_individualFailsWithNullContactDetails() throws Exception {
     // All of the following fail validation because one of the contact detail fields is always null
     // or empty
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Product.CaseType.HH, null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", null, true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.HH, "Mr", "John", "", true);
 
-    doVerifyFulfilmentRequestByPostFailsValidation(
-        Product.CaseType.CE, null, "John", "Smith", true);
-    doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "", "John", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", null, "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "", "Smith", true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "John", null, true);
     doVerifyFulfilmentRequestByPostFailsValidation(Product.CaseType.CE, "Mr", "John", "", true);
+  }
+
+  @Test
+  public void testFulfilmentRequestByPost_individualAllowsNullTitle() throws Exception {
+    // Test that individual cases allow null/empty contact details
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, null, "Bill", "Bloggs", true, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "", "Bill", "Bloggs", true, false);
+
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, null, "Bill", "Bloggs", true, false);
+    doFulfilmentRequestByPostSuccess(Product.CaseType.CE, "", "Bill", "Bloggs", true, false);
   }
 
   @Test
@@ -338,6 +342,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
     Mockito.clearInvocations(eventPublisher);
 
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setCaseType(caseType.name());
     CachedCase cachedCase = caseFromRepository();
 
     if (cached) {
