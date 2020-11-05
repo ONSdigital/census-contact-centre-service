@@ -524,7 +524,8 @@ public class CaseServiceImpl implements CaseService {
         if (StringUtils.isBlank(contact.getForename())
             || StringUtils.isBlank(contact.getSurname())) {
 
-          log.warn("Individual fields are required for the requested fulfilment");
+          log.with("fulfilmentCode", fulfilmentCode)
+              .warn("Individual fields are required for the requested fulfilment");
           throw new CTPException(
               Fault.BAD_REQUEST,
               "The fulfilment is for an individual so none of the following fields can be empty: "
@@ -610,9 +611,7 @@ public class CaseServiceImpl implements CaseService {
               Fault.RESOURCE_NOT_FOUND, "Case Id Not Found: " + caseId.toString());
         }
       } else {
-        log.with("caseId", caseId)
-            .with("status", ex.getStatus())
-            .error("Error calling Case Service");
+        log.with("caseId", caseId).error("Error calling Case Service", ex);
         throw ex;
       }
     }
@@ -732,7 +731,7 @@ public class CaseServiceImpl implements CaseService {
         log.with(uprn).info("Case by UPRN Not Found calling Case Service");
         return Collections.emptyList();
       } else {
-        log.with(uprn).with("status", ex.getStatus()).error("Error calling Case Service");
+        log.with("uprn", uprn).error("Error calling Case Service", ex);
         throw ex;
       }
     }
@@ -820,7 +819,7 @@ public class CaseServiceImpl implements CaseService {
 
   private void rejectIfCaseIsTypeCE(CaseType caseType, String errorMessage) throws CTPException {
     if (caseType == CaseType.CE) {
-      log.with(caseType.name()).warn(errorMessage);
+      log.with("caseType", caseType.name()).warn(errorMessage);
       throw new CTPException(Fault.BAD_REQUEST, errorMessage);
     }
   }
@@ -883,9 +882,7 @@ public class CaseServiceImpl implements CaseService {
       if (ex.getStatus() == HttpStatus.NOT_FOUND) {
         log.with("caseId", caseId).debug("Case Id Not Found by Case Service");
       } else {
-        log.with("caseId", caseId)
-            .with("status", ex.getStatus())
-            .error("Error calling Case Service");
+        log.with("caseId", caseId).error("Error calling Case Service", ex);
         throw ex;
       }
     }
@@ -1148,10 +1145,8 @@ public class CaseServiceImpl implements CaseService {
               "Unable to provide launch URL/UAC at present, please try again later.");
         }
       }
-      log.with("caseid", caseId)
-          .with("status", ex.getStatus())
-          .with("message", ex.getMessage())
-          .error("Unable to provide launch URL/UAC, failed to call case service");
+      log.with("caseId", caseId)
+          .error("Unable to provide launch URL/UAC, failed to call case service", ex);
       throw ex;
     }
   }
@@ -1203,7 +1198,9 @@ public class CaseServiceImpl implements CaseService {
       encryptedPayload = eqLaunchService.getEqLaunchJwe(eqLuanchCoreDate);
 
     } catch (CTPException e) {
-      log.with(e).error("Failed to create JWE payload for eq launch");
+      log.with("caseId", caseDetails.getId())
+          .with("questionnaireId", questionnaireId)
+          .error("Failed to create JWE payload for eq launch", e);
       throw e;
     }
     String eqUrl =
