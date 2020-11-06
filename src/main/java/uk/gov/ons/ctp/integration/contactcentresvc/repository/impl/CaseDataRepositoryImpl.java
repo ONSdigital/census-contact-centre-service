@@ -65,7 +65,7 @@ public class CaseDataRepositoryImpl implements CaseDataRepository {
         cloudDataStore.storeObject(
             collectionName, PLACEHOLDER_CASE_NAME, dummyCase, PLACEHOLDER_CASE_NAME);
       } catch (Exception e) {
-        log.error("Failed to create collection", e);
+        log.with("collectionName", collectionName).error("Failed to create collection", e);
         throw new CTPException(Fault.SYSTEM_ERROR, e);
       }
     }

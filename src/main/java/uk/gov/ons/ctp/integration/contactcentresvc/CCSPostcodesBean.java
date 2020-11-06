@@ -35,10 +35,11 @@ public class CCSPostcodesBean {
         ccsPostcodes.add(postcode.trim());
       }
     } catch (IOException e) {
-      log.with(strPostcodePath)
+      log.with("strPostcodePath", strPostcodePath)
           .error(
               "APPLICATION IS MISCONFIGURED - unable to read in postcodes from file."
-                  + " Using postcodes from application.yml instead.");
+                  + " Using postcodes from application.yml instead.",
+              e);
       ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
     }
   }

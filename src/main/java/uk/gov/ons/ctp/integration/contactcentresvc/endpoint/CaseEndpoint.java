@@ -335,7 +335,7 @@ public class CaseEndpoint implements CTPEndpoint {
   private void validateMatchingCaseId(UUID caseId, UUID dtoCaseId) throws CTPException {
     if (!caseId.equals(dtoCaseId)) {
       String message = "The caseid in the URL does not match the caseid in the request body";
-      log.with(caseId).warn(message);
+      log.with("caseId", caseId).warn(message);
       throw new CTPException(Fault.BAD_REQUEST, message);
     }
   }
