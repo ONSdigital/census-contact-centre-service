@@ -88,7 +88,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[100]", queryParams.get("limit").toString());
     assertEquals("[false]", queryParams.get("historical").toString());
     assertEquals("[99]", queryParams.get("epoch").toString());
-    assertEquals(5, queryParams.keySet().size());
+    assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
+    assertEquals(6, queryParams.keySet().size());
   }
 
   @Test
@@ -120,7 +121,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
     assertEquals("[false]", queryParams.get("historical").toString());
-    assertEquals(4, queryParams.keySet().size());
+    assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
+    assertEquals(5, queryParams.keySet().size());
   }
 
   @Test
@@ -149,7 +151,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[0]", queryParams.get("offset").toString());
     assertEquals("[100]", queryParams.get("limit").toString());
     assertEquals("[99]", queryParams.get("epoch").toString());
-    assertEquals(3, queryParams.keySet().size());
+    assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
+    assertEquals(4, queryParams.keySet().size());
   }
 
   @Test
