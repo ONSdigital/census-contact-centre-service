@@ -57,7 +57,6 @@ spring:
   mvc:
     servlet:
       path: /
-  
   security:
     user:
       name: serco_cks
@@ -69,6 +68,12 @@ spring:
     name: ONS ContactCentreService
   lifecycle:
     timeout-per-shutdown-phase: 30s
+  rabbitmq:
+    username: guest
+    password: guest
+    host: localhost
+    port: 35672
+    virtual-host: /
 
 channel: CC
 
@@ -110,13 +115,6 @@ case-service-settings:
       - NEW_ADDRESS_REPORTED
       - FIELD_CASE_UPDATED
       - SAMPLE_UNIT_VALIDATED
-
-rabbitmq:
-  username: guest
-  password: guest
-  host: localhost
-  port: 35672
-  virtual-host: /
   
 queueconfig:
   event-exchange: events
