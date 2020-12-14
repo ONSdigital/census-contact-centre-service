@@ -25,7 +25,6 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -47,7 +46,6 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 @SpringBootApplication
 @IntegrationComponentScan("uk.gov.ons.ctp.integration")
 @ComponentScan(basePackages = {"uk.gov.ons.ctp.integration", "uk.gov.ons.ctp.common"})
-@ImportResource("springintegration/main.xml")
 @EnableCaching
 public class ContactCentreSvcApplication {
   private static final Logger log = LoggerFactory.getLogger(ContactCentreSvcApplication.class);
@@ -142,23 +140,29 @@ public class ContactCentreSvcApplication {
     return new CustomObjectMapper();
   }
 
-  /**
-   * Bean used to publish asynchronous event messages
-   *
-   * @param connectionFactory RabbitMQ connection settings and strategies
-   * @return the event publisher
-   */
   @Bean
-  public EventPublisher eventPublisher(
-      final ConnectionFactory connectionFactory,
-      final FirestoreEventPersistence eventPersistence,
-      final Resilience4JCircuitBreakerFactory circuitBreakerFactory) {
+  public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
     template.setChannelTransacted(true);
+    return template;
+  }
 
-    EventSender sender = new SpringRabbitEventSender(template);
+  /**
+   * Bean used to publish asynchronous event messages
+   *
+   * @param rabbitTemplate rabbit template
+   * @param eventPersistence event persistence object
+   * @param circuitBreakerFactory circuit breaker factory
+   * @return event publisher bean
+   */
+  @Bean
+  public EventPublisher eventPublisher(
+      final RabbitTemplate rabbitTemplate,
+      final FirestoreEventPersistence eventPersistence,
+      final Resilience4JCircuitBreakerFactory circuitBreakerFactory) {
+    EventSender sender = new SpringRabbitEventSender(rabbitTemplate);
     CircuitBreaker circuitBreaker = circuitBreakerFactory.create("eventSendCircuitBreaker");
     return EventPublisher.createWithEventPersistence(sender, eventPersistence, circuitBreaker);
   }
