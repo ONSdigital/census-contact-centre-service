@@ -89,7 +89,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[false]", queryParams.get("historical").toString());
     assertEquals("[99]", queryParams.get("epoch").toString());
     assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
-    assertEquals(6, queryParams.keySet().size());
+    assertEquals("[0]", queryParams.get("matchthreshold").toString());
+    assertEquals(7, queryParams.keySet().size());
   }
 
   @Test
@@ -122,7 +123,8 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[100]", queryParams.get("limit").toString());
     assertEquals("[false]", queryParams.get("historical").toString());
     assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
-    assertEquals(5, queryParams.keySet().size());
+    assertEquals("[0]", queryParams.get("matchthreshold").toString());
+    assertEquals(6, queryParams.keySet().size());
   }
 
   @Test

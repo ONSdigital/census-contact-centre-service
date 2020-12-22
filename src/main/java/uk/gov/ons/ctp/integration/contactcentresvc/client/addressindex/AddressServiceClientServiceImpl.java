@@ -43,6 +43,7 @@ public class AddressServiceClientServiceImpl {
     queryParams.add("limit", Integer.toString(limit));
     queryParams.add("historical", "false");
     queryParams.add("includeauxiliarysearch", "true");
+    queryParams.add("matchthreshold", "0");
     addEpoch(queryParams);
 
     // Ask Address Index to do an address search
