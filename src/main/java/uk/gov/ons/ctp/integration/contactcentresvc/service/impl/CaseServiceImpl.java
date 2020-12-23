@@ -131,6 +131,8 @@ public class CaseServiceImpl implements CaseService {
     log.with(requestBodyDTO)
         .debug("Now in the fulfilmentRequestByPost method in class CaseServiceImpl.");
 
+    verifyFulfilmentCodeNotBlackListed(requestBodyDTO.getFulfilmentCode());
+
     UUID caseId = requestBodyDTO.getCaseId();
 
     Contact contact = new Contact();
@@ -157,6 +159,8 @@ public class CaseServiceImpl implements CaseService {
       throws CTPException {
     log.with(requestBodyDTO)
         .debug("Now in the fulfilmentRequestBySMS method in class CaseServiceImpl.");
+
+    verifyFulfilmentCodeNotBlackListed(requestBodyDTO.getFulfilmentCode());
 
     UUID caseId = requestBodyDTO.getCaseId();
 
@@ -1211,5 +1215,15 @@ public class CaseServiceImpl implements CaseService {
             + encryptedPayload;
     log.with("launchURL", eqUrl).debug("Have created launch URL");
     return eqUrl;
+  }
+
+  private void verifyFulfilmentCodeNotBlackListed(String fulfilmentCode) throws CTPException {
+    Set<String> blacklistedProducts = appConfig.getFulfilments().getBlacklistedCodes();
+
+    if (blacklistedProducts.contains(fulfilmentCode)) {
+      log.with(fulfilmentCode).info("Fulfilment code has been blacklisted");
+      throw new CTPException(
+          Fault.BAD_REQUEST, "Requested fulfilment code has been blacklisted: " + fulfilmentCode);
+    }
   }
 }
