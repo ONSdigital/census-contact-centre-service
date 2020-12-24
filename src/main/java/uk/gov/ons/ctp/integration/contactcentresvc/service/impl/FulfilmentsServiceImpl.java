@@ -1,7 +1,10 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +14,7 @@ import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.RequestChannel;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ProductGroup;
@@ -23,6 +27,8 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
   @Autowired ProductReference productReference;
 
   @Autowired private MapperFacade mapperFacade;
+
+  @Autowired private AppConfig appConfig;
 
   @Override
   public List<FulfilmentDTO> getFulfilments(
@@ -43,6 +49,16 @@ public class FulfilmentsServiceImpl implements FulfilmentsService {
     example.setIndividual(individual);
     example.setProductGroup(
         productGroup == null ? null : Product.ProductGroup.valueOf(productGroup.name()));
-    return mapperFacade.mapAsList(productReference.searchProducts(example), FulfilmentDTO.class);
+    List<FulfilmentDTO> fulfilments =
+        mapperFacade.mapAsList(productReference.searchProducts(example), FulfilmentDTO.class);
+
+    // Remove blacklisted products
+    Set<String> blacklistedProducts = appConfig.getFulfilments().getBlacklistedCodes();
+    List<FulfilmentDTO> filteredFulfilments =
+        fulfilments.stream()
+            .filter(p -> !blacklistedProducts.contains(p.getFulfilmentCode()))
+            .collect(toList());
+
+    return filteredFulfilments;
   }
 }

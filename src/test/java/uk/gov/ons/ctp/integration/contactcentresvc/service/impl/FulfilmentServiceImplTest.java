@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import ma.glasnost.orika.MapperFacade;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,8 @@ import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.Fulfilments;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.FulfilmentDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ProductGroup;
@@ -28,15 +31,23 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.FulfilmentsService;
 
 public class FulfilmentServiceImplTest {
 
+  @Mock AppConfig appConfig;
+
   @Mock ProductReference productReference;
 
   @Spy private MapperFacade mapperFacade = new CCSvcBeanMapper();
 
   @InjectMocks FulfilmentsService fulfilmentService = new FulfilmentsServiceImpl();
 
+  private static final String BLACK_LISTED_FULFILMENT_CODE = "P_TB_TBBEN1";
+
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+
+    Fulfilments fulfilments = new Fulfilments();
+    fulfilments.setBlacklistedCodes(Set.of(BLACK_LISTED_FULFILMENT_CODE));
+    Mockito.when(appConfig.getFulfilments()).thenReturn(fulfilments);
   }
 
   @Test
@@ -108,5 +119,27 @@ public class FulfilmentServiceImplTest {
 
     // now check that no dtos were returned
     assertTrue(fulfilments.size() == 0);
+  }
+
+  @Test
+  public void blacklistedProductsNotReturned() throws Exception {
+    // The mocked productReference will return 2 products
+    Product excludedProduct =
+        Product.builder()
+            .description("not-allowed")
+            .fulfilmentCode(BLACK_LISTED_FULFILMENT_CODE)
+            .build();
+    Product returnedProduct = Product.builder().description("foobar").fulfilmentCode("x").build();
+    Mockito.when(productReference.searchProducts(any()))
+        .thenReturn(new ArrayList<Product>(List.of(excludedProduct, returnedProduct)));
+
+    // call the unit under test
+    List<FulfilmentDTO> fulfilments =
+        fulfilmentService.getFulfilments(
+            CaseType.HH, Region.E, DeliveryChannel.POST, false, ProductGroup.LARGE_PRINT);
+
+    // now check that only the non-blacklisted product was returned
+    assertTrue(fulfilments.size() == 1);
+    assertEquals(returnedProduct.getDescription(), fulfilments.get(0).getDescription());
   }
 }

@@ -20,6 +20,7 @@ public class AppConfig {
   private String collectionExerciseId;
   private AddressIndexSettings addressIndexSettings;
   private CaseServiceSettings caseServiceSettings;
+  private Fulfilments fulfilments;
   private KeyStore keystore;
   private EqConfig eq;
   private Logging logging;

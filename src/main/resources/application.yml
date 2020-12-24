@@ -116,6 +116,9 @@ case-service-settings:
       - FIELD_CASE_UPDATED
       - SAMPLE_UNIT_VALIDATED
   
+fulfilments:
+  blacklisted-codes:
+
 queueconfig:
   event-exchange: events
   dead-letter-exchange: events.deadletter.exchange

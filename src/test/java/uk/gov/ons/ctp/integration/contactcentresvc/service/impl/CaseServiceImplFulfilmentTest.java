@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.event.EventPublisher.Channel;
 import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.model.Contact;
@@ -33,6 +35,7 @@ import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.Fulfilments;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostalFulfilmentRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.ResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.SMSFulfilmentRequestDTO;
@@ -46,10 +49,16 @@ import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 @RunWith(MockitoJUnitRunner.class)
 public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
 
+  private static final String BLACK_LISTED_FULFILMENT_CODE = "P_TB_TBBEN1";
+
   @Before
   public void setup() {
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
     Mockito.when(appConfig.getSurveyName()).thenReturn("CENSUS");
+
+    Fulfilments fulfilments = new Fulfilments();
+    fulfilments.setBlacklistedCodes(Set.of(BLACK_LISTED_FULFILMENT_CODE));
+    Mockito.when(appConfig.getFulfilments()).thenReturn(fulfilments);
   }
 
   @Test
@@ -100,6 +109,21 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   @Test
   public void testFulfilmentRequestByPost_caseSvcNotFoundResponse_cachedCase() throws Exception {
     doFulfilmentRequestByPostSuccess(Product.CaseType.HH, "Mr", "Mickey", "Mouse", true, true);
+  }
+
+  @Test
+  public void testFulfilmentRequestByPost_blackListedFulfilmentCode() throws Exception {
+    PostalFulfilmentRequestDTO requestBodyDTOFixture =
+        getPostalFulfilmentRequestDTO(UUID_0, "Mr", "Mickey", "Mouse");
+    requestBodyDTOFixture.setFulfilmentCode(BLACK_LISTED_FULFILMENT_CODE);
+
+    try {
+      target.fulfilmentRequestByPost(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertTrue(e.getMessage(), e.getMessage().contains("deprecated"));
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+    }
   }
 
   @Test
@@ -170,6 +194,21 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
   @Test
   public void testFulfilmentRequestBySMS_caseSvcNotFoundResponse_cachedCase() throws Exception {
     doFulfilmentRequestBySMSSuccess(Product.CaseType.HH, true, true);
+  }
+
+  @Test
+  public void testFulfilmentRequestBySMS_blackListedFulfilmentCode() throws Exception {
+    CaseContainerDTO caseData = casesFromCaseService().get(1);
+    SMSFulfilmentRequestDTO requestBodyDTOFixture = getSMSFulfilmentRequestDTO(caseData);
+    requestBodyDTOFixture.setFulfilmentCode(BLACK_LISTED_FULFILMENT_CODE);
+
+    try {
+      target.fulfilmentRequestBySMS(requestBodyDTOFixture);
+      fail();
+    } catch (CTPException e) {
+      assertTrue(e.getMessage(), e.getMessage().contains("deprecated"));
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+    }
   }
 
   @Test
