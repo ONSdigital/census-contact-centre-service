@@ -1,7 +1,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3ba6416fd11d41fdaf281e7dab6042dc)](https://www.codacy.com/app/philwhiles/census-contact-centre-service?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ONSdigital/census-contact-centre-service&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://travis-ci.com/ONSdigital/census-contact-centre-service.svg?branch=master)](https://travis-ci.com/ONSdigital/census-contact-centre-service)
 [![codecov](https://codecov.io/gh/ONSdigital/census-contact-centre-service/branch/master/graph/badge.svg)](https://codecov.io/gh/ONSdigital/census-contact-centre-service)
- 
+
 # Contact Centre Data Service
 This repository contains the Contact Centre Data service. This microservice is a RESTful web service implemented using [Spring Boot](http://projects.spring.io/spring-boot/). It manages contact centre data, where a Contact Centre Data object represents an expected response from the Contact Centre Data service, which provides all the data that is required by Contact Centre in order for it to verify the contact centre's UAC code and connect them to the relevant EQ questionnaire.
 
