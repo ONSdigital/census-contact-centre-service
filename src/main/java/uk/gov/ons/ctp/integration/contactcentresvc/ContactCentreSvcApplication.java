@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.ons.ctp.common.config.CustomCircuitBreakerConfig;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
 import uk.gov.ons.ctp.common.event.SpringRabbitEventSender;
@@ -94,7 +95,7 @@ public class ContactCentreSvcApplication {
 
   @Bean
   @Qualifier("addressIndexClient")
-  public RestClient addressIndexClient() {
+  public RestClient addressIndexClient() throws CTPException {
     RestClientConfig clientConfig = appConfig.getAddressIndexSettings().getRestClientConfig();
     RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
     return restHelper;
@@ -102,7 +103,7 @@ public class ContactCentreSvcApplication {
 
   @Bean
   @Qualifier("caseServiceClient")
-  public CaseServiceClientServiceImpl caseServiceClient() {
+  public CaseServiceClientServiceImpl caseServiceClient() throws CTPException {
     RestClientConfig clientConfig = appConfig.getCaseServiceSettings().getRestClientConfig();
     RestClient restHelper = new RestClient(clientConfig, httpErrorMapping, defaultHttpStatus);
     CaseServiceClientServiceImpl csClientServiceImpl = new CaseServiceClientServiceImpl(restHelper);
