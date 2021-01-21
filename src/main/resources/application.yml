@@ -91,6 +91,9 @@ address-index-settings:
     port: 80
     connection-manager-default-max-per-route: 40
     connection-manager-max-total: 100
+    connectTimeoutMillis: 0
+    connectionRequestTimeoutMillis: 0
+    socketTimeoutMillis: 0
     
 case-service-settings:
   rest-client-config:
@@ -101,6 +104,9 @@ case-service-settings:
     port: 8161
     connection-manager-default-max-per-route: 40
     connection-manager-max-total: 100
+    connectTimeoutMillis: 0
+    connectionRequestTimeoutMillis: 0
+    socketTimeoutMillis: 0
   whitelisted-event-categories:
       - FULFILMENT_REQUESTED
       - FULFILMENT_CONFIRMED
