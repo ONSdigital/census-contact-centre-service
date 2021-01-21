@@ -30,9 +30,7 @@
     <tag>HEAD</tag>
   </scm>
 
-
   <dependencies>
-
     <!-- GCP Dependencies -->
 
     <dependency>
@@ -131,7 +129,7 @@
     <dependency>
       <groupId>uk.gov.ons.ctp.integration</groupId>
       <artifactId>contactcentreserviceapi</artifactId>
-      <version>0.0.131</version>
+      <version>0.0.133</version>
     </dependency>
 
     <!-- WARNING WARNING WARNING The CCCucmber project has this dependancy
