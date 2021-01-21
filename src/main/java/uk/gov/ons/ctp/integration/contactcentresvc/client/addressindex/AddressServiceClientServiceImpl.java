@@ -30,7 +30,9 @@ public class AddressServiceClientServiceImpl {
   private RestClient addressIndexClient;
 
   public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) {
-    log.debug("Delegating address search to AddressIndex service");
+    if (log.isDebugEnabled()) {
+      log.debug("Delegating address search to AddressIndex service");
+    }
 
     String input = addressQueryRequest.getInput();
     int offset = addressQueryRequest.getOffset();
@@ -51,16 +53,20 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, new Object[] {});
-    log.with("status", addressIndexResponse.getStatus().getCode())
-        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
-        .debug("Address query response received");
+    if (log.isDebugEnabled()) {
+      log.with("status", addressIndexResponse.getStatus().getCode())
+          .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+          .debug("Address query response received");
+    }
 
     return addressIndexResponse;
   }
 
   public AddressIndexSearchResultsDTO searchByPostcode(
       PostcodeQueryRequestDTO postcodeQueryRequest) {
-    log.debug("Delegating postcode search to the AddressIndex service");
+    if (log.isDebugEnabled()) {
+      log.debug("Delegating postcode search to the AddressIndex service");
+    }
 
     int offset = postcodeQueryRequest.getOffset();
     int limit = postcodeQueryRequest.getLimit();
@@ -78,16 +84,20 @@ public class AddressServiceClientServiceImpl {
     AddressIndexSearchResultsDTO addressIndexResponse =
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
-    log.with("postcode", postcode)
-        .with("status", addressIndexResponse.getStatus().getCode())
-        .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
-        .debug("Postcode query response received");
+    if (log.isDebugEnabled()) {
+      log.with("postcode", postcode)
+          .with("status", addressIndexResponse.getStatus().getCode())
+          .with("addresses", addressIndexResponse.getResponse().getAddresses().size())
+          .debug("Postcode query response received");
+    }
 
     return addressIndexResponse;
   }
 
   public AddressIndexSearchResultsCompositeDTO searchByUPRN(Long uprn) {
-    log.debug("Delegating UPRN search to AddressIndex service");
+    if (log.isDebugEnabled()) {
+      log.debug("Delegating UPRN search to AddressIndex service");
+    }
 
     // Build map for query params
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -100,9 +110,11 @@ public class AddressServiceClientServiceImpl {
         addressIndexClient.getResource(
             path, AddressIndexSearchResultsCompositeDTO.class, null, queryParams, uprn.toString());
 
-    log.with("uprn", uprn)
-        .with("status", addressIndexResponse.getStatus().getCode())
-        .debug("UPRN query response received");
+    if (log.isDebugEnabled()) {
+      log.with("uprn", uprn)
+          .with("status", addressIndexResponse.getStatus().getCode())
+          .debug("UPRN query response received");
+    }
 
     return addressIndexResponse;
   }
