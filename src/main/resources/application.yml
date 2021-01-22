@@ -125,7 +125,7 @@ queueconfig:
   
 messaging:
   publish:
-    max-attempts: 4  
+    max-attempts: 10
   
 circuit-breaker:
   timeout: 4
