@@ -28,7 +28,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.ons.ctp.common.cloud.CloudRetryListener;
 import uk.gov.ons.ctp.common.config.CustomCircuitBreakerConfig;
 import uk.gov.ons.ctp.common.event.EventPublisher;
 import uk.gov.ons.ctp.common.event.EventSender;
@@ -39,6 +45,7 @@ import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.rest.RestClientConfig;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.MessagingConfig.PublishConfig;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 
@@ -115,7 +122,6 @@ public class ContactCentreSvcApplication {
    * @param args runtime command line args
    */
   public static void main(final String[] args) {
-
     SpringApplication.run(ContactCentreSvcApplication.class, args);
   }
 
@@ -141,12 +147,35 @@ public class ContactCentreSvcApplication {
   }
 
   @Bean
-  public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
+  public RabbitTemplate rabbitTemplate(
+      final ConnectionFactory connectionFactory, RetryTemplate sendRetryTemplate) {
     final var template = new RabbitTemplate(connectionFactory);
     template.setMessageConverter(new Jackson2JsonMessageConverter());
     template.setExchange("events");
     template.setChannelTransacted(true);
+    template.setRetryTemplate(sendRetryTemplate);
     return template;
+  }
+
+  @Bean
+  public RetryTemplate sendRetryTemplate(RetryListener sendRetryListener) {
+    RetryTemplate template = new RetryTemplate();
+    template.registerListener(sendRetryListener);
+    PublishConfig publishConfig = appConfig.getMessaging().getPublish();
+    template.setRetryPolicy(new SimpleRetryPolicy(publishConfig.getMaxAttempts()));
+    return template;
+  }
+
+  @Bean
+  public RetryListener sendRetryListener() {
+    return new CloudRetryListener() {
+      @Override
+      public <T, E extends Throwable> boolean open(
+          RetryContext context, RetryCallback<T, E> callback) {
+        context.setAttribute(RetryContext.NAME, "publish-event");
+        return true;
+      }
+    };
   }
 
   /**

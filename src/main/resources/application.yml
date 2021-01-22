@@ -123,6 +123,10 @@ queueconfig:
   event-exchange: events
   dead-letter-exchange: events.deadletter.exchange
   
+messaging:
+  publish:
+    max-attempts: 10
+  
 circuit-breaker:
   timeout: 4
   
