@@ -90,7 +90,7 @@ address-index-settings:
     host: rh-dev-ai-api.ai.census-gcp.onsdigital.uk
     port: 80
     connection-manager-default-max-per-route: 40
-    connection-manager-max-total: 100
+    connection-manager-max-total: 200
     connectTimeoutMillis: 0
     connectionRequestTimeoutMillis: 0
     socketTimeoutMillis: 0
@@ -103,7 +103,7 @@ case-service-settings:
     host: localhost
     port: 8161
     connection-manager-default-max-per-route: 40
-    connection-manager-max-total: 100
+    connection-manager-max-total: 200
     connectTimeoutMillis: 0
     connectionRequestTimeoutMillis: 0
     socketTimeoutMillis: 0
