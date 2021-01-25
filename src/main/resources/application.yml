@@ -89,6 +89,12 @@ address-index-settings:
     scheme: http
     host: rh-dev-ai-api.ai.census-gcp.onsdigital.uk
     port: 80
+    connection-manager-default-max-per-route: 40
+    # 3 routes * 40 connections = 120 total
+    connection-manager-max-total: 120
+    connectTimeoutMillis: 0
+    connectionRequestTimeoutMillis: 0
+    socketTimeoutMillis: 0
     
 case-service-settings:
   rest-client-config:
@@ -97,6 +103,12 @@ case-service-settings:
     scheme: http
     host: localhost
     port: 8161
+    connection-manager-default-max-per-route: 40
+    # 5 routes * 40 connections = 200 total
+    connection-manager-max-total: 200
+    connectTimeoutMillis: 0
+    connectionRequestTimeoutMillis: 0
+    socketTimeoutMillis: 0
   whitelisted-event-categories:
       - FULFILMENT_REQUESTED
       - FULFILMENT_CONFIRMED

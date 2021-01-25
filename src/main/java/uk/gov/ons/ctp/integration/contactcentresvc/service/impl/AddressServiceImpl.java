@@ -38,7 +38,9 @@ public class AddressServiceImpl implements AddressService {
 
   @Override
   public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
-    log.with("addressQueryRequest", addressQueryRequest).debug("Running search by address");
+    if (log.isDebugEnabled()) {
+      log.with("addressQueryRequest", addressQueryRequest).debug("Running search by address");
+    }
 
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
@@ -48,14 +50,18 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO results =
         convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
 
-    log.with("addresses", results.getAddresses().size())
-        .debug("Address search is returning addresses");
+    if (log.isDebugEnabled()) {
+      log.with("addresses", results.getAddresses().size())
+          .debug("Address search is returning addresses");
+    }
     return results;
   }
 
   @Override
   public AddressQueryResponseDTO postcodeQuery(PostcodeQueryRequestDTO postcodeQueryRequest) {
-    log.with("postcodeQueryRequest", postcodeQueryRequest).debug("Running search by postcode");
+    if (log.isDebugEnabled()) {
+      log.with("postcodeQueryRequest", postcodeQueryRequest).debug("Running search by postcode");
+    }
 
     // Delegate the query to Address Index
     AddressIndexSearchResultsDTO addressIndexResponse =
@@ -65,14 +71,18 @@ public class AddressServiceImpl implements AddressService {
     AddressQueryResponseDTO results =
         convertAddressIndexResultsToSummarisedAdresses(addressIndexResponse);
 
-    log.with("addresses", results.getAddresses().size())
-        .debug("Postcode search is returning addresses");
+    if (log.isDebugEnabled()) {
+      log.with("addresses", results.getAddresses().size())
+          .debug("Postcode search is returning addresses");
+    }
     return results;
   }
 
   @Override
   public AddressIndexAddressCompositeDTO uprnQuery(long uprn) throws CTPException {
-    log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
+    if (log.isDebugEnabled()) {
+      log.with("uprnQueryRequest", uprn).debug("Running search by uprn");
+    }
 
     // Delegate the query to Address Index
     try {
@@ -93,7 +103,9 @@ public class AddressServiceImpl implements AddressService {
 
       AddressIndexAddressCompositeDTO address = addressResult.getResponse().getAddress();
 
-      log.with("uprn", uprn).debug("UPRN search is returning address");
+      if (log.isDebugEnabled()) {
+        log.with("uprn", uprn).debug("UPRN search is returning address");
+      }
       return address;
     } catch (ResponseStatusException ex) {
       log.with("uprn", uprn)
