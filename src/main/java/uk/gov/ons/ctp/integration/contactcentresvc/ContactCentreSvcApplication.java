@@ -210,8 +210,8 @@ public class ContactCentreSvcApplication {
    * @return a EqLauncherServer instance.
    */
   @Bean
-  public EqLaunchService eqLaunchService() {
-    return new EqLaunchServiceImpl();
+  public EqLaunchService eqLaunchService() throws CTPException {
+    return new EqLaunchServiceImpl(appConfig.getKeystore());
   }
 
   @Value("#{new Boolean('${logging.useJson}')}")

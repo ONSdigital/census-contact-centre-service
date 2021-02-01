@@ -56,7 +56,6 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.UACRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
-import uk.gov.ons.ctp.integration.eqlaunch.service.impl.EqLaunchServiceImpl;
 
 public abstract class CaseServiceImplTestBase {
   @Spy AppConfig appConfig = new AppConfig();
@@ -65,7 +64,7 @@ public abstract class CaseServiceImplTestBase {
 
   @Mock CaseServiceClientServiceImpl caseServiceClient;
 
-  @Mock EqLaunchService eqLaunchService = new EqLaunchServiceImpl();
+  @Mock EqLaunchService eqLaunchService;
 
   @Mock EventPublisher eventPublisher;
 
