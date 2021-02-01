@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
@@ -253,7 +252,6 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
   }
 
   private void doLaunchTest(String caseType, boolean individual) throws Exception {
-    when(appConfig.getKeystore()).thenReturn(keyStoreEncryption);
     CaseContainerDTO caseFromCaseService = mockGetCaseById(caseType, "U", A_REGION.name());
     doLaunchTest(individual, caseFromCaseService, FormType.H);
   }
