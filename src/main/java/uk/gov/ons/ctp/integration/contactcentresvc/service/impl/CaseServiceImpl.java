@@ -1242,7 +1242,6 @@ public class CaseServiceImpl implements CaseService {
               .channel(uk.gov.ons.ctp.common.domain.Channel.CC)
               .questionnaireId(questionnaireId)
               .formType(formType)
-              .keyStore(appConfig.getKeystore())
               .salt(appConfig.getEq().getResponseIdSalt())
               .caseContainer(caseDetails)
               .userId(Integer.toString(requestParamsDTO.getAgentId()))
