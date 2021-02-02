@@ -46,8 +46,6 @@ public class AddressServiceClientServiceImpl {
     queryParams.add("historical", "false");
     queryParams.add("includeauxiliarysearch", "true");
     queryParams.add("matchthreshold", "0");
-    queryParams.add("sboost", "0"); // Exclude Scottish addresses
-    queryParams.add("nboost", "0"); // Exclude NI addresses
     addEpoch(queryParams);
 
     // Ask Address Index to do an address search
