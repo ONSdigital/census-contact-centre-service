@@ -88,6 +88,31 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     doRespondentRefusalTest(dateTime, Reason.EXTRAORDINARY, createContact());
   }
 
+  @Test
+  public void shouldRequestRefusalWithMinimumFields() throws Exception {
+    UUID caseId = UUID.randomUUID();
+    String expectedResponseCaseId = caseId.toString();
+    RefusalRequestDTO refusalPayload =
+        RefusalRequestDTO.builder()
+            .caseId(caseId)
+            .agentId(123)
+            .reason(Reason.HARD)
+            .isHouseholder(true)
+            .dateTime(new Date())
+            .build();
+
+    ResponseDTO refusalResponse = target.reportRefusal(caseId, refusalPayload);
+
+    assertEquals(expectedResponseCaseId, refusalResponse.getId());
+
+    RespondentRefusalDetails refusal =
+        verifyEventSent(EventType.REFUSAL_RECEIVED, RespondentRefusalDetails.class);
+    assertEquals("123", refusal.getAgentId());
+    assertTrue(refusal.isHouseholder());
+    verifyEmptyRefusalAddress(refusal);
+    assertEquals("HARD_REFUSAL", refusal.getType());
+  }
+
   private ContactCompact createContact() {
     ContactCompact c = new ContactCompact("Mr", "Steve", "Jones");
     return c;
@@ -186,5 +211,17 @@ public class CaseServiceImplReportRefusalTest extends CaseServiceImplTestBase {
     assertEquals("OL3 5DJ", address.getPostcode());
     assertEquals(A_REGION.name(), address.getRegion());
     assertEquals(A_UPRN, address.getUprn());
+  }
+
+  private void verifyEmptyRefusalAddress(RespondentRefusalDetails refusal) {
+    // Validate address
+    AddressCompact address = refusal.getAddress();
+    assertNull(address.getAddressLine1());
+    assertNull(address.getAddressLine2());
+    assertNull(address.getAddressLine3());
+    assertNull(address.getTownName());
+    assertNull(address.getPostcode());
+    assertNull(address.getRegion());
+    assertNull(address.getUprn());
   }
 }

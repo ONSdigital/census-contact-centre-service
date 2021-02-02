@@ -721,7 +721,10 @@ public class CaseServiceImpl implements CaseService {
     if (region != null) {
       address.setRegion(region.name());
     }
-    address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
+    UniquePropertyReferenceNumber uprn = refusalRequest.getUprn();
+    if (uprn != null) {
+      address.setUprn(Long.toString(uprn.getValue()));
+    }
     refusal.setAddress(address);
 
     return refusal;
