@@ -1278,9 +1278,9 @@ public class CaseServiceImpl implements CaseService {
     Set<String> blacklistedProducts = appConfig.getFulfilments().getBlacklistedCodes();
 
     if (blacklistedProducts.contains(fulfilmentCode)) {
-      log.with(fulfilmentCode).info("Fulfilment code has been deprecated");
+      log.with(fulfilmentCode).info("Fulfilment code is no longer available");
       throw new CTPException(
-          Fault.BAD_REQUEST, "Requested fulfilment code has been deprecated: " + fulfilmentCode);
+          Fault.BAD_REQUEST, "Requested fulfilment code is no longer available: " + fulfilmentCode);
     }
   }
 }

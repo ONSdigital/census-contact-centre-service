@@ -121,7 +121,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
       target.fulfilmentRequestByPost(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("deprecated"));
+      assertTrue(e.getMessage(), e.getMessage().contains("is no longer available"));
       assertEquals(Fault.BAD_REQUEST, e.getFault());
     }
   }
@@ -206,7 +206,7 @@ public class CaseServiceImplFulfilmentTest extends CaseServiceImplTestBase {
       target.fulfilmentRequestBySMS(requestBodyDTOFixture);
       fail();
     } catch (CTPException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("deprecated"));
+      assertTrue(e.getMessage(), e.getMessage().contains("is no longer available"));
       assertEquals(Fault.BAD_REQUEST, e.getFault());
     }
   }
