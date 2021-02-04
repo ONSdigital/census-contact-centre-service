@@ -1132,6 +1132,9 @@ public class CaseServiceImpl implements CaseService {
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
+    if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
+      throw new CTPException(Fault.RESOURCE_NOT_FOUND, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+    }
 
     UUID parentCaseId = caseDetails.getId();
     UUID individualCaseId = null;
@@ -1207,10 +1210,6 @@ public class CaseServiceImpl implements CaseService {
 
   private void rejectInvalidLaunchCombinationsForCE(
       CaseContainerDTO caseDetails, boolean individual, String formType) throws CTPException {
-    if ("CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
-    }
-
     if (!individual && FormType.C.name().equals(formType)) {
       String region = caseDetails.getRegion();
       String addressLevel = caseDetails.getAddressLevel();

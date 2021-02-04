@@ -6,7 +6,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.AN_AGENT_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_QUESTIONNAIRE_ID;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
@@ -122,6 +125,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         caseDetails,
         "Telephone capture feature is not available for CCS Communal establishment's. CCS CE's must submit their survey via CCS Paper Questionnaire",
         Fault.RESOURCE_NOT_FOUND);
+    verifyCallToGetQuestionnaireIdNotCalled();
   }
 
   @Test
@@ -291,6 +295,10 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     } else {
       assertNull(individualCaseIdCaptor.getValue());
     }
+  }
+
+  private void verifyCallToGetQuestionnaireIdNotCalled() {
+    verify(caseServiceClient, never()).getSingleUseQuestionnaireId(any(), anyBoolean(), any());
   }
 
   private void doLaunchTest(String caseType, boolean individual) throws Exception {
