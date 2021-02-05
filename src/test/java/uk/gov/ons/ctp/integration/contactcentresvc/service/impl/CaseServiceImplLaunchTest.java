@@ -124,7 +124,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     assertThatInvalidLaunchComboIsRejected(
         caseDetails,
         "Telephone capture feature is not available for CCS Communal establishment's. CCS CE's must submit their survey via CCS Paper Questionnaire",
-        Fault.RESOURCE_NOT_FOUND);
+        Fault.BAD_REQUEST);
     verifyCallToGetQuestionnaireIdNotCalled();
   }
 

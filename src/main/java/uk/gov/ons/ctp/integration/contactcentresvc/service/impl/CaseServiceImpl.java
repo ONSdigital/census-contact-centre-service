@@ -1133,7 +1133,7 @@ public class CaseServiceImpl implements CaseService {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
     if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+      throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
     }
 
     UUID parentCaseId = caseDetails.getId();
