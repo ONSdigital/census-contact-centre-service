@@ -497,7 +497,10 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
-    EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
+    Address addrDetails = newAddress.getAddress();
+    EstabType aimsEstabType = EstabType.forCode(addrDetails.getEstabType());
+    addrDetails.setEstabType(aimsEstabType.getCode());
+
     Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
 
     AddressType addressType =
@@ -505,9 +508,9 @@ public class CaseServiceImpl implements CaseService {
             ? addressTypeMaybe.get()
             : AddressType.valueOf(address.getCensusAddressType());
     if (addressType == AddressType.HH || addressType == AddressType.SPG) {
-      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+      addrDetails.setAddressLevel(AddressLevel.U.name());
     } else {
-      newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
+      addrDetails.setAddressLevel(AddressLevel.E.name());
     }
 
     NewAddress payload = new NewAddress();
