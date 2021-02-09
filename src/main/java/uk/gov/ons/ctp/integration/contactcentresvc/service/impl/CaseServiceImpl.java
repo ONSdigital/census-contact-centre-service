@@ -497,7 +497,10 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
-    EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
+    Address addrDetails = newAddress.getAddress();
+    EstabType aimsEstabType = EstabType.forCode(addrDetails.getEstabType());
+    addrDetails.setEstabType(aimsEstabType.getCode());
+
     Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
 
     AddressType addressType =
@@ -505,9 +508,9 @@ public class CaseServiceImpl implements CaseService {
             ? addressTypeMaybe.get()
             : AddressType.valueOf(address.getCensusAddressType());
     if (addressType == AddressType.HH || addressType == AddressType.SPG) {
-      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+      addrDetails.setAddressLevel(AddressLevel.U.name());
     } else {
-      newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
+      addrDetails.setAddressLevel(AddressLevel.E.name());
     }
 
     NewAddress payload = new NewAddress();
@@ -1132,6 +1135,9 @@ public class CaseServiceImpl implements CaseService {
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
+    if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
+      throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+    }
 
     UUID parentCaseId = caseDetails.getId();
     UUID individualCaseId = null;
@@ -1207,10 +1213,6 @@ public class CaseServiceImpl implements CaseService {
 
   private void rejectInvalidLaunchCombinationsForCE(
       CaseContainerDTO caseDetails, boolean individual, String formType) throws CTPException {
-    if ("CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.RESOURCE_NOT_FOUND, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
-    }
-
     if (!individual && FormType.C.name().equals(formType)) {
       String region = caseDetails.getRegion();
       String addressLevel = caseDetails.getAddressLevel();
