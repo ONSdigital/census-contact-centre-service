@@ -8,13 +8,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
@@ -89,14 +87,13 @@ import uk.gov.ons.ctp.integration.eqlaunch.service.EqLaunchService;
 public class CaseServiceImpl implements CaseService {
 
   private static final Logger log = LoggerFactory.getLogger(CaseServiceImpl.class);
-  private static final Collection<String> VALID_REGIONS =
-      Stream.of(uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.values())
-          .map(Enum::name)
-          .collect(toList());
   private static final String NI_LAUNCH_ERR_MSG =
       "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.";
   private static final String UNIT_LAUNCH_ERR_MSG =
       "A CE Manager form can only be launched against an establishment address not a UNIT.";
+  private static final String CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG =
+      "Telephone capture feature is not available for CCS Communal establishment's. "
+          + "CCS CE's must submit their survey via CCS Paper Questionnaire";
   private static final String CCS_CASE_ERROR_MSG = "Operation not permissible for a CCS Case";
   private static final String ESTAB_TYPE_OTHER_ERROR_MSG =
       "The pre-existing Establishment Type cannot be changed to OTHER";
@@ -500,7 +497,10 @@ public class CaseServiceImpl implements CaseService {
     newAddress.setCollectionExerciseId(appConfig.getCollectionExerciseId());
     newAddress.setCeExpectedCapacity(ceExpectedCapacity);
 
-    EstabType aimsEstabType = EstabType.forCode(newAddress.getAddress().getEstabType());
+    Address addrDetails = newAddress.getAddress();
+    EstabType aimsEstabType = EstabType.forCode(addrDetails.getEstabType());
+    addrDetails.setEstabType(aimsEstabType.getCode());
+
     Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
 
     AddressType addressType =
@@ -508,9 +508,9 @@ public class CaseServiceImpl implements CaseService {
             ? addressTypeMaybe.get()
             : AddressType.valueOf(address.getCensusAddressType());
     if (addressType == AddressType.HH || addressType == AddressType.SPG) {
-      newAddress.getAddress().setAddressLevel(AddressLevel.U.name());
+      addrDetails.setAddressLevel(AddressLevel.U.name());
     } else {
-      newAddress.getAddress().setAddressLevel(AddressLevel.E.name());
+      addrDetails.setAddressLevel(AddressLevel.E.name());
     }
 
     NewAddress payload = new NewAddress();
@@ -721,7 +721,10 @@ public class CaseServiceImpl implements CaseService {
     if (region != null) {
       address.setRegion(region.name());
     }
-    address.setUprn(Long.toString(refusalRequest.getUprn().getValue()));
+    UniquePropertyReferenceNumber uprn = refusalRequest.getUprn();
+    if (uprn != null) {
+      address.setUprn(Long.toString(uprn.getValue()));
+    }
     refusal.setAddress(address);
 
     return refusal;
@@ -1132,6 +1135,9 @@ public class CaseServiceImpl implements CaseService {
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
+    if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
+      throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+    }
 
     UUID parentCaseId = caseDetails.getId();
     UUID individualCaseId = null;
@@ -1167,8 +1173,8 @@ public class CaseServiceImpl implements CaseService {
         .with("formType", formType)
         .info("Have generated new questionnaireId");
 
-    if (caseType == CaseType.CE && !individual && FormType.C.name().equals(formType)) {
-      rejectInvalidLaunchCombinations(caseDetails.getRegion(), caseDetails.getAddressLevel());
+    if (caseType == CaseType.CE) {
+      rejectInvalidLaunchCombinationsForCE(caseDetails, individual, formType);
     }
 
     return newQuestionnaireIdDto;
@@ -1205,14 +1211,16 @@ public class CaseServiceImpl implements CaseService {
     }
   }
 
-  private void rejectInvalidLaunchCombinations(String region, String addressLevel)
-      throws CTPException {
-    if ("E".equals(addressLevel)) {
-      if ("N".equals(region)) {
-        throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
-      }
-    } else if ("U".equals(addressLevel)) {
-      if (VALID_REGIONS.contains(region)) {
+  private void rejectInvalidLaunchCombinationsForCE(
+      CaseContainerDTO caseDetails, boolean individual, String formType) throws CTPException {
+    if (!individual && FormType.C.name().equals(formType)) {
+      String region = caseDetails.getRegion();
+      String addressLevel = caseDetails.getAddressLevel();
+      if ("E".equals(addressLevel)) {
+        if ("N".equals(region)) {
+          throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
+        }
+      } else if ("U".equals(addressLevel)) {
         throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
       }
     }
@@ -1272,9 +1280,9 @@ public class CaseServiceImpl implements CaseService {
     Set<String> blacklistedProducts = appConfig.getFulfilments().getBlacklistedCodes();
 
     if (blacklistedProducts.contains(fulfilmentCode)) {
-      log.with(fulfilmentCode).info("Fulfilment code has been deprecated");
+      log.with(fulfilmentCode).info("Fulfilment code is no longer available");
       throw new CTPException(
-          Fault.BAD_REQUEST, "Requested fulfilment code has been deprecated: " + fulfilmentCode);
+          Fault.BAD_REQUEST, "Requested fulfilment code is no longer available: " + fulfilmentCode);
     }
   }
 }

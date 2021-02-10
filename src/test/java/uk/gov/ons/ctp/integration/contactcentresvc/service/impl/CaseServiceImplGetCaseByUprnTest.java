@@ -435,8 +435,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     CollectionCaseNewAddress newAddress =
         mapperFacade.map(addressFromAI, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
-    verifyNewAddressEventSent(
-        addressFromAI.getCensusAddressType(), addressFromAI.getCensusEstabType(), newAddress);
+    String expectedEstabType = EstabType.forCode(addressFromAI.getCensusEstabType()).getCode();
+    verifyNewAddressEventSent(addressFromAI.getCensusAddressType(), expectedEstabType, newAddress);
   }
 
   private void verifyCachedCaseContent(
