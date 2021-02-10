@@ -78,7 +78,7 @@ spring:
 channel: CC
 
 address-index-settings:
-  address-query-path: /addresses
+  address-query-path: /addresses/partial
   postcode-lookup-path: /addresses/postcode/{postcode}
   uprn-lookup-path: /addresses/rh/uprn/{uprn}
   address-type: paf
