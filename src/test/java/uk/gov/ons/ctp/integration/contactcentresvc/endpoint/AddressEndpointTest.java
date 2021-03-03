@@ -69,7 +69,7 @@ public final class AddressEndpointTest {
 
   @Test
   public void validateAddressQueryResponseJson() throws Exception {
-    assertOk("/addresses?input=Park");
+    assertOk("/addresses?input=Parks");
   }
 
   @Test

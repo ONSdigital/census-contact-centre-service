@@ -39,10 +39,11 @@ public class AddressServiceClientServiceImpl {
 
     String input = addressQueryRequest.getInput().replaceAll("'", "").replaceAll(" +$", "");
 
-    if (input.length() < 5)
+    if (input.length() < 5) {
       throw new CTPException(
-          Fault.BAD_REQUEST,
-          "Address query requires 5 or more characters, not including single quotes or trailing whitespaces");
+              Fault.BAD_REQUEST,
+              "Address query requires 5 or more characters, not including single quotes or trailing whitespaces");
+    }
 
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();
