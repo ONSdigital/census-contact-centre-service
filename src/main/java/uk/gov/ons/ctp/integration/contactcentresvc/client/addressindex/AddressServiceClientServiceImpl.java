@@ -31,17 +31,18 @@ public class AddressServiceClientServiceImpl {
   @Qualifier("addressIndexClient")
   private RestClient addressIndexClient;
 
-  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) throws CTPException {
+  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest)
+      throws CTPException {
     if (log.isDebugEnabled()) {
       log.debug("Delegating address search to AddressIndex service");
     }
 
-    String input = addressQueryRequest.getInput()
-            .replaceAll("'", "")
-            .replaceAll(" +$", "");
+    String input = addressQueryRequest.getInput().replaceAll("'", "").replaceAll(" +$", "");
 
     if (input.length() < 5)
-      throw new CTPException(Fault.BAD_REQUEST, "Address query requires 5 or more characters, not including single quotes or trailing whitespaces");
+      throw new CTPException(
+          Fault.BAD_REQUEST,
+          "Address query requires 5 or more characters, not including single quotes or trailing whitespaces");
 
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();

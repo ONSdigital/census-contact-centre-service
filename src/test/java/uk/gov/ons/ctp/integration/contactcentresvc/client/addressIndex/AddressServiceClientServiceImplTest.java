@@ -134,12 +134,15 @@ public class AddressServiceClientServiceImplTest {
     AddressQueryRequestDTO addressQuery = new AddressQueryRequestDTO();
     addressQuery.setInput("W'O 'W");
 
-    CTPException exception = assertThrows("Expected CTPException to be Thrown",
+    CTPException exception =
+        assertThrows(
+            "Expected CTPException to be Thrown",
             CTPException.class,
             () -> addressClientService.searchByAddress(addressQuery));
 
-    assertEquals("Address query requires 5 or more characters, not including single quotes or trailing whitespaces",
-            exception.getMessage());
+    assertEquals(
+        "Address query requires 5 or more characters, not including single quotes or trailing whitespaces",
+        exception.getMessage());
   }
 
   @Test
