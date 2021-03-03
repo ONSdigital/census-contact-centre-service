@@ -227,7 +227,7 @@ public final class AddressEndpointTest {
 
     Mockito.when(addressService.addressQuery(any())).thenReturn(addresses);
 
-    ResultActions actions = mockMvc.perform(get("/addresses?input=Park"));
+    ResultActions actions = mockMvc.perform(get("/addresses?input=Parks"));
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.dataVersion", is(DATA_VERSION)));
     actions.andExpect(jsonPath("$.addresses[0].uprn", is(UPRN1)));
