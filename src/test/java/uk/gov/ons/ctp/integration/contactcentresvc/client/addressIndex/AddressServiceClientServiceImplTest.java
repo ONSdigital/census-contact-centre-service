@@ -141,7 +141,8 @@ public class AddressServiceClientServiceImplTest {
             () -> addressClientService.searchByAddress(addressQuery));
 
     assertEquals(
-        "Address query requires 5+ characters, not including single quotes or trailing whitespaces",
+        "Addres query requires 5 or more characters, " +
+                "not including single quotes or trailing whitespaces",
         exception.getMessage());
   }
 
