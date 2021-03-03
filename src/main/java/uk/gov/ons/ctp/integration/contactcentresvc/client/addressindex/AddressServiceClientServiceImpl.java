@@ -42,7 +42,8 @@ public class AddressServiceClientServiceImpl {
     if (input.length() < 5) {
       throw new CTPException(
           Fault.BAD_REQUEST,
-          "Address query requires 5+ characters, not including single quotes or trailing whitespaces");
+              "Address query requires 5 or more characters, "
+                      + "not including single quotes or trailing whitespaces");
     }
 
     int offset = addressQueryRequest.getOffset();
