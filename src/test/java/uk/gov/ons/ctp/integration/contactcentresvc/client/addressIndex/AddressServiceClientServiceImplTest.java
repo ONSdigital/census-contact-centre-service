@@ -1,6 +1,7 @@
 package uk.gov.ons.ctp.integration.contactcentresvc.client.addressIndex;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
@@ -15,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.ons.ctp.common.FixtureHelper;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.AddressServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
@@ -125,6 +127,19 @@ public class AddressServiceClientServiceImplTest {
     assertEquals("[true]", queryParams.get("includeauxiliarysearch").toString());
     assertEquals("[0]", queryParams.get("matchthreshold").toString());
     assertEquals(6, queryParams.keySet().size());
+  }
+
+  @Test
+  public void testAddressQuerylessThan5CharactersThrowCTPException() throws CTPException {
+    AddressQueryRequestDTO addressQuery = new AddressQueryRequestDTO();
+    addressQuery.setInput("W'O 'W");
+
+    CTPException exception = assertThrows("Expected CTPException to be Thrown",
+            CTPException.class,
+            () -> addressClientService.searchByAddress(addressQuery));
+
+    assertEquals("Address query requires 5 or more characters, not including single quotes or trailing whitespaces",
+            exception.getMessage());
   }
 
   @Test

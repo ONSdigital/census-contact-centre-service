@@ -37,7 +37,7 @@ public class AddressServiceImpl implements AddressService {
   @Autowired private AddressServiceClientServiceImpl addressServiceClient;
 
   @Override
-  public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) {
+  public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest) throws CTPException {
     if (log.isDebugEnabled()) {
       log.with("addressQueryRequest", addressQueryRequest).debug("Running search by address");
     }

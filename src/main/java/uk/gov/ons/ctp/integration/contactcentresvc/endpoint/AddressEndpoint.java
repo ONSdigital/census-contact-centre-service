@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
+import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -43,7 +44,7 @@ public final class AddressEndpoint implements CTPEndpoint {
    */
   @RequestMapping(value = "", method = RequestMethod.GET)
   public AddressQueryResponseDTO getAddressesBySearchQuery(
-      @Valid AddressQueryRequestDTO addressQueryRequest) {
+      @Valid AddressQueryRequestDTO addressQueryRequest) throws CTPException {
     log.with("requestParams", addressQueryRequest).info("Entering GET getAddressesBySearchQuery");
     return addressService.addressQuery(addressQueryRequest);
   }

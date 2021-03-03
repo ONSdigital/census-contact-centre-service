@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
+import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsCompositeDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
@@ -29,12 +31,18 @@ public class AddressServiceClientServiceImpl {
   @Qualifier("addressIndexClient")
   private RestClient addressIndexClient;
 
-  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) {
+  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) throws CTPException {
     if (log.isDebugEnabled()) {
       log.debug("Delegating address search to AddressIndex service");
     }
 
-    String input = addressQueryRequest.getInput();
+    String input = addressQueryRequest.getInput()
+            .replaceAll("'", "")
+            .replaceAll(" +$", "");
+
+    if (input.length() < 5)
+      throw new CTPException(Fault.BAD_REQUEST, "Address query requires 5 or more characters, not including single quotes or trailing whitespaces");
+
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();
 
