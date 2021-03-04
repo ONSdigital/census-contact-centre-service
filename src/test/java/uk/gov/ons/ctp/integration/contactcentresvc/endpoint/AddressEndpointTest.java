@@ -121,6 +121,12 @@ public final class AddressEndpointTest {
     addressQuerys.add("'W','OW,");
     addressQuerys.add("$O$  ");
     addressQuerys.add("  $/O$");
+    addressQuerys.add("a");
+    addressQuerys.add("aa");
+    addressQuerys.add("aaa");
+    addressQuerys.add("aaaa");
+    addressQuerys.add("a a");
+    addressQuerys.add("aa a");
 
     for (String i : addressQuerys) {
       mockMvc
