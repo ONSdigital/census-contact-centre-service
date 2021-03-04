@@ -103,6 +103,24 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
   }
 
   @Test
+  public void testNewCaseForNewAddress_ceWithNullNumberOfResidents() {
+    // Load valid request and then update so that it's invalid
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
+    // Simulate error by making request a CE with a non-positive number of residents
+    caseRequestDTO.setCaseType(CaseType.CE);
+    caseRequestDTO.setCeUsualResidents(null);
+
+    try {
+      doTestNewCaseForNewAddress(caseRequestDTO, null, false);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.BAD_REQUEST, e.getFault());
+      assertTrue(e.toString(), e.getMessage().matches(".*Number of residents .* for CE .*"));
+    }
+  }
+
+  @Test
   public void testNewCaseForNewAddress_cePositiveNumberOfResidents() throws Exception {
     // Test that the check for a CE with non zero number residents is correct
     NewCaseRequestDTO caseRequestDTO =

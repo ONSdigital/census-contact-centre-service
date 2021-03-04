@@ -199,7 +199,8 @@ public class CaseServiceImpl implements CaseService {
 
     // Reject if CE with non-positive number of residents
     if (caseRequestDTO.getCaseType() == CaseType.CE) {
-      if (caseRequestDTO.getCeUsualResidents() <= 0) {
+      if (caseRequestDTO.getCeUsualResidents() == null
+          || caseRequestDTO.getCeUsualResidents() <= 0) {
         throw new CTPException(
             Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
       }
