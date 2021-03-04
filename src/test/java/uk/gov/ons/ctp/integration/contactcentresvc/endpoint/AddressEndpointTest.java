@@ -99,11 +99,14 @@ public final class AddressEndpointTest {
   @Test
   public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
     mockMvc
-        .perform(get("/addresses?input=W'O 'W"))
-        .andExpect(content().string(containsString("Address query requires 5 or more characters,")))
+        .perform(get("/addresses?input= W',O, 'W "))
+        .andExpect(
+            content().string(containsString("Address query requires 5 or more characters, ")))
         .andExpect(
             content()
-                .string(containsString("not including single quotes or trailing whitespaces.")));
+                .string(
+                    containsString(
+                        "not including single quotes, commas or leading/trailing whitespace")));
   }
 
   @Test
