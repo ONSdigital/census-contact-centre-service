@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -97,16 +98,41 @@ public final class AddressEndpointTest {
   }
 
   @Test
+  public void acceptAddressQueryWithAddressQuerys() throws Exception {
+    ArrayList<String> addressQuerys = new ArrayList<>();
+    addressQuerys.add("WOOOOOW");
+    addressQuerys.add("   WOOOOOW   ");
+    addressQuerys.add("W   O   W");
+    addressQuerys.add("'W   O   W,");
+    addressQuerys.add("  $   O   $  ");
+    addressQuerys.add("  $  / O |  $  ");
+
+    for (String i : addressQuerys) {
+      assertOk("/addresses?input=" + i);
+    }
+  }
+
+  @Test
   public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
-    mockMvc
-        .perform(get("/addresses?input= W',O, 'W "))
-        .andExpect(
-            content().string(containsString("Address query requires 5 or more characters, ")))
-        .andExpect(
-            content()
-                .string(
-                    containsString(
-                        "not including single quotes, commas or leading/trailing whitespace")));
+    ArrayList<String> addressQuerys = new ArrayList<>();
+    addressQuerys.add("WO''''OW");
+    addressQuerys.add("   WOW   ");
+    addressQuerys.add("W,,,O,,,W");
+    addressQuerys.add("'W','OW,");
+    addressQuerys.add("$O$  ");
+    addressQuerys.add("  $/O$");
+
+    for (String i : addressQuerys) {
+      mockMvc
+          .perform(get("/addresses?input=" + i))
+          .andExpect(
+              content().string(containsString("Address query requires 5 or more characters, ")))
+          .andExpect(
+              content()
+                  .string(
+                      containsString(
+                          "not including single quotes, commas or leading/trailing whitespace")));
+    }
   }
 
   @Test
