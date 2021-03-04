@@ -97,6 +97,16 @@ public final class AddressEndpointTest {
   }
 
   @Test
+  public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
+    mockMvc
+        .perform(get("/addresses?input=W'O 'W"))
+        .andExpect(content().string(containsString("Address query requires 5 or more characters,")))
+        .andExpect(
+            content()
+                .string(containsString("not including single quotes or trailing whitespaces.")));
+  }
+
+  @Test
   public void rejectAddressQueryWithOffsetAboveMax() throws Exception {
     mockMvc
         .perform(get("/addresses?input=Harbour").param("offset", "251"))

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.ons.ctp.common.endpoint.CTPEndpoint;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryResponseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.PostcodeQueryRequestDTO;
@@ -46,6 +47,19 @@ public final class AddressEndpoint implements CTPEndpoint {
   public AddressQueryResponseDTO getAddressesBySearchQuery(
       @Valid AddressQueryRequestDTO addressQueryRequest) throws CTPException {
     log.with("requestParams", addressQueryRequest).info("Entering GET getAddressesBySearchQuery");
+
+    String addressQueryInput =
+        addressQueryRequest.getInput().replaceAll("'", "").replaceAll(" +$", "");
+
+    addressQueryRequest.setInput(addressQueryInput);
+
+    if (addressQueryInput.length() < 5) {
+      throw new CTPException(
+          Fault.BAD_REQUEST,
+          "Address query requires 5 or more characters, "
+              + "not including single quotes or trailing whitespaces.");
+    }
+
     return addressService.addressQuery(addressQueryRequest);
   }
 
