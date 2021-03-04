@@ -51,14 +51,14 @@ public final class AddressEndpoint implements CTPEndpoint {
     String addressQueryInput =
         addressQueryRequest.getInput().trim().replaceAll("'", "").replaceAll(",", "");
 
-    addressQueryRequest.setInput(addressQueryInput);
-
     if (addressQueryInput.length() < 5) {
       throw new CTPException(
           Fault.BAD_REQUEST,
           "Address query requires 5 or more characters, "
               + "not including single quotes, commas or leading/trailing whitespace");
     }
+
+    addressQueryRequest.setInput(addressQueryInput);
 
     return addressService.addressQuery(addressQueryRequest);
   }
