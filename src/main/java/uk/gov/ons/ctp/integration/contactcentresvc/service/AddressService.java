@@ -15,8 +15,7 @@ public interface AddressService {
    * @param addressQueryRequest with search string, offset and limit for pagination
    * @return result object containing list of addresses
    */
-  public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest)
-      throws CTPException;
+  public AddressQueryResponseDTO addressQuery(AddressQueryRequestDTO addressQueryRequest);
 
   /**
    * Search for an address by postcode
