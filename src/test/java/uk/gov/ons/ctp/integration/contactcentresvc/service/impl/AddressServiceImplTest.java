@@ -38,7 +38,7 @@ public class AddressServiceImplTest {
 
   @InjectMocks AddressService addressService = new AddressServiceImpl();
 
-  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) throws CTPException {
+  private void mockSearchByAddress(String qualifier, int expectedNumAddresses) {
     AddressIndexSearchResultsDTO results =
         FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class, qualifier).get(0);
     assertEquals(expectedNumAddresses, results.getResponse().getAddresses().size());
