@@ -58,8 +58,6 @@ public final class AddressEndpoint implements CTPEndpoint {
               + "not including single quotes, commas or leading/trailing whitespace");
     }
 
-    addressQueryRequest.setInput(addressQueryInput);
-
     return addressService.addressQuery(addressQueryRequest);
   }
 

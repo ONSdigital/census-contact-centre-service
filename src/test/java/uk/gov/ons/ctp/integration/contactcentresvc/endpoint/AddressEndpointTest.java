@@ -98,37 +98,37 @@ public final class AddressEndpointTest {
   }
 
   @Test
-  public void acceptAddressQueryWithAddressQuerys() throws Exception {
-    ArrayList<String> addressQuerys = new ArrayList<>();
-    addressQuerys.add("WOOOOOW");
-    addressQuerys.add("   WOOOOOW   ");
-    addressQuerys.add("W   O   W");
-    addressQuerys.add("'W   O   W,");
-    addressQuerys.add("  $   O   $  ");
-    addressQuerys.add("  $  / O |  $  ");
+  public void acceptAddressQueryWithValidAddressQueries() throws Exception {
+    ArrayList<String> addressQueries = new ArrayList<>();
+    addressQueries.add("WOOOOOW");
+    addressQueries.add("   WOOOOOW   ");
+    addressQueries.add("W   O   W");
+    addressQueries.add("'W   O   W,");
+    addressQueries.add("  $   O   $  ");
+    addressQueries.add("  $  / O |  $  ");
 
-    for (String i : addressQuerys) {
+    for (String i : addressQueries) {
       assertOk("/addresses?input=" + i);
     }
   }
 
   @Test
   public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
-    ArrayList<String> addressQuerys = new ArrayList<>();
-    addressQuerys.add("WO''''OW");
-    addressQuerys.add("   WOW   ");
-    addressQuerys.add("W,,,O,,,W");
-    addressQuerys.add("'W','OW,");
-    addressQuerys.add("$O$  ");
-    addressQuerys.add("  $/O$");
-    addressQuerys.add("a");
-    addressQuerys.add("aa");
-    addressQuerys.add("aaa");
-    addressQuerys.add("aaaa");
-    addressQuerys.add("a a");
-    addressQuerys.add("aa a");
+    ArrayList<String> addressQueries = new ArrayList<>();
+    addressQueries.add("WO''''OW");
+    addressQueries.add("   WOW   ");
+    addressQueries.add("W,,,O,,,W");
+    addressQueries.add("'W','OW,");
+    addressQueries.add("$O$  ");
+    addressQueries.add("  $/O$");
+    addressQueries.add("a");
+    addressQueries.add("aa");
+    addressQueries.add("aaa");
+    addressQueries.add("aaaa");
+    addressQueries.add("a a");
+    addressQueries.add("aa a");
 
-    for (String i : addressQuerys) {
+    for (String i : addressQueries) {
       mockMvc
           .perform(get("/addresses?input=" + i))
           .andExpect(

@@ -30,8 +30,7 @@ public class AddressServiceClientServiceImpl {
   @Qualifier("addressIndexClient")
   private RestClient addressIndexClient;
 
-  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest)
-      throws CTPException {
+  public AddressIndexSearchResultsDTO searchByAddress(AddressQueryRequestDTO addressQueryRequest) {
     if (log.isDebugEnabled()) {
       log.debug("Delegating address search to AddressIndex service");
     }
