@@ -73,7 +73,30 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
   @Test
   public void testLaunchCECase() throws Exception {
-    doLaunchTest("CE", false);
+    CaseContainerDTO caseFromCaseService = mockGetCaseById("CE", "E", A_REGION.name());
+    doLaunchTest(false, caseFromCaseService, FormType.H);
+  }
+
+  @Test
+  public void shouldLaunchCECaseForNonIndividualInNorthernIrelandWithFormTypeNotC()
+      throws Exception {
+    CaseContainerDTO caseFromCaseService = mockGetCaseById("CE", "E", "N");
+    doLaunchTest(false, caseFromCaseService, FormType.H);
+  }
+
+  // a unit test to increase code-coverage. Not defined what we do with unknown address-level.
+  @Test
+  public void shouldLaunchCECaseForNonIndividualUnknownLevelAddressInNorthernIreland()
+      throws Exception {
+    CaseContainerDTO caseFromCaseService = mockGetCaseById("CE", "X", "N");
+    doLaunchTest(false, caseFromCaseService, FormType.C);
+  }
+
+  // a unit test to increase code-coverage. Not defined what we do with unknown address-level.
+  @Test
+  public void testLaunchCECaseWithUnknownAddressLevel() throws Exception {
+    CaseContainerDTO caseFromCaseService = mockGetCaseById("CE", "X", A_REGION.name());
+    doLaunchTest(false, caseFromCaseService, FormType.H);
   }
 
   @Test
@@ -115,6 +138,12 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     CaseContainerDTO caseDetails = mockGetCaseById("HH", "E", A_REGION.name());
     caseDetails.setSurveyType("CCS");
     doLaunchTest(false, caseDetails, FormType.H);
+  }
+
+  @Test
+  public void shouldLaunchIndividualUnitLevelCaseForCE() throws Exception {
+    CaseContainerDTO caseDetails = mockGetCaseById("CE", "U", A_REGION.name());
+    doLaunchTest(true, caseDetails, FormType.C);
   }
 
   @Test
@@ -188,6 +217,7 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
         dto,
         "A CE Manager form can only be launched against an establishment address not a UNIT.",
         Fault.BAD_REQUEST);
+    verifyCallToGetQuestionnaireIdNotCalled();
   }
 
   @Test

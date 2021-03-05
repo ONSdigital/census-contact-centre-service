@@ -1136,8 +1136,12 @@ public class CaseServiceImpl implements CaseService {
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
-    if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+    if (caseType == CaseType.CE) {
+      if ("CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
+        throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+      } else if (!individual && "U".equals(caseDetails.getAddressLevel())) {
+        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
+      }
     }
 
     UUID parentCaseId = caseDetails.getId();
@@ -1221,8 +1225,6 @@ public class CaseServiceImpl implements CaseService {
         if ("N".equals(region)) {
           throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
         }
-      } else if ("U".equals(addressLevel)) {
-        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
       }
     }
   }
