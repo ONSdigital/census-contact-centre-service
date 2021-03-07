@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAdviceFor;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -69,7 +70,7 @@ public final class AddressEndpointTest {
 
   @Test
   public void validateAddressQueryResponseJson() throws Exception {
-    assertOk("/addresses?input=Park");
+    assertOk("/addresses?input=Parks");
   }
 
   @Test
@@ -94,6 +95,51 @@ public final class AddressEndpointTest {
         .perform(get("/addresses?input=Harbour").param("offset", "-1"))
         .andExpect(content().string(containsString("on field 'offset': rejected value")))
         .andExpect(content().string(containsString("must be greater than or equal to 0")));
+  }
+
+  @Test
+  public void acceptAddressQueryWithValidAddressQueries() throws Exception {
+    ArrayList<String> addressQueries = new ArrayList<>();
+    addressQueries.add("WOOOOOW");
+    addressQueries.add("   WOOOOOW   ");
+    addressQueries.add("W   O   W");
+    addressQueries.add("'W   O   W,");
+    addressQueries.add("  $   O   $  ");
+    addressQueries.add("  $  / O |  $  ");
+
+    for (String i : addressQueries) {
+      assertOk("/addresses?input=" + i);
+    }
+  }
+
+  @Test
+  public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
+    ArrayList<String> addressQueries = new ArrayList<>();
+    addressQueries.add("WO''''OW");
+    addressQueries.add("X  ,  '");
+    addressQueries.add("   WOW   ");
+    addressQueries.add("W,,,O,,,W");
+    addressQueries.add("'W','OW,");
+    addressQueries.add("$O$  ");
+    addressQueries.add("  $/O$");
+    addressQueries.add("a");
+    addressQueries.add("aa");
+    addressQueries.add("aaa");
+    addressQueries.add("aaaa");
+    addressQueries.add("a a");
+    addressQueries.add("aa a");
+
+    for (String i : addressQueries) {
+      mockMvc
+          .perform(get("/addresses?input=" + i))
+          .andExpect(
+              content().string(containsString("Address query requires 5 or more characters, ")))
+          .andExpect(
+              content()
+                  .string(
+                      containsString(
+                          "not including single quotes, commas or leading/trailing whitespace")));
+    }
   }
 
   @Test
@@ -227,7 +273,7 @@ public final class AddressEndpointTest {
 
     Mockito.when(addressService.addressQuery(any())).thenReturn(addresses);
 
-    ResultActions actions = mockMvc.perform(get("/addresses?input=Park"));
+    ResultActions actions = mockMvc.perform(get("/addresses?input=Parks"));
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.dataVersion", is(DATA_VERSION)));
     actions.andExpect(jsonPath("$.addresses[0].uprn", is(UPRN1)));
