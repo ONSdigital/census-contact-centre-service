@@ -49,7 +49,7 @@ public final class AddressEndpoint implements CTPEndpoint {
     log.with("requestParams", addressQueryRequest).info("Entering GET getAddressesBySearchQuery");
 
     String addressQueryInput =
-        addressQueryRequest.getInput().trim().replaceAll("'", "").replaceAll(",", "");
+        addressQueryRequest.getInput().trim().replaceAll("'", "").replaceAll(",", "").trim();
 
     if (addressQueryInput.length() < 5) {
       throw new CTPException(

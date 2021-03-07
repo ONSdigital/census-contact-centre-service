@@ -116,6 +116,7 @@ public final class AddressEndpointTest {
   public void rejectAddressQueryWithLessThan5ValidCharacters() throws Exception {
     ArrayList<String> addressQueries = new ArrayList<>();
     addressQueries.add("WO''''OW");
+    addressQueries.add("X  ,  '");
     addressQueries.add("   WOW   ");
     addressQueries.add("W,,,O,,,W");
     addressQueries.add("'W','OW,");
