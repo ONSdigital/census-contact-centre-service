@@ -38,7 +38,8 @@ public class CaseServiceImplGetUACTest extends CaseServiceImplTestBase {
 
   @Test
   public void testGetUACCECase() throws Exception {
-    doGetUACTest("CE", false);
+    mockGetCaseById("CE", "E", A_REGION.name());
+    doGetUACTest(false, FormType.C);
   }
 
   @Test

@@ -199,7 +199,8 @@ public class CaseServiceImpl implements CaseService {
 
     // Reject if CE with non-positive number of residents
     if (caseRequestDTO.getCaseType() == CaseType.CE) {
-      if (caseRequestDTO.getCeUsualResidents() <= 0) {
+      if (caseRequestDTO.getCeUsualResidents() == null
+          || caseRequestDTO.getCeUsualResidents() <= 0) {
         throw new CTPException(
             Fault.BAD_REQUEST, "Number of residents must be supplied for CE case");
       }
@@ -1135,8 +1136,12 @@ public class CaseServiceImpl implements CaseService {
     if (!(caseType == CaseType.CE || caseType == CaseType.HH || caseType == CaseType.SPG)) {
       throw new CTPException(Fault.BAD_REQUEST, "Case type must be SPG, CE or HH");
     }
-    if (caseType == CaseType.CE && "CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
-      throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+    if (caseType == CaseType.CE) {
+      if ("CCS".equalsIgnoreCase(caseDetails.getSurveyType())) {
+        throw new CTPException(Fault.BAD_REQUEST, CANNOT_LAUNCH_CCS_CASE_FOR_CE_MSG);
+      } else if (!individual && "U".equals(caseDetails.getAddressLevel())) {
+        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
+      }
     }
 
     UUID parentCaseId = caseDetails.getId();
@@ -1220,8 +1225,6 @@ public class CaseServiceImpl implements CaseService {
         if ("N".equals(region)) {
           throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
         }
-      } else if ("U".equals(addressLevel)) {
-        throw new CTPException(Fault.BAD_REQUEST, UNIT_LAUNCH_ERR_MSG);
       }
     }
   }
