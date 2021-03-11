@@ -186,6 +186,16 @@ public final class AddressEndpointTest {
   }
 
   @Test
+  public void validateBritishForcesPostcodeQueryResponseJson() throws Exception {
+    assertOk("/addresses/postcode?postcode=BF1 4NY");  // HMS Sutherland
+  }
+
+  @Test
+  public void rejectBFPOPostcode() throws Exception {
+    assertOk("/addresses/postcode?postcode=BFPO 123");
+  }
+
+  @Test
   public void rejectPostcodeQueryMissingPostcode() throws Exception {
     mockMvc
         .perform(get("/addresses/postcode"))
