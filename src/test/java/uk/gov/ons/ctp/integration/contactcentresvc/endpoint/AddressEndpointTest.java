@@ -187,7 +187,7 @@ public final class AddressEndpointTest {
 
   @Test
   public void validateBritishForcesPostcodeQueryResponseJson() throws Exception {
-    assertOk("/addresses/postcode?postcode=BF1 4NY");  // HMS Sutherland
+    assertOk("/addresses/postcode?postcode=BF1 4NY"); // HMS Sutherland
   }
 
   @Test
