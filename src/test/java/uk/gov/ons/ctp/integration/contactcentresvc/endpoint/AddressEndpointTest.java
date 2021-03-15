@@ -11,6 +11,7 @@ import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAd
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -186,13 +187,19 @@ public final class AddressEndpointTest {
   }
 
   @Test
-  public void validateBritishForcesPostcodeQueryResponseJson() throws Exception {
-    assertOk("/addresses/postcode?postcode=BF1 4NY"); // HMS Sutherland
+  public void rejectBritishForcesPostcodeQueryResponseJson() throws Exception {
+    mockMvc
+        .perform(get("/addresses/postcode?postcode=BF1 4NY")) // HMS Sutherland
+        .andExpect(status().is(HttpStatus.SC_BAD_REQUEST))
+        .andExpect(content().string(containsString("rejected value [BF1 4NY]")));
   }
 
   @Test
   public void rejectBFPOPostcode() throws Exception {
-    assertOk("/addresses/postcode?postcode=BFPO 123");
+    mockMvc
+        .perform(get("/addresses/postcode?postcode=BFPO 123"))
+        .andExpect(status().is(HttpStatus.SC_BAD_REQUEST))
+        .andExpect(content().string(containsString("rejected value [BFPO 123]")));
   }
 
   @Test
@@ -281,11 +288,16 @@ public final class AddressEndpointTest {
     addresses.setAddresses(Lists.newArrayList(address1, address2));
     addresses.setTotal(2);
 
-    Mockito.when(addressService.addressQuery(any())).thenReturn(addresses);
+    if (url.contains("postcode")) {
+      Mockito.when(addressService.postcodeQuery(any())).thenReturn(addresses);
+    } else {
+      Mockito.when(addressService.addressQuery(any())).thenReturn(addresses);
+    }
 
-    ResultActions actions = mockMvc.perform(get("/addresses?input=Parks"));
+    ResultActions actions = mockMvc.perform(get(url));
     actions.andExpect(status().isOk());
     actions.andExpect(jsonPath("$.dataVersion", is(DATA_VERSION)));
+
     actions.andExpect(jsonPath("$.addresses[0].uprn", is(UPRN1)));
     actions.andExpect(jsonPath("$.addresses[0].formattedAddress", is(FORMATTED_ADDRESS1)));
     actions.andExpect(
