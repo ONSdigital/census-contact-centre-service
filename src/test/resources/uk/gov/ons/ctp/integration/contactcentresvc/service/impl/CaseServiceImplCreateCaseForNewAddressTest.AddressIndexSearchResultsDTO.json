@@ -1,0 +1,56 @@
+{
+  "apiVersion": "v_c875fa34fdfa1cf308505b8b6524dbe5e4824595",
+  "dataVersion": "39",
+  "response": {
+    "tokens": {
+      "StreetName": "MICHAEL",
+      "Locality": "BROWNING"
+    },
+    "addresses": [
+      {
+        "uprn": "100041045018",
+        "parentUprn": "0",
+        "census": {
+          "countryCode": "E",
+          "addressType": "HH",
+          "estabType": "HOUSEHOLD"
+        },
+        "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",
+        "formattedAddressPaf": "Unit 11p, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+        "welshFormattedAddressNag": "Unit 11wn, Michael Browning Way, Exeter, EX2 8DD",
+        "welshFormattedAddressPaf": "Unit 11wp, City Industrial Estate, Michael Browning Way, Exeter, EX2 8DD",
+        "geo": {
+          "latitude": 50.714314,
+          "longitude": -3.5294223,
+          "easting": 292120,
+          "northing": 91637
+        },
+        "classificationCode": "CI03",
+        "lpiLogicalStatus": "1",
+        "confidenceScore": 0.2234,
+        "underlyingScore": 1.3216084241867065
+      }
+    ],
+    "filter": "",
+    "historical": true,
+    "epoch": "",
+    "rangekm": "",
+    "latitude": "",
+    "longitude": "",
+    "startDate": "",
+    "endDate": "",
+    "limit": 10,
+    "offset": 3,
+    "total": 23,
+    "sampleSize": 23,
+    "maxScore": 1.4572321,
+    "matchthreshold": 5,
+    "verbose": false
+  },
+  "status": {
+    "code": 200,
+    "message": "Ok"
+  },
+  "errors": []
+}

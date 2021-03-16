@@ -13,13 +13,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.inject.Inject;
 import ma.glasnost.orika.MapperFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.domain.AddressLevel;
@@ -49,6 +53,7 @@ import uk.gov.ons.ctp.common.event.model.FulfilmentRequest;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
 import uk.gov.ons.ctp.common.event.model.RespondentRefusalDetails;
 import uk.gov.ons.ctp.common.event.model.SurveyLaunchedResponse;
+import uk.gov.ons.ctp.common.rest.RestClient;
 import uk.gov.ons.ctp.common.time.DateTimeUtil;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.CaseServiceClientServiceImpl;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
@@ -60,6 +65,8 @@ import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressDTO;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.AppConfig;
 import uk.gov.ons.ctp.integration.contactcentresvc.repository.CaseDataRepository;
@@ -119,6 +126,10 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private EventPublisher eventPublisher;
 
   @Autowired private CCSPostcodesBean ccsPostcodesBean;
+
+  @Inject
+  @Qualifier("addressIndexClient")
+  private RestClient addressIndexClient;
 
   private LuhnCheckDigit luhnChecker = new LuhnCheckDigit();
 
@@ -197,6 +208,12 @@ public class CaseServiceImpl implements CaseService {
 
     validateCompatibleEstabAndCaseType(caseType, caseRequestDTO.getEstabType());
 
+    rejectIfForCrownDependency(caseRequestDTO.getPostcode());
+
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region actualRegion =
+        determineActualRegion(caseRequestDTO);
+    caseRequestDTO.setRegion(actualRegion);
+
     // Reject if CE with non-positive number of residents
     if (caseRequestDTO.getCaseType() == CaseType.CE) {
       if (caseRequestDTO.getCeUsualResidents() == null
@@ -225,7 +242,7 @@ public class CaseServiceImpl implements CaseService {
         caseDTOMapper.map(caseRequestDTO, AddressIndexAddressCompositeDTO.class);
     address.setCensusAddressType(addressType);
     address.setCensusEstabType(caseRequestDTO.getEstabType().getCode());
-    address.setCountryCode(caseRequestDTO.getRegion().name());
+    address.setCountryCode(actualRegion.name());
     publishNewAddressReportedEvent(
         newCaseId, caseType, caseRequestDTO.getCeUsualResidents(), address);
 
@@ -1032,6 +1049,93 @@ public class CaseServiceImpl implements CaseService {
         throw new CTPException(Fault.BAD_REQUEST, msg);
       }
     }
+  }
+
+  private void rejectIfForCrownDependency(String postcode) throws CTPException {
+    String postcodeArea = postcode.substring(0, 2).toUpperCase();
+
+    switch (postcodeArea) {
+      case "GY":
+      case "JE":
+        log.with(postcode).info("Rejecting request as postcode is for a channel island address");
+        throw new CTPException(
+            Fault.BAD_REQUEST, "Channel Island addresses are not valid for Census");
+      case "IM":
+        log.with(postcode).info("Rejecting request as postcode is for an Isle of Man address");
+        throw new CTPException(Fault.BAD_REQUEST, "Isle of Man addresses are not valid for Census");
+      default: // to keep checkstyle happy
+    }
+  }
+
+  private uk.gov.ons.ctp.integration.contactcentresvc.representation.Region determineActualRegion(
+      NewCaseRequestDTO caseRequestDTO) throws CTPException {
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region requestedRegion =
+        caseRequestDTO.getRegion();
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region actualRegion = null;
+
+    String postcode = caseRequestDTO.getPostcode();
+    String postcodeArea = postcode.substring(0, 2).toUpperCase();
+
+    if (postcodeArea.equals("BT")) {
+      log.with(postcode).info("Forcing region to Northern Ireland");
+      actualRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
+
+    } else {
+      // Get ready to call AI to find the region for the specified postcode
+      MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+      queryParams.add("offset", "0");
+      queryParams.add("limit", "1");
+      queryParams.add("includeauxiliarysearch", "true");
+      addEpoch(queryParams);
+
+      // Ask Address Index to do postcode search
+      AddressIndexSearchResultsDTO addressIndexResponse = null;
+      try {
+        String path = appConfig.getAddressIndexSettings().getPostcodeLookupPath();
+        addressIndexResponse =
+            addressIndexClient.getResource(
+                path, AddressIndexSearchResultsDTO.class, null, queryParams, postcode);
+      } catch (ResponseStatusException e) {
+        // Something went wrong calling AI.
+        // Never mind, we'll still be able to use the Serco supplied region
+        log.with(postcode).warn("Failed to call AI to resolve region");
+      }
+
+      if (addressIndexResponse != null) {
+        ArrayList<AddressIndexAddressDTO> addresses =
+            addressIndexResponse.getResponse().getAddresses();
+        if (!addresses.isEmpty()) {
+          // Found an address. Fail if Scottish otherwise use its region
+          String countryCode = addresses.get(0).getCensus().getCountryCode();
+          if (countryCode != null && countryCode.equals("S")) {
+            log.with(postcode).info("Rejecting as it's a Scottish address");
+            throw new CTPException(
+                Fault.BAD_REQUEST, "Scottish addresses are not valid for Census");
+          }
+
+          if (countryCode != null) {
+            actualRegion =
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.valueOf(
+                    countryCode);
+          }
+        }
+      }
+    }
+
+    if (actualRegion == null) {
+      log.with(requestedRegion).debug("Falling back to using Serco provided region");
+      actualRegion = requestedRegion;
+    }
+
+    return actualRegion;
+  }
+
+  private MultiValueMap<String, String> addEpoch(MultiValueMap<String, String> queryParams) {
+    String epoch = appConfig.getAddressIndexSettings().getEpoch();
+    if (!StringUtils.isBlank(epoch)) {
+      queryParams.add("epoch", epoch);
+    }
+    return queryParams;
   }
 
   private void updateOrCreateCachedCase(
