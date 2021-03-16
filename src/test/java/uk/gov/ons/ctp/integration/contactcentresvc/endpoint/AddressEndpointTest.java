@@ -193,7 +193,7 @@ public final class AddressEndpointTest {
         .andExpect(status().is(HttpStatus.SC_BAD_REQUEST))
         .andExpect(content().string(containsString("rejected value [BF1 4NY]")));
   }
- 
+
   @Test
   public void rejectBFPOPostcode() throws Exception {
     mockMvc
