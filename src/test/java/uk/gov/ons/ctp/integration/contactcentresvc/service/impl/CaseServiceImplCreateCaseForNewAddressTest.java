@@ -3,6 +3,8 @@ package uk.gov.ons.ctp.integration.contactcentresvc.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.ons.ctp.common.FixtureHelper;
@@ -24,7 +27,10 @@ import uk.gov.ons.ctp.common.event.EventPublisher.EventType;
 import uk.gov.ons.ctp.common.event.model.Address;
 import uk.gov.ons.ctp.common.event.model.CollectionCaseNewAddress;
 import uk.gov.ons.ctp.common.event.model.NewAddress;
+import uk.gov.ons.ctp.common.rest.RestClient;
+import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexSearchResultsDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.AddressIndexSettings;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.DeliveryChannel;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.NewCaseRequestDTO;
@@ -40,12 +46,34 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
   // the actual census name & id as per the application.yml and also RM
   private static final String SURVEY_NAME = "CENSUS";
   private static final String COLLECTION_EXERCISE_ID = "34d7f3bb-91c9-45d0-bb2d-90afce4fc790";
+  
+  private static final String POSTCODE_QUERY_PATH = "/addresses/postcode";
+  private static final String EPOCH = "";
+
+  @Mock RestClient restClient;
+
 
   @Before
   public void setup() {
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
     Mockito.when(appConfig.getSurveyName()).thenReturn(SURVEY_NAME);
     Mockito.when(appConfig.getCollectionExerciseId()).thenReturn(COLLECTION_EXERCISE_ID);
+    AddressIndexSettings addressIndexSettings = new AddressIndexSettings();
+    // Mock the address index settings
+    addressIndexSettings.setPostcodeLookupPath(POSTCODE_QUERY_PATH);
+    addressIndexSettings.setEpoch(EPOCH);
+    Mockito.when(appConfig.getAddressIndexSettings()).thenReturn(addressIndexSettings);
+
+    AddressIndexSearchResultsDTO resultsFromAddressIndex =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+    Mockito.when(
+            restClient.getResource(
+                eq(POSTCODE_QUERY_PATH),
+                eq(AddressIndexSearchResultsDTO.class),
+                any(),
+                any(),
+                any()))
+        .thenReturn(resultsFromAddressIndex);
   }
 
   @Test
