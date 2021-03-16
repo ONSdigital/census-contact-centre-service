@@ -259,7 +259,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     // A NI postcode will cause the
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
-    caseRequestDTO.setPostcode("SO15 5NF"); // Scottish postcode
+    caseRequestDTO.setPostcode("SO15 5NF");
     caseRequestDTO.setRegion(Region.E);
 
     // Get AI to respond with a Scottish region
@@ -272,6 +272,21 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
       assertEquals(Fault.BAD_REQUEST, e.getFault());
       assertTrue(e.toString(), e.getMessage().startsWith("Scottish addresses are not valid"));
     }
+  }
+
+  @Test
+  public void testNewCaseForNewAddress_AIReturnsNullRegion() throws Exception {
+    // A NI postcode will cause the
+    NewCaseRequestDTO caseRequestDTO =
+        FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
+    caseRequestDTO.setPostcode("SO15 5NF");
+    caseRequestDTO.setRegion(Region.E);
+
+    // Get AI to respond with a Scottish region
+    setupMockAIPostcodeQuery(null);
+
+    // Case will have used the Serco region
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
   }
 
   @Test

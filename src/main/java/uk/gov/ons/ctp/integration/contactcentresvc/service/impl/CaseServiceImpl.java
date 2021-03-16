@@ -1077,7 +1077,7 @@ public class CaseServiceImpl implements CaseService {
     String postcodeArea = postcode.substring(0, 2).toUpperCase();
 
     if (postcodeArea.equals("BT")) {
-      log.with(postcode).debug("Forcing region to Northern Ireland");
+      log.with(postcode).info("Forcing region to Northern Ireland");
       actualRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
 
     } else {
@@ -1107,15 +1107,17 @@ public class CaseServiceImpl implements CaseService {
         if (!addresses.isEmpty()) {
           // Found an address. Fail if Scottish otherwise use its region
           String countryCode = addresses.get(0).getCensus().getCountryCode();
-          if (countryCode.equals("S")) {
+          if (countryCode != null && countryCode.equals("S")) {
             log.with(postcode).info("Rejecting as it's a Scottish address");
             throw new CTPException(
                 Fault.BAD_REQUEST, "Scottish addresses are not valid for Census");
           }
 
-          actualRegion =
-              uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.valueOf(
-                  countryCode);
+          if (countryCode != null) {
+            actualRegion =
+                uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.valueOf(
+                    countryCode);
+          }
         }
       }
     }
