@@ -1063,6 +1063,7 @@ public class CaseServiceImpl implements CaseService {
       case "IM":
         log.with(postcode).info("Rejecting request as postcode is for an Isle of Man address");
         throw new CTPException(Fault.BAD_REQUEST, "Isle of Man addresses are not valid for Census");
+      default: // to keep checkstyle happy
     }
   }
 
