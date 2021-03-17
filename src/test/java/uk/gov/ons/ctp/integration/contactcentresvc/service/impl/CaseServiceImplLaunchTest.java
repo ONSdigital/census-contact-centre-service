@@ -271,13 +271,27 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
     assertThatCeManagerFormFromUnitRegionIsRejected(dto);
   }
 
-  @Test
-  public void shouldRejectCeManagerFormFromEstabRegionN() {
-    CaseContainerDTO dto = mockGetCaseById("CE", "E", "N");
+  private void assertRejectCeManagerFormFromEstabRegionN(String region) {
+    CaseContainerDTO dto = mockGetCaseById("CE", "E", region);
     assertThatInvalidLaunchComboIsRejected(
         dto,
         "All Northern Ireland calls from CE Managers are to be escalated to the NI management team.",
         Fault.BAD_REQUEST);
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromEstabRegionN() {
+    assertRejectCeManagerFormFromEstabRegionN("N");
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromEstab_lowercaseRegionN() {
+    assertRejectCeManagerFormFromEstabRegionN("n");
+  }
+
+  @Test
+  public void shouldRejectCeManagerFormFromEstab_regionNWithTrailingChars() {
+    assertRejectCeManagerFormFromEstabRegionN("N0123");
   }
 
   private void verifyEqLaunchJwe(
