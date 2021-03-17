@@ -394,19 +394,33 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
     verifyAddressTypeChanged(CaseType.HH, EstabType.HOUSEHOLD, "Oblivion Sky Tower", CaseType.SPG);
   }
 
-  @Test
-  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE() {
+  private void assertRejectNorthernIrelandChangeFromHouseholdToCE(String region) {
     requestDTO.setCaseType(CaseType.CE);
     requestDTO.setEstabType(EstabType.CARE_HOME);
     caseContainerDTO.setEstabType(EstabType.HOUSEHOLD.getCode());
     caseContainerDTO.setCaseType(CaseType.HH.name());
-    caseContainerDTO.setRegion(Region.N.name());
+    caseContainerDTO.setRegion(region);
     mockRmHasCase();
     CTPException e = assertThrows(CTPException.class, () -> target.modifyCase(requestDTO));
     assertEquals(Fault.BAD_REQUEST, e.getFault());
     assertEquals(
         "All queries relating to Communal Establishments in Northern Ireland should be escalated to NISRA HQ",
         e.getMessage());
+  }
+
+  @Test
+  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE_regionN() {
+    assertRejectNorthernIrelandChangeFromHouseholdToCE("N");
+  }
+
+  @Test
+  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE_regionLowerCaseN() {
+    assertRejectNorthernIrelandChangeFromHouseholdToCE("n");
+  }
+
+  @Test
+  public void shouldRejectNorthernIrelandChangeFromHouseholdToCE_regionWithTrailingChars() {
+    assertRejectNorthernIrelandChangeFromHouseholdToCE("N01234");
   }
 
   @Test

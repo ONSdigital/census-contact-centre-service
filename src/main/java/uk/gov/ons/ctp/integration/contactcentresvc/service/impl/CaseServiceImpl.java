@@ -555,7 +555,7 @@ public class CaseServiceImpl implements CaseService {
   }
 
   private Region convertRegion(CaseContainerDTO caseDetails) {
-    return Region.valueOf(caseDetails.getRegion().substring(0, 1));
+    return Region.valueOf(caseDetails.getRegion().substring(0, 1).toUpperCase());
   }
 
   /**
@@ -1323,10 +1323,10 @@ public class CaseServiceImpl implements CaseService {
   private void rejectInvalidLaunchCombinationsForCE(
       CaseContainerDTO caseDetails, boolean individual, String formType) throws CTPException {
     if (!individual && FormType.C.name().equals(formType)) {
-      String region = caseDetails.getRegion();
+      Region region = convertRegion(caseDetails);
       String addressLevel = caseDetails.getAddressLevel();
       if ("E".equals(addressLevel)) {
-        if ("N".equals(region)) {
+        if (Region.N == region) {
           throw new CTPException(Fault.BAD_REQUEST, NI_LAUNCH_ERR_MSG);
         }
       }
