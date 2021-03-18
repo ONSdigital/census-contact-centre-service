@@ -1069,16 +1069,15 @@ public class CaseServiceImpl implements CaseService {
 
   private uk.gov.ons.ctp.integration.contactcentresvc.representation.Region determineActualRegion(
       NewCaseRequestDTO caseRequestDTO) throws CTPException {
-    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region requestedRegion =
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region sercoRegion =
         caseRequestDTO.getRegion();
-    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region actualRegion = null;
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region ccRegion = null;
 
     String postcode = caseRequestDTO.getPostcode();
     String postcodeArea = postcode.substring(0, 2).toUpperCase();
 
     if (postcodeArea.equals("BT")) {
-      log.with(postcode).info("Forcing region to Northern Ireland");
-      actualRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
+      ccRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
 
     } else {
       // Get ready to call AI to find the region for the specified postcode
@@ -1114,7 +1113,8 @@ public class CaseServiceImpl implements CaseService {
           }
 
           if (countryCode != null) {
-            actualRegion =
+            // Use the region as specified by AI
+            ccRegion =
                 uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.valueOf(
                     countryCode);
           }
@@ -1122,12 +1122,23 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    if (actualRegion == null) {
-      log.with(requestedRegion).debug("Falling back to using Serco provided region");
-      actualRegion = requestedRegion;
+    // Decide if we are using the Serco or the CC calculated region
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region regionForNewCase = null;
+    if (ccRegion == null) {
+      log.with(sercoRegion)
+          .debug(
+              "Unable to determine region for new case."
+                  + " Falling back to using Serco provided region");
+      regionForNewCase = sercoRegion;
+    } else if (sercoRegion == ccRegion) {
+      log.with(sercoRegion).with(ccRegion).info("Using Serco provided region for new case");
+      regionForNewCase = sercoRegion;
+    } else {
+      log.with(sercoRegion).with(ccRegion).info("Overriding Serco region for new case");
+      regionForNewCase = ccRegion;
     }
 
-    return actualRegion;
+    return regionForNewCase;
   }
 
   private MultiValueMap<String, String> addEpoch(MultiValueMap<String, String> queryParams) {
