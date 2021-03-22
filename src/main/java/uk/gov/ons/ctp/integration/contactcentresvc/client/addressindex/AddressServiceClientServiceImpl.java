@@ -34,7 +34,7 @@ public class AddressServiceClientServiceImpl {
       log.debug("Delegating address search to AddressIndex service");
     }
 
-    String input = addressQueryRequest.getInput();
+    String input = addressQueryRequest.getInput().trim();
     int offset = addressQueryRequest.getOffset();
     int limit = addressQueryRequest.getLimit();
 
