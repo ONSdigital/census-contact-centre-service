@@ -174,8 +174,9 @@ public class AddressServiceImpl implements AddressService {
     for (AddressDTO address : summarisedAddresses) {
       String addressType = address.getAddressType();
       if (addressType != null && addressType.equals("NA")) {
-        log.with("uprn", address.getUprn()).info("Returning NA address as HH");
+        log.with("uprn", address.getUprn()).info("Reclassifying NA address as HH");
         address.setAddressType(AddressType.HH.name());
+        address.setEstabType(EstabType.HOUSEHOLD.name());
       }
     }
 

@@ -838,6 +838,7 @@ public class CaseServiceImpl implements CaseService {
     if (addressType != null && addressType.equals("NA")) {
       log.with("uprn", address.getUprn()).info("Reclassifying NA to HH address");
       address.setCensusAddressType(AddressType.HH.name());
+      address.setCensusEstabType(EstabType.HOUSEHOLD.name());
     }
 
     // Validate address type
