@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.CTPException;
 import uk.gov.ons.ctp.common.util.StringUtils;
@@ -168,6 +169,15 @@ public class AddressServiceImpl implements AddressService {
             .filter(a -> !isHistorical(a))
             .map(this::convertToSummarised)
             .collect(toList());
+
+    // Allow Serco to handle NA addresses by reclassifying as HH
+    for (AddressDTO address : summarisedAddresses) {
+      String addressType = address.getAddressType();
+      if (addressType != null && addressType.equals("NA")) {
+        log.with("uprn", address.getUprn()).info("Returning NA address as HH");
+        address.setAddressType(AddressType.HH.name());
+      }
+    }
 
     // Complete construction of response objects
     AddressQueryResponseDTO queryResponse = new AddressQueryResponseDTO();
