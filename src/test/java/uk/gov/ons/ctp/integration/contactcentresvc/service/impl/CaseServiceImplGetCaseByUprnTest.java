@@ -134,7 +134,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result);
+    verifyNewCase(result, AddressType.HH.name());
   }
 
   @Test
@@ -148,7 +148,16 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result);
+    verifyNewCase(result, AddressType.HH.name());
+  }
+
+  @Test
+  public void testGetCaseByUprn_withNoCaseDetailsForNAAddress() throws Exception {
+    addressFromAI.setCensusAddressType("NA");
+    mockNothingInTheCache();
+    mockAddressFromAI();
+    CaseDTO result = getCasesByUprn(false);
+    verifyNewCase(result, "HH");
   }
 
   private void verifyCreatedNewCase(String estabType) throws Exception {
@@ -159,7 +168,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result);
+    verifyNewCase(result, AddressType.HH.name());
   }
 
   @Test
@@ -416,7 +425,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyHasReadCachedCases();
   }
 
-  private void verifyNewCase(CaseDTO result) throws Exception {
+  private void verifyNewCase(CaseDTO result, String expectedAddressType) throws Exception {
 
     verifyCallToGetCasesFromRm();
     verifyHasReadCachedCases();
@@ -429,12 +438,13 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     // Verify response
     CachedCase cachedCase = mapperFacade.map(addressFromAI, CachedCase.class);
     cachedCase.setId(result.getId().toString());
-    verifyCaseDTOContent(cachedCase, CaseType.HH.name(), false, result);
+    verifyCaseDTOContent(cachedCase, CaseType.HH.name(), false, result, expectedAddressType);
 
     // Verify the NewAddressEvent
     CollectionCaseNewAddress newAddress =
         mapperFacade.map(addressFromAI, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
+    newAddress.getAddress().setAddressType(expectedAddressType); // PMB
     String expectedEstabType = EstabType.forCode(addressFromAI.getCensusEstabType()).getCode();
     verifyNewAddressEventSent(addressFromAI.getCensusAddressType(), expectedEstabType, newAddress);
   }
@@ -460,7 +470,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
       CachedCase cachedCase,
       String expectedCaseType,
       boolean isSecureEstablishment,
-      CaseDTO actualCaseDto) {
+      CaseDTO actualCaseDto,
+      String expectedAddressType) {
     CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
     expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
     expectedNewCaseResult.setCaseType(expectedCaseType);
@@ -468,6 +479,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
     expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
     expectedNewCaseResult.setCaseEvents(Collections.emptyList());
+    expectedNewCaseResult.setAddressType(expectedAddressType);
     assertEquals(expectedNewCaseResult, actualCaseDto);
   }
 
