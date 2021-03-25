@@ -921,22 +921,28 @@ public class CaseServiceImpl implements CaseService {
 
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-    caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
-
-    return caseServiceResponse;
+    return adaptCaseDTO(caseServiceResponse);
   }
 
   private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
     List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
-
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+      adaptCaseDTO(caseServiceResponse);
+    }
+    return caseServiceListResponse;
+  }
+
+  private CaseDTO adaptCaseDTO(CaseDTO caseServiceResponse) {
+    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    if (null == caseServiceResponse.getEstabDescription()) {
+      String caseType = caseServiceResponse.getCaseType();
+      caseServiceResponse.setEstabType(
+          CaseType.HH.name().equals(caseType) ? EstabType.HOUSEHOLD : EstabType.OTHER);
+    } else {
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
     }
-
-    return caseServiceListResponse;
+    return caseServiceResponse;
   }
 
   private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {

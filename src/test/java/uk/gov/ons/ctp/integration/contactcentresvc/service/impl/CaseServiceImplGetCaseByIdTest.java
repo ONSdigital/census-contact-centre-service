@@ -90,6 +90,30 @@ public class CaseServiceImplGetCaseByIdTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldAdaptNullEstabTypeToHousehold() throws Exception {
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setEstabType(null);
+    caseFromCaseService.setCaseType(CaseType.HH.name());
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(true);
+    CaseDTO results = target.getCaseById(UUID_0, requestParams);
+    assertEquals(EstabType.HOUSEHOLD, results.getEstabType());
+  }
+
+  @Test
+  public void shouldAdaptNullEstabTypeToOther() throws Exception {
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setCaseType(CaseType.CE.name());
+    caseFromCaseService.setEstabType(null);
+    Mockito.when(caseServiceClient.getCaseById(eq(UUID_0), any())).thenReturn(caseFromCaseService);
+
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(true);
+    CaseDTO results = target.getCaseById(UUID_0, requestParams);
+    assertEquals(EstabType.OTHER, results.getEstabType());
+  }
+
+  @Test
   public void shouldGetSecureEstablishmentByCaseId() throws CTPException {
     CaseContainerDTO caseFromCaseService = casesFromCaseService().get(1);
     Mockito.when(caseServiceClient.getCaseById(eq(UUID_1), any())).thenReturn(caseFromCaseService);

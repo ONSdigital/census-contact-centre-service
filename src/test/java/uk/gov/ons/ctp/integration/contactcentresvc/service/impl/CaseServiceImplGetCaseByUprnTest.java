@@ -94,6 +94,24 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldHandleNullEstabTypeFromRmAndConvertToHH() throws Exception {
+    casesFromRm.get(0).setCaseType(CaseType.HH.name());
+    casesFromRm.get(0).setEstabType(null);
+    mockCasesFromRm();
+    CaseDTO result = getCasesByUprn(true);
+    assertEquals(EstabType.HOUSEHOLD, result.getEstabType());
+  }
+
+  @Test
+  public void shouldHandleNullEstabTypeFromRmAndConvertToOTHER() throws Exception {
+    casesFromRm.get(0).setCaseType(CaseType.CE.name());
+    casesFromRm.get(0).setEstabType(null);
+    mockCasesFromRm();
+    CaseDTO result = getCasesByUprn(true);
+    assertEquals(EstabType.OTHER, result.getEstabType());
+  }
+
+  @Test
   public void testGetCaseByUprn_withCaseDetailsForCaseTypeCE() throws Exception {
     casesFromRm.get(1).setCaseType(CaseType.CE.name());
     setLastUpdated(casesFromRm.get(0), 2020, 5, 14);
