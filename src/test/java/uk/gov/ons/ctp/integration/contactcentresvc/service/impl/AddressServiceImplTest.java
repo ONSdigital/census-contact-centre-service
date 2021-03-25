@@ -187,7 +187,7 @@ public class AddressServiceImplTest {
     assertEquals("E", addresses.get(0).getRegion());
     assertEquals("HH", addresses.get(0).getAddressType());
     assertEquals("HOUSEHOLD", addresses.get(0).getEstabType());
-    assertEquals("HOUSEHOLD", addresses.get(0).getEstabDescription());
+    assertEquals("Household", addresses.get(0).getEstabDescription());
 
     // Nag addresses used when there is no Paf address
     assertThat(addresses.get(1).getFormattedAddress(), startsWith("Unit 14n,"));
