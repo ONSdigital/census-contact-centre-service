@@ -929,22 +929,28 @@ public class CaseServiceImpl implements CaseService {
 
   private CaseDTO mapCaseContainerDTO(CaseContainerDTO caseDetails) {
     CaseDTO caseServiceResponse = caseDTOMapper.map(caseDetails, CaseDTO.class);
-    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
-    caseServiceResponse.setEstabType(EstabType.forCode(caseServiceResponse.getEstabDescription()));
-
-    return caseServiceResponse;
+    return adaptCaseDTO(caseServiceResponse);
   }
 
   private List<CaseDTO> mapCaseContainerDTOList(List<CaseContainerDTO> casesToReturn) {
     List<CaseDTO> caseServiceListResponse = caseDTOMapper.mapAsList(casesToReturn, CaseDTO.class);
-
     for (CaseDTO caseServiceResponse : caseServiceListResponse) {
-      caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+      adaptCaseDTO(caseServiceResponse);
+    }
+    return caseServiceListResponse;
+  }
+
+  private CaseDTO adaptCaseDTO(CaseDTO caseServiceResponse) {
+    caseServiceResponse.setAllowedDeliveryChannels(ALL_DELIVERY_CHANNELS);
+    if (null == caseServiceResponse.getEstabDescription()) {
+      String caseType = caseServiceResponse.getCaseType();
+      caseServiceResponse.setEstabType(
+          CaseType.HH.name().equals(caseType) ? EstabType.HOUSEHOLD : EstabType.OTHER);
+    } else {
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
     }
-
-    return caseServiceListResponse;
+    return caseServiceResponse;
   }
 
   private CaseDTO getLatestCaseById(UUID caseId, Boolean getCaseEvents) throws CTPException {
@@ -1077,16 +1083,15 @@ public class CaseServiceImpl implements CaseService {
 
   private uk.gov.ons.ctp.integration.contactcentresvc.representation.Region determineActualRegion(
       NewCaseRequestDTO caseRequestDTO) throws CTPException {
-    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region requestedRegion =
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region sercoRegion =
         caseRequestDTO.getRegion();
-    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region actualRegion = null;
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region ccRegion = null;
 
     String postcode = caseRequestDTO.getPostcode();
     String postcodeArea = postcode.substring(0, 2).toUpperCase();
 
     if (postcodeArea.equals("BT")) {
-      log.with(postcode).info("Forcing region to Northern Ireland");
-      actualRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
+      ccRegion = uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.N;
 
     } else {
       // Get ready to call AI to find the region for the specified postcode
@@ -1106,7 +1111,7 @@ public class CaseServiceImpl implements CaseService {
       } catch (ResponseStatusException e) {
         // Something went wrong calling AI.
         // Never mind, we'll still be able to use the Serco supplied region
-        log.with(postcode).warn("Failed to call AI to resolve region");
+        log.with("postcode", postcode).warn("Failed to call AI to resolve region");
       }
 
       if (addressIndexResponse != null) {
@@ -1116,13 +1121,14 @@ public class CaseServiceImpl implements CaseService {
           // Found an address. Fail if Scottish otherwise use its region
           String countryCode = addresses.get(0).getCensus().getCountryCode();
           if (countryCode != null && countryCode.equals("S")) {
-            log.with(postcode).info("Rejecting as it's a Scottish address");
+            log.with("postcode", postcode).info("Rejecting as it's a Scottish address");
             throw new CTPException(
                 Fault.BAD_REQUEST, "Scottish addresses are not valid for Census");
           }
 
           if (countryCode != null) {
-            actualRegion =
+            // Use the region as specified by AI
+            ccRegion =
                 uk.gov.ons.ctp.integration.contactcentresvc.representation.Region.valueOf(
                     countryCode);
           }
@@ -1130,12 +1136,30 @@ public class CaseServiceImpl implements CaseService {
       }
     }
 
-    if (actualRegion == null) {
-      log.with(requestedRegion).debug("Falling back to using Serco provided region");
-      actualRegion = requestedRegion;
+    // Decide if we are using the Serco or the CC calculated region
+    uk.gov.ons.ctp.integration.contactcentresvc.representation.Region regionForNewCase = null;
+    if (ccRegion == null) {
+      // CC failed to find the region
+      log.with("sercoRegion", sercoRegion)
+          .info(
+              "Unable to determine region for new case."
+                  + " Falling back to using Serco provided region");
+      regionForNewCase = sercoRegion;
+    } else if (sercoRegion == ccRegion) {
+      // CC agrees with Serco supplied region
+      log.with("sercoRegion", sercoRegion)
+          .with("ccRegion", ccRegion)
+          .info("Using Serco provided region for new case");
+      regionForNewCase = sercoRegion;
+    } else {
+      // CC and Serco differ, so override Serco region
+      log.with("sercoRegion", sercoRegion)
+          .with("ccRegion", ccRegion)
+          .info("Overriding Serco region with cc region for new case");
+      regionForNewCase = ccRegion;
     }
 
-    return actualRegion;
+    return regionForNewCase;
   }
 
   private MultiValueMap<String, String> addEpoch(MultiValueMap<String, String> queryParams) {
