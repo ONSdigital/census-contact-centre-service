@@ -11,13 +11,15 @@ import static uk.gov.ons.ctp.common.utility.MockMvcControllerAdviceHelper.mockAd
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -30,6 +32,7 @@ import uk.gov.ons.ctp.integration.contactcentresvc.representation.AddressQueryRe
 import uk.gov.ons.ctp.integration.contactcentresvc.service.AddressService;
 
 /** Contact Centre Data endpoint Unit tests */
+@RunWith(MockitoJUnitRunner.class)
 public final class AddressEndpointTest {
 
   private static final String DATA_VERSION = "39";
@@ -60,8 +63,6 @@ public final class AddressEndpointTest {
    */
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     this.mockMvc =
         MockMvcBuilders.standaloneSetup(addressEndpoint)
             .setHandlerExceptionResolvers(mockAdviceFor(RestExceptionHandler.class))
@@ -72,6 +73,21 @@ public final class AddressEndpointTest {
   @Test
   public void validateAddressQueryResponseJson() throws Exception {
     assertOk("/addresses?input=Parks");
+  }
+
+  @Test
+  public void validateAddressQueryInputMaxLength() throws Exception {
+    String input = StringUtils.repeat('x', 250);
+    assertOk("/addresses?input=" + input);
+  }
+
+  @Test
+  public void rejectAddressQueryInputTooLong() throws Exception {
+    String input = StringUtils.repeat('x', 251);
+    mockMvc
+        .perform(get("/addresses?input=" + input))
+        .andExpect(content().string(containsString("field 'input'")))
+        .andExpect(content().string(containsString("must be between 0 and 250")));
   }
 
   @Test

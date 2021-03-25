@@ -94,6 +94,32 @@ public class AddressServiceClientServiceImplTest {
   }
 
   @Test
+  public void shouldTrimInputBeforeSearch() throws Exception {
+    String input = "Susanne";
+    String paddedInput = "     " + input + "       ";
+
+    // Build results to be returned from search
+    AddressIndexSearchResultsDTO resultsFromAddressIndex =
+        FixtureHelper.loadClassFixtures(AddressIndexSearchResultsDTO[].class).get(0);
+    Mockito.when(
+            restClient.getResource(
+                eq(ADDRESS_QUERY_PATH),
+                eq(AddressIndexSearchResultsDTO.class),
+                any(),
+                any(),
+                any()))
+        .thenReturn(resultsFromAddressIndex);
+
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create(paddedInput, 0, 100);
+    AddressIndexSearchResultsDTO results = addressClientService.searchByAddress(request);
+    assertEquals(4, results.getResponse().getAddresses().size());
+
+    Mockito.verify(restClient).getResource(any(), any(), any(), queryParamsCaptor.capture(), any());
+    MultiValueMap<String, String> queryParams = queryParamsCaptor.getValue();
+    assertEquals("[" + input + "]", queryParams.get("input").toString());
+  }
+
+  @Test
   public void testAddressQueryProcessingNoEpoch() throws Exception {
     addressIndexSettings.setEpoch("");
     // Build results to be returned from search
