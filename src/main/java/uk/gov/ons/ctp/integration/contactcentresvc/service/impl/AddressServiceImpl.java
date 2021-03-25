@@ -177,6 +177,7 @@ public class AddressServiceImpl implements AddressService {
         log.with("uprn", address.getUprn()).info("Reclassifying NA address as HH");
         address.setAddressType(AddressType.HH.name());
         address.setEstabType(EstabType.HOUSEHOLD.name());
+        address.setEstabDescription("Household");
       }
     }
 

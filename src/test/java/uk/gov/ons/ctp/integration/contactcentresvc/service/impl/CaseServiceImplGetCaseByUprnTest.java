@@ -134,7 +134,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name());
+    verifyNewCase(result, AddressType.HH.name(), "Household");
   }
 
   @Test
@@ -148,27 +148,28 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name());
+    verifyNewCase(result, AddressType.HH.name(), "Household");
   }
 
   @Test
   public void testGetCaseByUprn_withNoCaseDetailsForNAAddress() throws Exception {
     addressFromAI.setCensusAddressType("NA");
+    addressFromAI.setCensusEstabType("X");
     mockNothingInTheCache();
     mockAddressFromAI();
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, "HH");
+    verifyNewCase(result, "HH", "HOUSEHOLD");
   }
 
   private void verifyCreatedNewCase(String estabType) throws Exception {
-    addressFromAI.setCensusEstabType("marina");
+    addressFromAI.setCensusEstabType(estabType);
 
     mockNothingInRm();
     mockNothingInTheCache();
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name());
+    verifyNewCase(result, AddressType.HH.name(), estabType);
   }
 
   @Test
@@ -425,7 +426,8 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyHasReadCachedCases();
   }
 
-  private void verifyNewCase(CaseDTO result, String expectedAddressType) throws Exception {
+  private void verifyNewCase(CaseDTO result, String expectedAddressType, String expectedEstabType)
+      throws Exception {
 
     verifyCallToGetCasesFromRm();
     verifyHasReadCachedCases();
@@ -433,24 +435,28 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
     // Verify content of case written to Firestore
     CachedCase capturedCase = verifyHasWrittenCachedCase();
-    verifyCachedCaseContent(result.getId(), CaseType.HH, capturedCase);
+    verifyCachedCaseContent(
+        result.getId(), CaseType.HH, expectedAddressType, expectedEstabType, capturedCase);
 
     // Verify response
     CachedCase cachedCase = mapperFacade.map(addressFromAI, CachedCase.class);
     cachedCase.setId(result.getId().toString());
-    verifyCaseDTOContent(cachedCase, CaseType.HH.name(), false, result, expectedAddressType);
+    verifyCaseDTOContent(
+        cachedCase, CaseType.HH.name(), false, result, expectedAddressType, expectedEstabType);
 
     // Verify the NewAddressEvent
     CollectionCaseNewAddress newAddress =
         mapperFacade.map(addressFromAI, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
-    newAddress.getAddress().setAddressType(expectedAddressType); // PMB
-    String expectedEstabType = EstabType.forCode(addressFromAI.getCensusEstabType()).getCode();
     verifyNewAddressEventSent(addressFromAI.getCensusAddressType(), expectedEstabType, newAddress);
   }
 
   private void verifyCachedCaseContent(
-      UUID expectedId, CaseType expectedCaseType, CachedCase expectedCase) {
+      UUID expectedId,
+      CaseType expectedCaseType,
+      String expectedAddressType,
+      String expectedEstabType,
+      CachedCase expectedCase) {
     assertEquals(expectedId.toString(), expectedCase.getId());
     assertEquals(addressFromAI.getUprn(), expectedCase.getUprn());
     assertEquals(addressFromAI.getAddressLine1(), expectedCase.getAddressLine1());
@@ -458,9 +464,9 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     assertEquals(addressFromAI.getAddressLine3(), expectedCase.getAddressLine3());
     assertEquals(addressFromAI.getTownName(), expectedCase.getTownName());
     assertEquals(addressFromAI.getPostcode(), expectedCase.getPostcode());
-    assertEquals(addressFromAI.getCensusAddressType(), expectedCase.getAddressType());
+    assertEquals(expectedAddressType, expectedCase.getAddressType());
     assertEquals(expectedCaseType, expectedCase.getCaseType());
-    assertEquals(addressFromAI.getCensusEstabType(), expectedCase.getEstabType());
+    assertEquals(expectedEstabType, expectedCase.getEstabType());
     assertEquals(addressFromAI.getCountryCode(), expectedCase.getRegion());
     assertEquals(addressFromAI.getOrganisationName(), expectedCase.getCeOrgName());
     assertEquals(0, expectedCase.getCaseEvents().size());
@@ -471,15 +477,16 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
       String expectedCaseType,
       boolean isSecureEstablishment,
       CaseDTO actualCaseDto,
-      String expectedAddressType) {
+      String expectedAddressType,
+      String expectedEstabType) {
     CaseDTO expectedNewCaseResult = mapperFacade.map(cachedCase, CaseDTO.class);
     expectedNewCaseResult.setCreatedDateTime(actualCaseDto.getCreatedDateTime());
     expectedNewCaseResult.setCaseType(expectedCaseType);
-    expectedNewCaseResult.setEstabType(EstabType.forCode(cachedCase.getEstabType()));
     expectedNewCaseResult.setSecureEstablishment(isSecureEstablishment);
     expectedNewCaseResult.setAllowedDeliveryChannels(Arrays.asList(DeliveryChannel.values()));
     expectedNewCaseResult.setCaseEvents(Collections.emptyList());
     expectedNewCaseResult.setAddressType(expectedAddressType);
+    expectedNewCaseResult.setEstabType(EstabType.forCode(expectedEstabType));
     assertEquals(expectedNewCaseResult, actualCaseDto);
   }
 
@@ -498,7 +505,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
       newAddress.getAddress().setAddressLevel("U");
     }
     newAddress.getAddress().setAddressType(expectedAddressType);
-    newAddress.getAddress().setEstabType(expectedEstabTypeCode);
+    newAddress.getAddress().setEstabType(EstabType.forCode(expectedEstabTypeCode).getCode());
     NewAddress payload = new NewAddress();
     payload.setCollectionCase(newAddress);
     NewAddress payloadSent = verifyEventSent(EventType.NEW_ADDRESS_REPORTED, NewAddress.class);
