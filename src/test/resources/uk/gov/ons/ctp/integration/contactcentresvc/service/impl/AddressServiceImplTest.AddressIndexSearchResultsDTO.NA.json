@@ -12,8 +12,8 @@
         "parentUprn": "0",
         "census": {
           "countryCode": "E",
-          "addressType": "HH",
-          "estabType": "Household"
+          "addressType": "NA",
+          "estabType": "X-NA-X"
         },
         "formattedAddress": "Unit 11f, Michael Browning Way, Exeter, EX2 8DD",
         "formattedAddressNag": "Unit 11n, Michael Browning Way, Exeter, EX2 8DD",

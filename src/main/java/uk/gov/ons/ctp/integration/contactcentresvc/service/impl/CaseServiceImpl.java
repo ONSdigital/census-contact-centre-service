@@ -833,6 +833,14 @@ public class CaseServiceImpl implements CaseService {
       throw new CTPException(Fault.VALIDATION_FAILED, "Scottish address found for UPRN: " + uprn);
     }
 
+    // Allow Serco to handle NA addresses by reclassifying as HH
+    String addressType = address.getCensusAddressType();
+    if (addressType != null && addressType.equals("NA")) {
+      log.with("uprn", address.getUprn()).info("Reclassifying NA to HH address");
+      address.setCensusAddressType(AddressType.HH.name());
+      address.setCensusEstabType(EstabType.HOUSEHOLD.name());
+    }
+
     // Validate address type
     try {
       AddressType.valueOf(address.getCensusAddressType());

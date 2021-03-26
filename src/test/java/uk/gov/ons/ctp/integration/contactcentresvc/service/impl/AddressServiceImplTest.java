@@ -55,6 +55,17 @@ public class AddressServiceImplTest {
     verifyAddresses(results);
   }
 
+  @Test
+  public void testAddressQuery_ConvertNAtoHH() throws Exception {
+    // Load data which includes an address reporting as NA. This should be 'corrected' to 'HH'.
+    mockSearchByAddress("NA", 4);
+
+    // Run the request and verify results
+    AddressQueryRequestDTO request = AddressQueryRequestDTO.create("Michael", 0, 100);
+    AddressQueryResponseDTO results = addressService.addressQuery(request);
+    verifyAddresses(results);
+  }
+
   private boolean hasAddress(String addr, List<AddressDTO> addresses) {
     return addresses.stream().anyMatch(a -> a.getFormattedAddress().contains(addr));
   }
@@ -176,7 +187,7 @@ public class AddressServiceImplTest {
     assertEquals("E", addresses.get(0).getRegion());
     assertEquals("HH", addresses.get(0).getAddressType());
     assertEquals("HOUSEHOLD", addresses.get(0).getEstabType());
-    assertEquals("HOUSEHOLD", addresses.get(0).getEstabDescription());
+    assertEquals("Household", addresses.get(0).getEstabDescription());
 
     // Nag addresses used when there is no Paf address
     assertThat(addresses.get(1).getFormattedAddress(), startsWith("Unit 14n,"));
