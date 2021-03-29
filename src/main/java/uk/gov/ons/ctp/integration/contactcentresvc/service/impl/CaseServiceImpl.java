@@ -836,7 +836,7 @@ public class CaseServiceImpl implements CaseService {
     // Allow Serco to handle NA addresses by reclassifying as HH
     String addressType = address.getCensusAddressType();
     if (addressType != null && addressType.equals("NA")) {
-      log.with("uprn", address.getUprn()).info("Reclassifying NA to HH address");
+      log.with("uprn", address.getUprn()).debug("Reclassifying NA to HH address");
       address.setCensusAddressType(AddressType.HH.name());
       address.setCensusEstabType(EstabType.HOUSEHOLD.name());
     }
@@ -946,6 +946,9 @@ public class CaseServiceImpl implements CaseService {
       String caseType = caseServiceResponse.getCaseType();
       caseServiceResponse.setEstabType(
           CaseType.HH.name().equals(caseType) ? EstabType.HOUSEHOLD : EstabType.OTHER);
+      log.with("caseType", caseType)
+          .with("estabType", caseServiceResponse.getEstabType())
+          .info("Case has a null estabDescription so estabType is based on the caseType");
     } else {
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
