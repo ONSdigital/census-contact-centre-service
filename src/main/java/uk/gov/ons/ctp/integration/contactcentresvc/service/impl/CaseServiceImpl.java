@@ -946,6 +946,9 @@ public class CaseServiceImpl implements CaseService {
       String caseType = caseServiceResponse.getCaseType();
       caseServiceResponse.setEstabType(
           CaseType.HH.name().equals(caseType) ? EstabType.HOUSEHOLD : EstabType.OTHER);
+      log.with("caseType", caseType)
+          .with("estabType", caseServiceResponse.getEstabType())
+          .info("Case has a null estabDescription so estabType is based on the caseType");
     } else {
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
