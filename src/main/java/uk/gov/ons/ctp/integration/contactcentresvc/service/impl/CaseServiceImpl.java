@@ -341,6 +341,7 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
 
     if (modifyRequestDTO.getEstabType() == EstabType.OTHER
+        && caseDetails.getEstabType() != null
         && EstabType.forCode(caseDetails.getEstabType()) != EstabType.OTHER) {
       throw new CTPException(Fault.BAD_REQUEST, ESTAB_TYPE_OTHER_ERROR_MSG);
     }
