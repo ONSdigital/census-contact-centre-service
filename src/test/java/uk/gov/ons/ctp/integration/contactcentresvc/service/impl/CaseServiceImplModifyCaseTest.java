@@ -154,6 +154,30 @@ public class CaseServiceImplModifyCaseTest extends CaseServiceImplTestBase {
   }
 
   @Test
+  public void shouldModifyNullEstabTypeToOther() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType(null);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.OTHER);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.OTHER, response.getEstabType());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
+  public void shouldModifyNullEstabTypeToHousehold() throws Exception {
+    householdEstabTypeTypeCaseContainerDTO.setEstabType(null);
+    when(caseServiceClient.getCaseById(eq(UUID_0), eq(true)))
+        .thenReturn(householdEstabTypeTypeCaseContainerDTO);
+    requestDTO.setEstabType(EstabType.HOUSEHOLD);
+    CaseDTO response = target.modifyCase(requestDTO);
+    assertNotNull(response);
+    Assert.assertEquals(EstabType.HOUSEHOLD, response.getEstabType());
+    verifyRmCaseCall(1);
+  }
+
+  @Test
   public void shouldAcceptCompatibleCaseTypeAndEstabType() throws Exception {
     mockRmHasCase();
     verifyAcceptCompatible(EstabType.APPROVED_PREMISES, CaseType.CE);

@@ -341,6 +341,7 @@ public class CaseServiceImpl implements CaseService {
     CaseContainerDTO caseDetails = getCaseFromRmOrCache(originalCaseId, true);
 
     if (modifyRequestDTO.getEstabType() == EstabType.OTHER
+        && caseDetails.getEstabType() != null
         && EstabType.forCode(caseDetails.getEstabType()) != EstabType.OTHER) {
       throw new CTPException(Fault.BAD_REQUEST, ESTAB_TYPE_OTHER_ERROR_MSG);
     }
@@ -946,6 +947,9 @@ public class CaseServiceImpl implements CaseService {
       String caseType = caseServiceResponse.getCaseType();
       caseServiceResponse.setEstabType(
           CaseType.HH.name().equals(caseType) ? EstabType.HOUSEHOLD : EstabType.OTHER);
+      log.with("caseType", caseType)
+          .with("estabType", caseServiceResponse.getEstabType())
+          .info("Case has a null estabDescription so estabType is based on the caseType");
     } else {
       caseServiceResponse.setEstabType(
           EstabType.forCode(caseServiceResponse.getEstabDescription()));
