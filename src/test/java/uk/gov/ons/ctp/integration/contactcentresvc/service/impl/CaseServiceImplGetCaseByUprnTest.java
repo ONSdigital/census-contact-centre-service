@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
@@ -152,7 +151,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name(), "Household");
+    verifyNewCase(result, AddressType.HH.name(), "Household", "U");
   }
 
   @Test
@@ -166,7 +165,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name(), "Household");
+    verifyNewCase(result, AddressType.HH.name(), "Household", "U");
   }
 
   @Test
@@ -176,7 +175,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockNothingInTheCache();
     mockAddressFromAI();
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, "HH", "HOUSEHOLD");
+    verifyNewCase(result, "HH", "HOUSEHOLD", "U");
   }
 
   private void verifyCreatedNewCase(String estabType) throws Exception {
@@ -187,7 +186,7 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     mockAddressFromAI();
 
     CaseDTO result = getCasesByUprn(false);
-    verifyNewCase(result, AddressType.HH.name(), estabType);
+    verifyNewCase(result, AddressType.HH.name(), estabType, "U");
   }
 
   @Test
@@ -197,12 +196,56 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_CE() throws Exception {
-    verifyCreatedNewCase("CARE HOME");
+    addressFromAI.setCensusAddressType(AddressType.CE.name());
+
+    String estabType = "CARE HOME";
+    addressFromAI.setCensusEstabType(estabType);
+
+    mockNothingInRm();
+    mockNothingInTheCache();
+    mockAddressFromAI();
+
+    CaseDTO result = getCasesByUprn(false);
+    verifyNewCase(result, AddressType.CE.name(), estabType, "E");
   }
 
   @Test
   public void testGetCaseByUprn_caseSvcNotFoundResponse_noCachedCase_NA() throws Exception {
     verifyCreatedNewCase("NA");
+  }
+
+  // CR-1823 - when we have AIMS mismatching addressType. we need addressLevel to be based on
+  // CaseType, not EstabType.
+  // Testing: mismatching estabType CE with HH addressType (case type)
+  @Test
+  public void shouldUseCaseTypeToDetermineAddressLevel_U() throws Exception {
+    String estabType = EstabType.STAFF_ACCOMMODATION.getCode();
+    addressFromAI.setCensusEstabType(estabType);
+    assertEquals("HH", addressFromAI.getCensusAddressType());
+
+    mockNothingInRm();
+    mockNothingInTheCache();
+    mockAddressFromAI();
+
+    CaseDTO result = getCasesByUprn(false);
+    verifyNewCase(result, AddressType.HH.name(), estabType, "U");
+  }
+
+  // CR-1823 - when we have AIMS mismatching addressType. we need addressLevel to be based on
+  // CaseType, not EstabType.
+  // Testing: mismatching estabType household with CE addressType (case type)
+  @Test
+  public void shouldUseCaseTypeToDetermineAddressLevel_E() throws Exception {
+    String addressType = AddressType.CE.name();
+    addressFromAI.setCensusAddressType(addressType);
+    assertEquals(EstabType.HOUSEHOLD, EstabType.forCode(addressFromAI.getCensusEstabType()));
+
+    mockNothingInRm();
+    mockNothingInTheCache();
+    mockAddressFromAI();
+
+    CaseDTO result = getCasesByUprn(false);
+    verifyNewCase(result, addressType, addressFromAI.getCensusEstabType(), "E");
   }
 
   @Test(expected = CTPException.class)
@@ -444,7 +487,11 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
     verifyHasReadCachedCases();
   }
 
-  private void verifyNewCase(CaseDTO result, String expectedAddressType, String expectedEstabType)
+  private void verifyNewCase(
+      CaseDTO result,
+      String expectedAddressType,
+      String expectedEstabType,
+      String expectedAddressLevel)
       throws Exception {
 
     verifyCallToGetCasesFromRm();
@@ -453,20 +500,24 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
 
     // Verify content of case written to Firestore
     CachedCase capturedCase = verifyHasWrittenCachedCase();
+
+    CaseType expectedCaseType = CaseType.valueOf(expectedAddressType);
+
     verifyCachedCaseContent(
-        result.getId(), CaseType.HH, expectedAddressType, expectedEstabType, capturedCase);
+        result.getId(), expectedCaseType, expectedAddressType, expectedEstabType, capturedCase);
 
     // Verify response
     CachedCase cachedCase = mapperFacade.map(addressFromAI, CachedCase.class);
     cachedCase.setId(result.getId().toString());
     verifyCaseDTOContent(
-        cachedCase, CaseType.HH.name(), false, result, expectedAddressType, expectedEstabType);
+        cachedCase, expectedCaseType.name(), false, result, expectedAddressType, expectedEstabType);
 
     // Verify the NewAddressEvent
     CollectionCaseNewAddress newAddress =
         mapperFacade.map(addressFromAI, CollectionCaseNewAddress.class);
     newAddress.setId(cachedCase.getId());
-    verifyNewAddressEventSent(addressFromAI.getCensusAddressType(), expectedEstabType, newAddress);
+    verifyNewAddressEventSent(
+        addressFromAI.getCensusAddressType(), expectedEstabType, expectedAddressLevel, newAddress);
   }
 
   private void verifyCachedCaseContent(
@@ -511,17 +562,13 @@ public class CaseServiceImplGetCaseByUprnTest extends CaseServiceImplTestBase {
   private void verifyNewAddressEventSent(
       String expectedAddressType,
       String expectedEstabTypeCode,
+      String expectedAddressLevel,
       CollectionCaseNewAddress newAddress) {
     newAddress.setCaseType(expectedAddressType);
     newAddress.setSurvey(SURVEY_NAME);
     newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
     newAddress.setCeExpectedCapacity(0);
-    Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
-    if (addressType.isPresent() && addressType.get() == AddressType.CE) {
-      newAddress.getAddress().setAddressLevel("E");
-    } else {
-      newAddress.getAddress().setAddressLevel("U");
-    }
+    newAddress.getAddress().setAddressLevel(expectedAddressLevel);
     newAddress.getAddress().setAddressType(expectedAddressType);
     newAddress.getAddress().setEstabType(EstabType.forCode(expectedEstabTypeCode).getCode());
     NewAddress payload = new NewAddress();

@@ -520,13 +520,7 @@ public class CaseServiceImpl implements CaseService {
     EstabType aimsEstabType = EstabType.forCode(addrDetails.getEstabType());
     addrDetails.setEstabType(aimsEstabType.getCode());
 
-    Optional<AddressType> addressTypeMaybe = aimsEstabType.getAddressType();
-
-    AddressType addressType =
-        addressTypeMaybe.isPresent()
-            ? addressTypeMaybe.get()
-            : AddressType.valueOf(address.getCensusAddressType());
-    if (addressType == AddressType.HH || addressType == AddressType.SPG) {
+    if (caseType == CaseType.HH || caseType == CaseType.SPG) {
       addrDetails.setAddressLevel(AddressLevel.U.name());
     } else {
       addrDetails.setAddressLevel(AddressLevel.E.name());
