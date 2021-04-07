@@ -9,7 +9,6 @@ import static org.mockito.Mockito.times;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +19,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.ons.ctp.common.FixtureHelper;
-import uk.gov.ons.ctp.common.domain.AddressType;
 import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.error.CTPException;
@@ -75,7 +73,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     NewCaseRequestDTO caseRequestDTO =
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(0);
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.E, true);
   }
 
   @Test
@@ -87,7 +85,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(1);
 
     // Address type will be that for EstabType.Other
-    doTestNewCaseForNewAddress(caseRequestDTO, "HH", Region.E, false);
+    doTestNewCaseForNewAddress(caseRequestDTO, "HH", "U", Region.E, false);
   }
 
   @Test
@@ -97,7 +95,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
         FixtureHelper.loadClassFixtures(NewCaseRequestDTO[].class).get(2);
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, null, Region.E, false);
+      doTestNewCaseForNewAddress(caseRequestDTO, null, null, null, Region.E, false);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -120,7 +118,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     setupMockAIPostcodeQuery("E");
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, null, Region.E, false);
+      doTestNewCaseForNewAddress(caseRequestDTO, null, null, null, Region.E, false);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -140,7 +138,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     setupMockAIPostcodeQuery("E");
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, null, Region.E, false);
+      doTestNewCaseForNewAddress(caseRequestDTO, null, null, null, Region.E, false);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -159,7 +157,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
 
     setupMockAIPostcodeQuery("E");
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "CE", Region.E, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "CE", "E", Region.E, true);
   }
 
   @Test
@@ -173,7 +171,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     caseRequestDTO.setRegion(Region.N);
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, "CE", Region.E, true);
+      doTestNewCaseForNewAddress(caseRequestDTO, "CE", "E", Region.E, true);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -201,7 +199,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     rejectCrownDependencyPostcodes("IM8 6AB", "Isle of Man addresses are not valid for Census");
   }
 
-  public void rejectCrownDependencyPostcodes(String postcode, String expectedErrorMessage)
+  private void rejectCrownDependencyPostcodes(String postcode, String expectedErrorMessage)
       throws Exception {
 
     // Test that a request for a new case where the caseType is CE and the region is N will be
@@ -211,7 +209,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     caseRequestDTO.setPostcode(postcode);
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, "CE", Region.E, true);
+      doTestNewCaseForNewAddress(caseRequestDTO, "CE", "E", Region.E, true);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -227,7 +225,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     caseRequestDTO.setPostcode("BT1 1AA"); // NI postcode
     caseRequestDTO.setRegion(Region.E); // Will get blatted as postcode in in Northern Ireland
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.N, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.N, true);
   }
 
   @Test
@@ -239,7 +237,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
 
     setupMockAIPostcodeQuery("E");
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.E, true);
   }
 
   @Test
@@ -251,7 +249,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
 
     setupMockAIPostcodeQuery("E");
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.E, true);
   }
 
   @Test
@@ -266,7 +264,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     setupMockAIPostcodeQuery("S");
 
     try {
-      doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
+      doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.E, true);
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.BAD_REQUEST, e.getFault());
@@ -286,7 +284,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     setupMockAIPostcodeQuery(null);
 
     // Case will have used the Serco region
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.E, true);
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.E, true);
   }
 
   @Test
@@ -310,7 +308,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
                 any()))
         .thenReturn(resultsFromAddressIndex);
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.W, true); // Serco region wins
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.W, true); // Serco region wins
   }
 
   @Test
@@ -330,12 +328,14 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
                 any()))
         .thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", Region.W, true); // Serco region wins
+    doTestNewCaseForNewAddress(caseRequestDTO, "SPG", "U", Region.W, true); // Serco region wins
   }
 
   private void doTestNewCaseForNewAddress(
       NewCaseRequestDTO caseRequestDTO,
       String expectedAddressType,
+      CaseType expectedCaseType,
+      String expectedAddressLevel,
       Region expectedRegion,
       boolean expectedIsSecureEstablishment)
       throws CTPException {
@@ -351,8 +351,7 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     CachedCase expectedCase = mapperFacade.map(caseRequestDTO, CachedCase.class);
     expectedCase.setId(storedCase.getId());
     expectedCase.setCreatedDateTime(storedCase.getCreatedDateTime());
-    String caseTypeName = caseRequestDTO.getCaseType().name();
-    expectedCase.setAddressType(expectedAddressType);
+    expectedCase.setAddressType(expectedCaseType.name());
     expectedCase.setRegion(expectedRegion.name());
     expectedCase.setEstabType(caseRequestDTO.getEstabType().getCode());
     assertEquals(expectedCase, storedCase);
@@ -363,14 +362,32 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     expectedAddress.setAddress(mapperFacade.map(caseRequestDTO, Address.class));
     expectedAddress.getAddress().setRegion(expectedRegion.name());
     expectedAddress.setId(storedCase.getId());
-    verifyNewAddressEventSent(
-        expectedCase.getAddressType(),
-        caseRequestDTO.getEstabType().getCode(),
-        caseRequestDTO.getCeUsualResidents(),
-        expectedAddress);
+    expectedAddress.setCaseType(expectedCaseType.name());
+    expectedAddress.getAddress().setAddressType(expectedAddressType);
+    expectedAddress.getAddress().setAddressLevel(expectedAddressLevel);
+    expectedAddress.getAddress().setEstabType(caseRequestDTO.getEstabType().getCode());
+    expectedAddress.setCeExpectedCapacity(caseRequestDTO.getCeUsualResidents());
+    verifyNewAddressEventSent(expectedAddress);
 
     // Verify response
+    String caseTypeName = caseRequestDTO.getCaseType().name();
     verifyCaseDTOContent(expectedCase, caseTypeName, expectedIsSecureEstablishment, response);
+  }
+
+  private void doTestNewCaseForNewAddress(
+      NewCaseRequestDTO caseRequestDTO,
+      String expectedAddressAndCaseType,
+      String expectedAddressLevel,
+      Region expectedRegion,
+      boolean expectedIsSecureEstablishment)
+      throws CTPException {
+    doTestNewCaseForNewAddress(
+        caseRequestDTO,
+        expectedAddressAndCaseType,
+        CaseType.valueOf(expectedAddressAndCaseType),
+        expectedAddressLevel,
+        expectedRegion,
+        expectedIsSecureEstablishment);
   }
 
   private void verifyCaseDTOContent(
@@ -387,25 +404,11 @@ public class CaseServiceImplCreateCaseForNewAddressTest extends CaseServiceImplT
     assertEquals(expectedNewCaseResult, actualCaseDto);
   }
 
-  private void verifyNewAddressEventSent(
-      String expectedAddressType,
-      String expectedEstabTypeCode,
-      Integer expectedCapacity,
-      CollectionCaseNewAddress newAddress) {
-    newAddress.setCaseType(expectedAddressType);
-    newAddress.setSurvey(SURVEY_NAME);
-    newAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
-    newAddress.setCeExpectedCapacity(expectedCapacity);
-    Optional<AddressType> addressType = EstabType.forCode(expectedEstabTypeCode).getAddressType();
-    if (addressType.isPresent() && addressType.get() == AddressType.CE) {
-      newAddress.getAddress().setAddressLevel("E");
-    } else {
-      newAddress.getAddress().setAddressLevel("U");
-    }
-    newAddress.getAddress().setAddressType(expectedAddressType);
-    newAddress.getAddress().setEstabType(expectedEstabTypeCode);
+  private void verifyNewAddressEventSent(CollectionCaseNewAddress expectedAddress) {
+    expectedAddress.setSurvey(SURVEY_NAME);
+    expectedAddress.setCollectionExerciseId(COLLECTION_EXERCISE_ID);
     NewAddress payload = new NewAddress();
-    payload.setCollectionCase(newAddress);
+    payload.setCollectionCase(expectedAddress);
     NewAddress payloadSent = verifyEventSent(EventType.NEW_ADDRESS_REPORTED, NewAddress.class);
     assertEquals(payload, payloadSent);
   }
