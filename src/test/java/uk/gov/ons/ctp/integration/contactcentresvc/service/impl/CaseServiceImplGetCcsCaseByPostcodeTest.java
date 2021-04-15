@@ -62,6 +62,50 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
   }
 
   @Test
+  public void testGetCcsCaseByPostcode_returnSupportedCaseTypes() throws CTPException {
+    casesFromRm.get(0).setCaseType("HH");
+    casesFromRm.get(1).setCaseType("CE");
+    casesFromRm.get(2).setCaseType("SPG");
+    when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET))).thenReturn(casesFromRm);
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
+
+    List<CaseDTO> results = target.getCCSCaseByPostcode(POSTCODE_IN_CCS_SET);
+
+    assertEquals("HH", results.get(0).getCaseType());
+    assertEquals("CE", results.get(1).getCaseType());
+    assertEquals("SPG", results.get(2).getCaseType());
+    assertEquals(3, results.size());
+  }
+
+  @Test
+  public void testGetCcsCaseByPostcode_noUnspportedCaseTypes() throws CTPException {
+    casesFromRm.get(0).setCaseType("NR");
+    casesFromRm.get(1).setCaseType("TBD");
+    casesFromRm.get(2).setCaseType("HH");
+    when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET))).thenReturn(casesFromRm);
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
+
+    List<CaseDTO> results = target.getCCSCaseByPostcode(POSTCODE_IN_CCS_SET);
+
+    assertEquals("HH", results.get(0).getCaseType());
+    assertEquals(1, results.size());
+  }
+
+  @Test
+  public void testGetCcsCaseByPostcode_fiterOutNullCaseTypes() throws CTPException {
+    casesFromRm.get(0).setCaseType("");
+    casesFromRm.get(1).setCaseType(null);
+    casesFromRm.get(2).setCaseType("CE");
+    when(caseServiceClient.getCcsCaseByPostcode(eq(POSTCODE_IN_CCS_SET))).thenReturn(casesFromRm);
+    when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
+
+    List<CaseDTO> results = target.getCCSCaseByPostcode(POSTCODE_IN_CCS_SET);
+
+    assertEquals("CE", results.get(0).getCaseType());
+    assertEquals(1, results.size());
+  }
+
+  @Test
   public void testGetCcsCaseByPostcode_withPostcodeNotInRMAndInCCSPostcodes() throws CTPException {
     when(ccsPostcodesBean.isInCCSPostcodes(POSTCODE_IN_CCS_SET)).thenReturn(true);
     doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND))
