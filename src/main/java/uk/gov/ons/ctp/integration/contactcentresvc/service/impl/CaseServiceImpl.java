@@ -304,7 +304,23 @@ public class CaseServiceImpl implements CaseService {
 
     List<CaseDTO> ccsCases = new ArrayList<CaseDTO>();
     for (CaseContainerDTO ccsCaseDetails : ccsCaseContainersList) {
-      ccsCases.add(caseDTOMapper.map(ccsCaseDetails, CaseDTO.class));
+      // Decide if the case type indicates it's worth returning the case
+      boolean isSupportedCaseType = false;
+      String caseType = ccsCaseDetails.getCaseType();
+      if (caseType != null) {
+        isSupportedCaseType =
+            caseType.equals(CaseType.HH.name())
+                || caseType.equals(CaseType.CE.name())
+                || caseType.equals(CaseType.SPG.name());
+      }
+
+      if (isSupportedCaseType) {
+        ccsCases.add(caseDTOMapper.map(ccsCaseDetails, CaseDTO.class));
+      } else {
+        log.with("caseId", ccsCaseDetails.getId())
+            .with("caseType", caseType)
+            .info("Not returning CCS case with unsupported case type");
+      }
     }
 
     return ccsCases;
