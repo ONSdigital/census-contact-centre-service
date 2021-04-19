@@ -309,7 +309,9 @@ public class CaseServiceImpl implements CaseService {
       String caseType = ccsCaseDetails.getCaseType();
       if (caseType != null) {
         isSupportedCaseType =
-            caseType.equals("HH") || caseType.equals("CE") || caseType.equals("SPG");
+            caseType.equals(CaseType.HH.name())
+                || caseType.equals(CaseType.CE.name())
+                || caseType.equals(CaseType.SPG.name());
       }
 
       if (isSupportedCaseType) {
