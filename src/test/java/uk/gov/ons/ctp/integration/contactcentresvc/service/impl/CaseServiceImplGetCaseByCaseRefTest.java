@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import uk.gov.ons.ctp.common.domain.CaseType;
 import uk.gov.ons.ctp.common.domain.EstabType;
 import uk.gov.ons.ctp.common.domain.UniquePropertyReferenceNumber;
 import uk.gov.ons.ctp.common.error.CTPException;
+import uk.gov.ons.ctp.common.error.CTPException.Fault;
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.CaseQueryRequestDTO;
@@ -41,6 +43,7 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
   @Before
   public void setup() {
     mockCaseEventWhiteList();
+    //    mockUprnBlacklist();
   }
 
   @Test
@@ -148,6 +151,25 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
     CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(true);
     CaseDTO results = target.getCaseByCaseReference(VALID_CASE_REF, requestParams);
     assertEquals(EstabType.OTHER, results.getEstabType());
+  }
+
+  @Test
+  public void shouldReport404ForBlacklistedUPRN() throws Exception {
+    CaseContainerDTO caseFromCaseService = casesFromCaseService().get(0);
+    caseFromCaseService.setCaseType(CaseType.CE.name());
+    caseFromCaseService.setEstabType(null);
+    Mockito.when(caseServiceClient.getCaseByCaseRef(any(), any())).thenReturn(caseFromCaseService);
+
+    when(blacklistedUPRNBean.isUPRNBlacklisted(any())).thenReturn(true);
+
+    CaseQueryRequestDTO requestParams = new CaseQueryRequestDTO(true);
+    try {
+      target.getCaseByCaseReference(VALID_CASE_REF, requestParams);
+      fail();
+    } catch (CTPException e) {
+      assertEquals(Fault.RESOURCE_NOT_FOUND, e.getFault());
+      assertTrue(e.getMessage(), e.getMessage().contains("blacklisted"));
+    }
   }
 
   private void doTestGetCaseByCaseRef(CaseType caseType, boolean caseEvents) throws Exception {

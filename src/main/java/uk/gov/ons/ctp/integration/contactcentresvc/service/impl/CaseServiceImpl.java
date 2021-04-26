@@ -62,6 +62,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuest
 import uk.gov.ons.ctp.integration.common.product.ProductReference;
 import uk.gov.ons.ctp.integration.common.product.model.Product;
 import uk.gov.ons.ctp.integration.common.product.model.Product.Region;
+import uk.gov.ons.ctp.integration.contactcentresvc.BlacklistedUPRNBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSPostcodesBean;
 import uk.gov.ons.ctp.integration.contactcentresvc.CCSvcBeanMapper;
 import uk.gov.ons.ctp.integration.contactcentresvc.client.addressindex.model.AddressIndexAddressCompositeDTO;
@@ -126,6 +127,8 @@ public class CaseServiceImpl implements CaseService {
   @Autowired private EventPublisher eventPublisher;
 
   @Autowired private CCSPostcodesBean ccsPostcodesBean;
+
+  @Autowired private BlacklistedUPRNBean blacklistedUPRNBean;
 
   @Inject
   @Qualifier("addressIndexClient")
@@ -275,6 +278,7 @@ public class CaseServiceImpl implements CaseService {
     if (log.isDebugEnabled()) {
       log.with("uprn", uprn).debug("Fetching latest case details by UPRN");
     }
+
     Optional<CaseDTO> latest = getLatestCaseByUprn(uprn, requestParamsDTO.getCaseEvents());
 
     CaseDTO response;
@@ -342,6 +346,20 @@ public class CaseServiceImpl implements CaseService {
     rejectHouseholdIndividual(caseServiceResponse);
     if (log.isDebugEnabled()) {
       log.with("caseRef", caseRef).debug("Returning case details for case reference");
+    }
+
+    // Return a 404 if the UPRN is blacklisted
+    UniquePropertyReferenceNumber foundUprn = caseServiceResponse.getUprn();
+    if (blacklistedUPRNBean.isUPRNBlacklisted(foundUprn)) {
+      log.with("case", caseServiceResponse.getId())
+          .with("foundUprn", foundUprn)
+          .info("UPRN is blacklisted. Not fetching case");
+      throw new CTPException(
+          Fault.RESOURCE_NOT_FOUND,
+          "Case "
+              + caseServiceResponse.getId()
+              + " is for a blacklisted uprn: "
+              + foundUprn.getValue());
     }
 
     return caseServiceResponse;

@@ -38,7 +38,6 @@ public class CaseServiceImplGetCcsCaseByPostcodeTest extends CaseServiceImplTest
 
   @Before
   public void setup() throws IOException {
-    mockCcsPostcodes();
     casesFromRm = FixtureHelper.loadPackageFixtures(CaseContainerDTO[].class);
   }
 

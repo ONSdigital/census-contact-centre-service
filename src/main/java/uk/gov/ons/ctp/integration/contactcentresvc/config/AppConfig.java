@@ -28,6 +28,7 @@ public class AppConfig {
   private Resource publicPgpKey1;
   private Resource publicPgpKey2;
   private CCSPostcodes ccsPostcodes;
+  private UPRNBlacklist uprnBlacklist;
   private CustomCircuitBreakerConfig circuitBreaker;
   private MessagingConfig messaging;
 
