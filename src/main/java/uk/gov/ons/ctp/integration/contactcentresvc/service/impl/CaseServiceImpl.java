@@ -358,8 +358,9 @@ public class CaseServiceImpl implements CaseService {
           Fault.RESOURCE_NOT_FOUND,
           "Case "
               + caseServiceResponse.getId()
-              + " is for a blacklisted uprn: "
-              + foundUprn.getValue());
+              + " with UPRN "
+              + foundUprn.getValue()
+              + " is IVR restricted");
     }
 
     return caseServiceResponse;

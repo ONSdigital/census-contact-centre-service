@@ -168,7 +168,7 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
       fail();
     } catch (CTPException e) {
       assertEquals(Fault.RESOURCE_NOT_FOUND, e.getFault());
-      assertTrue(e.getMessage(), e.getMessage().contains("blacklisted"));
+      assertTrue(e.getMessage(), e.getMessage().contains("IVR restricted"));
     }
   }
 
