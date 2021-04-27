@@ -353,7 +353,7 @@ public class CaseServiceImpl implements CaseService {
     if (blacklistedUPRNBean.isUPRNBlacklisted(foundUprn)) {
       log.with("case", caseServiceResponse.getId())
           .with("foundUprn", foundUprn)
-          .info("UPRN is blacklisted. Not fetching case");
+          .info("UPRN is blacklisted. Not returning case");
       throw new CTPException(
           Fault.RESOURCE_NOT_FOUND,
           "Case "
