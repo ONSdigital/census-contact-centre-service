@@ -43,6 +43,7 @@ public class BlacklistedUPRNBean {
           UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(uprnAsString);
           blacklistedUprns.add(uprn.getValue());
         }
+        log.with("size", blacklistedUprns.size()).info("Read blacklisted UPRNs from file");
       } catch (IOException e) {
         log.with("strUprnBlacklistPath", strUprnBlacklistPath)
             .error(

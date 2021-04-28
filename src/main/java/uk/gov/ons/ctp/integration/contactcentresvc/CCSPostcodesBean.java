@@ -38,6 +38,7 @@ public class CCSPostcodesBean {
         while ((postcode = br.readLine()) != null) {
           ccsPostcodes.add(postcode.trim());
         }
+        log.with("size", ccsPostcodes.size()).info("Read ccsPostcodes from file");
       } catch (IOException e) {
         log.with("strPostcodePath", strPostcodePath)
             .error(
