@@ -43,7 +43,6 @@ public class CaseServiceImplGetCaseByCaseRefTest extends CaseServiceImplTestBase
   @Before
   public void setup() {
     mockCaseEventWhiteList();
-    //    mockUprnBlacklist();
   }
 
   @Test

@@ -3,6 +3,7 @@ package uk.gov.ons.ctp.integration.contactcentresvc;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
@@ -23,7 +24,17 @@ public class BlacklistedUPRNBean {
 
   private Set<Long> blacklistedUprns;
 
+  /**
+   * Determine if the supplied uprn is on the list of blacklisted UPRN.
+   *
+   * @param uprn is the UPRN to check.
+   * @return true if the supplied UPRN is not null and is on the blacklist, otherwise false.
+   */
   public boolean isUPRNBlacklisted(UniquePropertyReferenceNumber uprn) {
+    if (uprn == null) {
+      return false;
+    }
+
     return blacklistedUprns.contains(uprn.getValue());
   }
 
@@ -45,11 +56,18 @@ public class BlacklistedUPRNBean {
         }
         log.with("size", blacklistedUprns.size()).info("Read blacklisted UPRNs from file");
       } catch (IOException e) {
-        log.with("strUprnBlacklistPath", strUprnBlacklistPath)
-            .error(
-                "APPLICATION IS MISCONFIGURED - unable to read blacklisted UPRNs from file."
-                    + " Using default blacklisted UPRNs from application.yml instead.",
-                e);
+        if (new File(strUprnBlacklistPath).exists()) {
+          log.with("strUprnBlacklistPath", strUprnBlacklistPath)
+              .error(
+                  "APPLICATION IS MISCONFIGURED - Unable to read blacklisted UPRNs from file."
+                      + " Using default blacklisted UPRNs from application.yml instead.",
+                  e);
+        } else {
+          log.with("strUprnBlacklistPath", strUprnBlacklistPath)
+              .error(
+                  "APPLICATION IS MISCONFIGURED - Blacklisted UPRN file doesn't exist."
+                      + " Using default blacklisted UPRNs from application.yml instead.");
+        }
         blacklistedUprns = appConfig.getUprnBlacklist().getDefaultUprnBlacklist();
       }
     }
