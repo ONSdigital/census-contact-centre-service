@@ -51,7 +51,8 @@ public class BlacklistedUPRNBean {
       try (BufferedReader br = new BufferedReader(new FileReader(strUprnBlacklistPath))) {
         while ((uprnAsString = br.readLine()) != null) {
           log.with("uprn", uprnAsString).debug("Reading blacklisted entry");
-          UniquePropertyReferenceNumber uprn = new UniquePropertyReferenceNumber(uprnAsString);
+          UniquePropertyReferenceNumber uprn =
+              new UniquePropertyReferenceNumber(uprnAsString.trim());
           blacklistedUprns.add(uprn.getValue());
         }
         log.with("size", blacklistedUprns.size()).info("Read blacklisted UPRNs from file");
