@@ -55,10 +55,12 @@ public class CCSPostcodesBeanTest {
     assertFalse(postcodesBean.isInCCSPostcodes("GW12 AAA"));
   }
 
-  private CCSPostcodesBean createPostcodesBeanWithNoFile(String... defaultPostcodes) throws IOException {
+  private CCSPostcodesBean createPostcodesBeanWithNoFile(String... defaultPostcodes)
+      throws IOException {
     Set<String> postcodeSet = new HashSet<String>(Arrays.asList(defaultPostcodes));
 
-    return createPostcodesBean("/tmp/unknownFile_c0d3ceb6-16c4-4bf8-8dbb-2184e274a80b", postcodeSet);
+    return createPostcodesBean(
+        "/tmp/unknownFile_c0d3ceb6-16c4-4bf8-8dbb-2184e274a80b", postcodeSet);
   }
 
   private CCSPostcodesBean createPostcodesBeanPostcodeFile(String... defaultPostcodes)
