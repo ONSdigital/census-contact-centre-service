@@ -29,7 +29,7 @@ public class CCSPostcodesBean {
   }
 
   @PostConstruct
-  private void init() {
+  void init() {
     this.ccsPostcodes = new HashSet<>();
     String strPostcodePath = appConfig.getCcsPostcodes().getCcsPostcodePath();
 
