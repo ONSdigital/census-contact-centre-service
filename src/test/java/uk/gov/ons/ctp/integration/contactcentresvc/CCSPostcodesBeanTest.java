@@ -20,19 +20,19 @@ import uk.gov.ons.ctp.integration.contactcentresvc.config.CCSPostcodes;
 public class CCSPostcodesBeanTest {
 
   @Test
-  public void testDefaultList_findWithSpaceInSearchPostcode() {
+  public void testDefaultList_findWithSpaceInSearchPostcode() throws IOException {
     CCSPostcodesBean postcodesBean = createPostcodesBeanWithNoFile("GW12 AAA");
     assertTrue(postcodesBean.isInCCSPostcodes("GW12 AAA"));
   }
 
   @Test
-  public void testDefaultList_findWithNoSpaceInSearchPostcode() {
+  public void testDefaultList_findWithNoSpaceInSearchPostcode() throws IOException {
     CCSPostcodesBean postcodesBean = createPostcodesBeanWithNoFile("GW12 AAA");
     assertTrue(postcodesBean.isInCCSPostcodes("GW12AAA"));
   }
 
   @Test
-  public void testDefaultList_dontFindUnknownPostcode() {
+  public void testDefaultList_dontFindUnknownPostcode() throws IOException {
     CCSPostcodesBean postcodesBean = createPostcodesBeanWithNoFile("GW12 AAA");
     assertFalse(postcodesBean.isInCCSPostcodes("PO11 5AB"));
   }
@@ -55,28 +55,26 @@ public class CCSPostcodesBeanTest {
     assertFalse(postcodesBean.isInCCSPostcodes("GW12 AAA"));
   }
 
-  private CCSPostcodesBean createPostcodesBeanWithNoFile(String... defaultPostcodes) {
-    AppConfig appConfig = new AppConfig();
-    appConfig.setChannel(Channel.CC);
+  private CCSPostcodesBean createPostcodesBeanWithNoFile(String... defaultPostcodes) throws IOException {
+    Set<String> postcodeSet = new HashSet<String>(Arrays.asList(defaultPostcodes));
 
-    CCSPostcodes ccsPostcodes = new CCSPostcodes();
-    appConfig.setCcsPostcodes(ccsPostcodes);
-
-    // Set up postcodes file (not used)
-    ccsPostcodes.setCcsPostcodePath("/tmp/c0d3ceb6-16c4-4bf8-8dbb-2184e274a80b");
-
-    // Populate default test postcodes
-    Set<String> mySet = new HashSet<String>(Arrays.asList(defaultPostcodes));
-    ccsPostcodes.setCcsDefaultPostcodes(mySet);
-
-    CCSPostcodesBean postcodesBean = new CCSPostcodesBean();
-    ReflectionTestUtils.setField(postcodesBean, "appConfig", appConfig);
-    postcodesBean.init();
-
-    return postcodesBean;
+    return createPostcodesBean("/tmp/unknownFile_c0d3ceb6-16c4-4bf8-8dbb-2184e274a80b", postcodeSet);
   }
 
   private CCSPostcodesBean createPostcodesBeanPostcodeFile(String... defaultPostcodes)
+      throws IOException {
+    // Set up postcodes file
+    Path tempFile = Files.createTempFile(null, null);
+    List<String> content = Arrays.asList(defaultPostcodes);
+    Files.write(tempFile, content, StandardOpenOption.APPEND);
+
+    // Populate default test postcodes (not used)
+    Set<String> postcodeSet = new HashSet<String>(Arrays.asList("no-postcodes"));
+
+    return createPostcodesBean(tempFile.toString(), postcodeSet);
+  }
+
+  private CCSPostcodesBean createPostcodesBean(String postcodesFile, Set<String> defaultPostcodes)
       throws IOException {
     AppConfig appConfig = new AppConfig();
     appConfig.setChannel(Channel.CC);
@@ -85,14 +83,10 @@ public class CCSPostcodesBeanTest {
     appConfig.setCcsPostcodes(ccsPostcodes);
 
     // Set up postcodes file
-    Path tempFile = Files.createTempFile(null, null);
-    List<String> content = Arrays.asList(defaultPostcodes);
-    Files.write(tempFile, content, StandardOpenOption.APPEND);
-    ccsPostcodes.setCcsPostcodePath(tempFile.toString());
+    ccsPostcodes.setCcsPostcodePath(postcodesFile);
 
     // Populate default test postcodes (not used)
-    Set<String> mySet = new HashSet<String>(Arrays.asList("no-postcodes"));
-    ccsPostcodes.setCcsDefaultPostcodes(mySet);
+    ccsPostcodes.setCcsDefaultPostcodes(defaultPostcodes);
 
     CCSPostcodesBean postcodesBean = new CCSPostcodesBean();
     ReflectionTestUtils.setField(postcodesBean, "appConfig", appConfig);
