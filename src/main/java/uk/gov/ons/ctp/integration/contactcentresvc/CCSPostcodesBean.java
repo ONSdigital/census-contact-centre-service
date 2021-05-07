@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,8 +23,9 @@ public class CCSPostcodesBean {
 
   private Set<String> ccsPostcodes;
 
-  public boolean isInCCSPostcodes(String postcode) {
-    return ccsPostcodes.contains(postcode);
+  public boolean isInCCSPostcodes(String rawPostcode) {
+    String cleanedPostcode = normalisePostcode(rawPostcode);
+    return ccsPostcodes.contains(cleanedPostcode);
   }
 
   @PostConstruct
@@ -35,9 +37,10 @@ public class CCSPostcodesBean {
 
     if (isRunningCC) {
       try (BufferedReader br = new BufferedReader(new FileReader(strPostcodePath))) {
-        String postcode;
-        while ((postcode = br.readLine()) != null) {
-          ccsPostcodes.add(postcode.trim());
+        String rawPostcode;
+        while ((rawPostcode = br.readLine()) != null) {
+          String postcode = normalisePostcode(rawPostcode);
+          ccsPostcodes.add(postcode);
         }
         log.with("size", ccsPostcodes.size()).info("Read ccsPostcodes from file");
       } catch (IOException e) {
@@ -53,8 +56,17 @@ public class CCSPostcodesBean {
                   "APPLICATION IS MISCONFIGURED - Postcode file doesn't exist."
                       + " Using postcodes from application.yml instead.");
         }
-        ccsPostcodes = appConfig.getCcsPostcodes().getCcsDefaultPostcodes();
+        ccsPostcodes =
+            appConfig.getCcsPostcodes().getCcsDefaultPostcodes().stream()
+                .map(p -> normalisePostcode(p))
+                .collect(Collectors.toSet());
       }
     }
+  }
+
+  private String normalisePostcode(String rawPostcode) {
+    String normalisedPostcode = rawPostcode.trim();
+    normalisedPostcode = normalisedPostcode.replace(" ", "");
+    return normalisedPostcode;
   }
 }
