@@ -15,6 +15,7 @@ import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_Q
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.A_REGION;
 import static uk.gov.ons.ctp.integration.contactcentresvc.CaseServiceFixture.UUID_0;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +43,7 @@ import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.CaseContainerD
 import uk.gov.ons.ctp.integration.caseapiclient.caseservice.model.SingleUseQuestionnaireIdDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.cloud.CachedCase;
 import uk.gov.ons.ctp.integration.contactcentresvc.config.EqConfig;
+import uk.gov.ons.ctp.integration.contactcentresvc.config.TelephoneCapture;
 import uk.gov.ons.ctp.integration.contactcentresvc.representation.LaunchRequestDTO;
 import uk.gov.ons.ctp.integration.contactcentresvc.service.CaseService;
 import uk.gov.ons.ctp.integration.eqlaunch.crypto.KeyStore;
@@ -69,6 +71,10 @@ public class CaseServiceImplLaunchTest extends CaseServiceImplTestBase {
 
     Mockito.when(appConfig.getChannel()).thenReturn(Channel.CC);
     Mockito.when(appConfig.getEq()).thenReturn(eqConfig);
+
+    TelephoneCapture telephoneCapture = new TelephoneCapture();
+    telephoneCapture.setDisabled(new HashSet<String>());
+    Mockito.when(appConfig.getTelephoneCapture()).thenReturn(telephoneCapture);
   }
 
   @Test

@@ -447,6 +447,18 @@ public class CaseServiceImpl implements CaseService {
 
     CaseContainerDTO caseDetails = getLaunchCase(caseId);
 
+    // Exit if the survey type is on the disabled list
+    Set<String> disabledSurveyTypes = appConfig.getTelephoneCapture().getDisabled();
+    for (String rawDisabledSurveyType : disabledSurveyTypes) {
+      String disabledSurveyType = rawDisabledSurveyType.trim().toUpperCase();
+      String caseSurveyType = caseDetails.getSurveyType().trim().toUpperCase();
+      if (caseSurveyType.contentEquals(disabledSurveyType)) {
+        throw new CTPException(
+            Fault.ACCEPTED_UNABLE_TO_PROCESS,
+            "The " + caseSurveyType + " Survey related to this case has been closed");
+      }
+    }
+
     SingleUseQuestionnaireIdDTO newQuestionnaireIdDto =
         getNewQidForCase(caseDetails, requestParamsDTO.getIndividual());
 

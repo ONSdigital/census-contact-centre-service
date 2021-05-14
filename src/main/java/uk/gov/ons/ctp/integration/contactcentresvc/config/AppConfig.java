@@ -31,6 +31,7 @@ public class AppConfig {
   private UPRNBlacklist uprnBlacklist;
   private CustomCircuitBreakerConfig circuitBreaker;
   private MessagingConfig messaging;
+  private TelephoneCapture telephoneCapture;
 
   public void setChannel(Channel channel) {
     if (channel.equals(Channel.CC) || channel.equals(Channel.AD)) {
