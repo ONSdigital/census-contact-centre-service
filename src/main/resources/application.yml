@@ -198,5 +198,3 @@ uprn-blacklist:
 
 telephone-capture:
   disabled:
-      - CCS
-      - CENSUS
